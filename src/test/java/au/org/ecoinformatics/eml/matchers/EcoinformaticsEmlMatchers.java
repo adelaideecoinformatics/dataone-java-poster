@@ -7,7 +7,12 @@ import org.hamcrest.Matcher;
 import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
 
 public class EcoinformaticsEmlMatchers {
-	public static Matcher<? super List<I18NNonEmptyStringType>> hasI18NContent(String expectedContent) {
+
+	public static Matcher<? super List<I18NNonEmptyStringType>> hasFirstI18NContent(String expectedContent) {
+		return new HasFirstI18NContentMatcher(expectedContent);
+	}
+
+	public static Matcher<? super I18NNonEmptyStringType> hasI18NContent(String expectedContent) {
 		return new HasI18NContentMatcher(expectedContent);
 	}
 }

@@ -1,13 +1,13 @@
 package au.org.ecoinformatics.eml.matchers;
 
-import java.util.List;
+import java.io.Serializable;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
 import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
 
-class HasI18NContentMatcher extends BaseMatcher<List<I18NNonEmptyStringType>> {
+class HasI18NContentMatcher extends BaseMatcher<I18NNonEmptyStringType> {
 
 	private static final int FIRST_ITEM = 0;
 	private final String expectedContent;
@@ -18,14 +18,18 @@ class HasI18NContentMatcher extends BaseMatcher<List<I18NNonEmptyStringType>> {
 
 	@Override
 	public boolean matches(Object item) {
-		List<I18NNonEmptyStringType> castItem = (List<I18NNonEmptyStringType>) item;
-		if (castItem.isEmpty()) {
+		if (item == null) {
 			return false;
 		}
-		if (castItem.get(FIRST_ITEM).getContent().isEmpty()) {
+		I18NNonEmptyStringType castItem = (I18NNonEmptyStringType) item;
+		if (castItem.getContent().isEmpty()) {
 			return false;
 		}
-		if (castItem.get(FIRST_ITEM).getContent().get(FIRST_ITEM).equals(expectedContent)) {
+		Serializable contentOfFirstItem = castItem.getContent().get(FIRST_ITEM);
+		if (contentOfFirstItem == null) {
+			return false;
+		}
+		if (contentOfFirstItem.equals(expectedContent)) {
 			return true;
 		}
 		return false;

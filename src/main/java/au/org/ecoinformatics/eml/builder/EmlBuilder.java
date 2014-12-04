@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml;
+package au.org.ecoinformatics.eml.builder;
 
 import au.org.ecoinformatics.eml.jaxb.DatasetType;
 import au.org.ecoinformatics.eml.jaxb.Eml;

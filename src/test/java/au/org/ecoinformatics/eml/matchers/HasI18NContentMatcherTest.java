@@ -3,11 +3,8 @@ package au.org.ecoinformatics.eml.matchers;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.DatasetType;
 import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
 
 public class HasI18NContentMatcherTest {
@@ -18,7 +15,7 @@ public class HasI18NContentMatcherTest {
 	@Test
 	public void testMatches01() {
 		HasI18NContentMatcher objectUnderTest = new HasI18NContentMatcher("blah");
-		List<I18NNonEmptyStringType> item = getI18NListWithContent("blah");
+		I18NNonEmptyStringType item = getI18NWithContent("blah");
 		boolean result = objectUnderTest.matches(item);
 		assertTrue("should be considered matching", result);
 	}
@@ -29,7 +26,7 @@ public class HasI18NContentMatcherTest {
 	@Test
 	public void testMatches02() {
 		HasI18NContentMatcher objectUnderTest = new HasI18NContentMatcher("something");
-		List<I18NNonEmptyStringType> item = getI18NListWithContent("another thing");
+		I18NNonEmptyStringType item = getI18NWithContent("another thing");
 		boolean result = objectUnderTest.matches(item);
 		assertFalse("should NOT be considered matching", result);
 	}
@@ -40,49 +37,57 @@ public class HasI18NContentMatcherTest {
 	@Test
 	public void testMatches03() {
 		HasI18NContentMatcher objectUnderTest = new HasI18NContentMatcher(null);
-		List<I18NNonEmptyStringType> item = getI18NListWithContent("another thing");
+		I18NNonEmptyStringType item = getI18NWithContent("another thing");
 		boolean result = objectUnderTest.matches(item);
 		assertFalse("should NOT be considered matching", result);
 	}
 
 	/**
-	 * Can we handle an item with no content items?
+	 * Can we handle a null item?
 	 */
 	@Test
 	public void testMatches04() {
 		HasI18NContentMatcher objectUnderTest = new HasI18NContentMatcher("something");
-		List<I18NNonEmptyStringType> item = getEmptyI18NList();
+		I18NNonEmptyStringType item = null;
 		boolean result = objectUnderTest.matches(item);
 		assertFalse("should NOT be considered matching", result);
 	}
 
 	/**
-	 * Can we handle an item with one content item but without anything inside it?
+	 * Can we handle an item with no content?
 	 */
 	@Test
 	public void testMatches05() {
 		HasI18NContentMatcher objectUnderTest = new HasI18NContentMatcher("something");
-		List<I18NNonEmptyStringType> item = getI18NListWithOneEmptyItem();
+		I18NNonEmptyStringType item = getI18NWithoutContent();
 		boolean result = objectUnderTest.matches(item);
 		assertFalse("should NOT be considered matching", result);
 	}
 
-	private List<I18NNonEmptyStringType> getI18NListWithContent(String text) {
-		DatasetType dt = new DatasetType();
-		I18NNonEmptyStringType content = new I18NNonEmptyStringType();
-		content.getContent().add(text);
-		dt.getTitle().add(content);
-		return dt.getTitle();
+	/**
+	 * Can we survive an item that contains content but it is null?
+	 */
+	@Test
+	public void testMatches06() {
+		HasI18NContentMatcher objectUnderTest = new HasI18NContentMatcher("something");
+		I18NNonEmptyStringType item = getI18NWithOneNullContent();
+		boolean result = objectUnderTest.matches(item);
+		assertFalse("should NOT be considered matching", result);
 	}
 
-	private List<I18NNonEmptyStringType> getEmptyI18NList() {
-		return new DatasetType().getTitle();
+	private I18NNonEmptyStringType getI18NWithContent(String text) {
+		I18NNonEmptyStringType result = new I18NNonEmptyStringType();
+		result.getContent().add(text);
+		return result;
 	}
 
-	private List<I18NNonEmptyStringType> getI18NListWithOneEmptyItem() {
-		DatasetType dt = new DatasetType();
-		I18NNonEmptyStringType content = new I18NNonEmptyStringType();
-		dt.getTitle().add(content);
-		return dt.getTitle();
+	private I18NNonEmptyStringType getI18NWithoutContent() {
+		return new I18NNonEmptyStringType();
+	}
+
+	private I18NNonEmptyStringType getI18NWithOneNullContent() {
+		I18NNonEmptyStringType result = new I18NNonEmptyStringType();
+		result.getContent().add(null);
+		return result;
 	}
 }
