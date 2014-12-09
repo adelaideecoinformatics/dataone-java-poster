@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import au.org.ecoinformatics.eml.jaxb.Eml;
 
-import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 public class EmlPrettyPrinter {
 
@@ -28,8 +28,8 @@ public class EmlPrettyPrinter {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Eml.class);
 			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 			NamespacePrefixMapper mapper = new EmlNamespacePrefixMapper();
-			jaxbMarshaller.setProperty("com.sun.xml.internal.bind.namespacePrefixMapper", mapper);
-			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			jaxbMarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", mapper);
+			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
 			jaxbMarshaller.marshal(eml, out);
 		} catch (JAXBException e) {
 			throw new RuntimeException("Failed to pretty print the EML document", e);
@@ -64,6 +64,7 @@ public class EmlPrettyPrinter {
 			nsMappings.put("eml://ecoinformatics.org/view", "v");
 			nsMappings.put("http://www.w3.org/XML/1998/namespace", "xml");
 		}
+
 		@Override
 		public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
 			logger.debug("handling '{}' with suggestion '{}'", namespaceUri, suggestion);
