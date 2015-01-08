@@ -33,13 +33,13 @@ public class ResponsiblePartyBuilderTest {
 	}
 
 	/**
-	 * Can we build a responsible party object with a person?
+	 * Can we build a responsible party object with an individual name?
 	 */
 	@Test
 	public void testCreator01() {
 		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
 		Person person = new PersonBuilder().salutation("Mr").givenName("Jason").surName("Bourne").build();
-		ResponsibleParty result = objectUnderTest.person(person).build();
+		ResponsibleParty result = objectUnderTest.individualName(person).build();
 		Person value = ((Person) result.getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue());
 		assertThat(value.getSalutation(), hasFirstI18NContent("Mr"));
 		assertThat(value.getGivenName(), hasFirstI18NContent("Jason"));
@@ -52,7 +52,7 @@ public class ResponsiblePartyBuilderTest {
 	@Test
 	public void testOrgName01() {
 		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		ResponsibleParty result = objectUnderTest.orgName("EcoInf").build();
+		ResponsibleParty result = objectUnderTest.organizationName("EcoInf").build();
 		I18NNonEmptyStringType value = ((I18NNonEmptyStringType) result.getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue());
 		assertThat(value, hasI18NContent("EcoInf"));
 	}
@@ -97,7 +97,7 @@ public class ResponsiblePartyBuilderTest {
 	@Test
 	public void testElectronicMailAddress01() {
 		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		ResponsibleParty result = objectUnderTest.email("blah@mail.com").build();
+		ResponsibleParty result = objectUnderTest.electronicMailAddress("blah@mail.com").build();
 		assertThat(result.getElectronicMailAddress(), hasFirstI18NContent("blah@mail.com"));
 	}
 

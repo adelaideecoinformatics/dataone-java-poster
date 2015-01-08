@@ -17,11 +17,13 @@ public class DatasetTypeBuilder {
 	private TextType intellectualRights;
 
 	public DatasetTypeBuilder datasetTitle(String datasetTitle) {
+		//FIXME support maxOccurs="unbounded"
 		this.datasetTitle = datasetTitle;
 		return this;
 	}
 
 	public DatasetTypeBuilder creator(ResponsiblePartyBuilder creatorBuilder) {
+		//FIXME support maxOccurs="unbounded"
 		this.creator = creatorBuilder.build();
 		return this;
 	}

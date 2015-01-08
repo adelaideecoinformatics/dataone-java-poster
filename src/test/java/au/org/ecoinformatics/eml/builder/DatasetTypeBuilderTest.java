@@ -31,7 +31,7 @@ public class DatasetTypeBuilderTest {
 	@Test
 	public void testCreator01() {
 		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		ResponsiblePartyBuilder creatorBuilder = new ResponsiblePartyBuilder().person(
+		ResponsiblePartyBuilder creatorBuilder = new ResponsiblePartyBuilder().individualName(
 				new PersonBuilder()
 					.salutation("Mr")
 					.givenName("Neo")

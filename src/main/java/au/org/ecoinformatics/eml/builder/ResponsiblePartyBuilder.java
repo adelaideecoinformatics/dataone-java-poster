@@ -15,7 +15,7 @@ import au.org.ecoinformatics.eml.jaxb.ResponsibleParty.UserId;
 
 public class ResponsiblePartyBuilder {
 
-	private Person person;
+	private Person individualName;
 	private String orgName;
 	private String positionName;
 	private Address address;
@@ -24,34 +24,38 @@ public class ResponsiblePartyBuilder {
 	private List<String> onlineUrls = new LinkedList<String>();
 	private List<UserId> userIds = new LinkedList<UserId>();
 
-	public ResponsiblePartyBuilder person(Person person) {
-		this.person = person;
+	public ResponsiblePartyBuilder individualName(Person person) {
+		//FIXME support maxOccurs="unbounded"
+		this.individualName = person;
 		return this;
 	}
 
-	public ResponsiblePartyBuilder orgName(String orgName) {
-		this.orgName = orgName;
+	public ResponsiblePartyBuilder organizationName(String organizationName) {
+		//FIXME support maxOccurs="unbounded"
+		this.orgName = organizationName;
 		return this;
 	}
 
 	public ResponsiblePartyBuilder positionName(String positionName) {
+		//FIXME support maxOccurs="unbounded"
 		this.positionName = positionName;
 		return this;
 	}
 
 	public ResponsiblePartyBuilder address(Address address) {
+		//FIXME support maxOccurs="unbounded"
 		this.address = address;
 		return this;
 	}
 
 	public ResponsiblePartyBuilder phone(Phone phone) {
-		//TODO support multiples
+		//FIXME support maxOccurs="unbounded"
 		this.phone = phone;
 		return this;
 	}
 
-	public ResponsiblePartyBuilder email(String emailAddress) {
-		//TODO support multiples
+	public ResponsiblePartyBuilder electronicMailAddress(String emailAddress) {
+		//FIXME support maxOccurs="unbounded"
 		this.emailAddress = emailAddress;
 		return this;
 	}
@@ -68,8 +72,8 @@ public class ResponsiblePartyBuilder {
 
 	public ResponsibleParty build() {
 		ResponsibleParty result = new ResponsibleParty();
-		if (isSupplied(person)) {
-			JAXBElement<?> e = new JAXBElement<Person>(new QName("person"), Person.class, null, person);
+		if (isSupplied(individualName)) {
+			JAXBElement<?> e = new JAXBElement<Person>(new QName("person"), Person.class, null, individualName);
 			result.getIndividualNameOrOrganizationNameOrPositionName().add(e);
 		}
 		if (isSupplied(orgName)) {
