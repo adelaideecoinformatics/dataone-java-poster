@@ -36,7 +36,6 @@ public class DatasetTypeBuilderTest {
 					.salutation("Mr")
 					.givenName("Neo")
 					.surName("Anderson")
-					.build()
 			);
 		DatasetType result = objectUnderTest.creator(creatorBuilder).build();
 		Person actualPerson = (Person) result.getCreator().get(0).getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue();

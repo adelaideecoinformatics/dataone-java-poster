@@ -12,8 +12,6 @@ import au.org.ecoinformatics.eml.jaxb.Address;
 import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
 import au.org.ecoinformatics.eml.jaxb.Person;
 import au.org.ecoinformatics.eml.jaxb.ResponsibleParty;
-import au.org.ecoinformatics.eml.jaxb.ResponsibleParty.Phone;
-import au.org.ecoinformatics.eml.jaxb.ResponsibleParty.UserId;
 
 public class ResponsiblePartyBuilderTest {
 
@@ -38,8 +36,8 @@ public class ResponsiblePartyBuilderTest {
 	@Test
 	public void testCreator01() {
 		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		Person person = new PersonBuilder().salutation("Mr").givenName("Jason").surName("Bourne").build();
-		ResponsibleParty result = objectUnderTest.individualName(person).build();
+		PersonBuilder personBuilder = new PersonBuilder().salutation("Mr").givenName("Jason").surName("Bourne");
+		ResponsibleParty result = objectUnderTest.individualName(personBuilder).build();
 		Person value = ((Person) result.getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue());
 		assertThat(value.getSalutation(), hasFirstI18NContent("Mr"));
 		assertThat(value.getGivenName(), hasFirstI18NContent("Jason"));
@@ -74,8 +72,8 @@ public class ResponsiblePartyBuilderTest {
 	@Test
 	public void testAddress01() {
 		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		Address address = new AddressBuilder().city("Adelaide").build();
-		ResponsibleParty result = objectUnderTest.address(address).build();
+		AddressBuilder addressBuilder = new AddressBuilder().city("Adelaide");
+		ResponsibleParty result = objectUnderTest.address(addressBuilder).build();
 		Address value = result.getAddress().get(0);
 		assertThat(value.getCity(), hasI18NContent("Adelaide"));
 	}
@@ -86,8 +84,8 @@ public class ResponsiblePartyBuilderTest {
 	@Test
 	public void testPhone01() {
 		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		Phone phone = new PhoneBuilder().phoneNumber("0412345678").phoneType(PhoneType.tdd).build();
-		ResponsibleParty result = objectUnderTest.phone(phone).build();
+		PhoneBuilder phoneBuilder = new PhoneBuilder().phoneNumber("0412345678").phoneType(PhoneType.tdd);
+		ResponsibleParty result = objectUnderTest.phone(phoneBuilder).build();
 		assertThat(result.getPhone().get(0).getValue(), is("0412345678"));
 	}
 
@@ -120,11 +118,11 @@ public class ResponsiblePartyBuilderTest {
 	@Test
 	public void testAddUserId01() {
 		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		UserId user1 = new UserIdBuilder("user1").build();
-		UserId userA = new UserIdBuilder("userA").build();
+		UserIdBuilder userBuilder1 = new UserIdBuilder("user1");
+		UserIdBuilder userBuilderA = new UserIdBuilder("userA");
 		ResponsibleParty result = objectUnderTest
-				.addUserId(user1)
-				.addUserId(userA)
+				.addUserId(userBuilder1)
+				.addUserId(userBuilderA)
 				.build();
 		// Not awesome to expect order but we don't have equals() implemented so we can't use hasItems()
 		assertThat(result.getUserId().get(0).getValue(), is("user1"));

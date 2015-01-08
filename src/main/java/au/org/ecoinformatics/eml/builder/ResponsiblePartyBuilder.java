@@ -24,9 +24,9 @@ public class ResponsiblePartyBuilder {
 	private List<String> onlineUrls = new LinkedList<String>();
 	private List<UserId> userIds = new LinkedList<UserId>();
 
-	public ResponsiblePartyBuilder individualName(Person person) {
+	public ResponsiblePartyBuilder individualName(PersonBuilder personBuilder) {
 		//FIXME support maxOccurs="unbounded"
-		this.individualName = person;
+		this.individualName = personBuilder.build();
 		return this;
 	}
 
@@ -42,15 +42,15 @@ public class ResponsiblePartyBuilder {
 		return this;
 	}
 
-	public ResponsiblePartyBuilder address(Address address) {
+	public ResponsiblePartyBuilder address(AddressBuilder addressBuilder) {
 		//FIXME support maxOccurs="unbounded"
-		this.address = address;
+		this.address = addressBuilder.build();
 		return this;
 	}
 
-	public ResponsiblePartyBuilder phone(Phone phone) {
+	public ResponsiblePartyBuilder phone(PhoneBuilder phoneBuilder) {
 		//FIXME support maxOccurs="unbounded"
-		this.phone = phone;
+		this.phone = phoneBuilder.build();
 		return this;
 	}
 
@@ -65,8 +65,8 @@ public class ResponsiblePartyBuilder {
 		return this;
 	}
 
-	public ResponsiblePartyBuilder addUserId(UserId userId) {
-		userIds.add(userId);
+	public ResponsiblePartyBuilder addUserId(UserIdBuilder userIdBuilder) {
+		userIds.add(userIdBuilder.build());
 		return this;
 	}
 
