@@ -14,24 +14,30 @@ public class DatasetTypeBuilder {
 	private ResponsibleParty creator;
 	private TextType abstractPara;
 	private List<KeywordSet> keywordSets = new LinkedList<KeywordSet>();
+	private TextType intellectualRights;
 
 	public DatasetTypeBuilder datasetTitle(String datasetTitle) {
 		this.datasetTitle = datasetTitle;
 		return this;
 	}
 
-	public DatasetTypeBuilder creator(ResponsibleParty creator) {
-		this.creator = creator;
+	public DatasetTypeBuilder creator(ResponsiblePartyBuilder creatorBuilder) {
+		this.creator = creatorBuilder.build();
 		return this;
 	}
 
-	public DatasetTypeBuilder abstractPara(TextType abstractPara) {
-		this.abstractPara = abstractPara;
+	public DatasetTypeBuilder abstractPara(AbstractParaBuilder abstractParaBuilder) {
+		this.abstractPara = abstractParaBuilder.build();
 		return this;
 	}
 
-	public DatasetTypeBuilder addKeywordSet(KeywordSet keywordSet) {
-		this.keywordSets.add(keywordSet);
+	public DatasetTypeBuilder addKeywordSet(KeywordSetBuilder keywordSetBuilder) {
+		this.keywordSets.add(keywordSetBuilder.build());
+		return this;
+	}
+	
+	public DatasetTypeBuilder intellectualRights(IntellectualRightsBuilder intellectualRightsBuilder) {
+		this.intellectualRights = intellectualRightsBuilder.build();
 		return this;
 	}
 
@@ -48,6 +54,9 @@ public class DatasetTypeBuilder {
 		}
 		if (!keywordSets.isEmpty()) {
 			result.getKeywordSet().addAll(keywordSets);
+		}
+		if (isSupplied(intellectualRights)) {
+			result.setIntellectualRights(intellectualRights);
 		}
 		return result;
 	}

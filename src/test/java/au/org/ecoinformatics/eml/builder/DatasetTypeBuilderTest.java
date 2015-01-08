@@ -11,8 +11,6 @@ import org.junit.Test;
 import au.org.ecoinformatics.eml.jaxb.DatasetType;
 import au.org.ecoinformatics.eml.jaxb.Person;
 import au.org.ecoinformatics.eml.jaxb.ProtocolType.KeywordSet;
-import au.org.ecoinformatics.eml.jaxb.ResponsibleParty;
-import au.org.ecoinformatics.eml.jaxb.TextType;
 
 public class DatasetTypeBuilderTest {
 
@@ -33,14 +31,14 @@ public class DatasetTypeBuilderTest {
 	@Test
 	public void testCreator01() {
 		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		ResponsibleParty creator = new ResponsiblePartyBuilder().person(
+		ResponsiblePartyBuilder creatorBuilder = new ResponsiblePartyBuilder().person(
 				new PersonBuilder()
 					.salutation("Mr")
 					.givenName("Neo")
 					.surName("Anderson")
 					.build()
-			).build();
-		DatasetType result = objectUnderTest.creator(creator).build();
+			);
+		DatasetType result = objectUnderTest.creator(creatorBuilder).build();
 		Person actualPerson = (Person) result.getCreator().get(0).getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue();
 		assertThat(actualPerson.getSurName(), hasI18NContent("Anderson"));
 	}
@@ -51,29 +49,27 @@ public class DatasetTypeBuilderTest {
 	@Test
 	public void testAbstractPara01() {
 		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		TextType abstractPara = new AbstractParaBuilder("some awesome abstract text").build();
-		DatasetType result = objectUnderTest.abstractPara(abstractPara).build();
-		String firstAbstractText = (String) result.getAbstract().getContent().get(0);
-		assertThat(firstAbstractText, is("some awesome abstract text"));
+		AbstractParaBuilder abstractParaBuilder = new AbstractParaBuilder("some awesome abstract text");
+		DatasetType result = objectUnderTest.abstractPara(abstractParaBuilder).build();
+		String abstractParagraphFirstContent = (String) result.getAbstract().getContent().get(0);
+		assertThat(abstractParagraphFirstContent, is("some awesome abstract text"));
 	}
 
 	/**
-	 * Can we build a dataset object with an abstract?
+	 * Can we build a dataset object with some keywordSets?
 	 */
 	@Test
 	public void testKeywordSet01() {
 		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		KeywordSet keywordSet1 = new KeywordSetBuilder()
+		KeywordSetBuilder keywordSetBuilder1 = new KeywordSetBuilder()
 			.addKeyword("keywordOne-1")
-			.addKeyword("keywordOne-2")
-			.build();
-		KeywordSet keywordSet2 = new KeywordSetBuilder()
+			.addKeyword("keywordOne-2");
+		KeywordSetBuilder keywordSetBuilder2 = new KeywordSetBuilder()
 			.addKeyword("keywordTwo-1")
-			.addKeyword("keywordTwo-2")
-			.build();
+			.addKeyword("keywordTwo-2");
 		DatasetType result = objectUnderTest
-			.addKeywordSet(keywordSet1)
-			.addKeywordSet(keywordSet2)
+			.addKeywordSet(keywordSetBuilder1)
+			.addKeywordSet(keywordSetBuilder2)
 			.build();
 		KeywordSet firstKeywordSet = result.getKeywordSet().get(0);
 		assertThat(((String)firstKeywordSet.getKeyword().get(0).getContent().get(0)), is("keywordOne-1"));
@@ -83,6 +79,18 @@ public class DatasetTypeBuilderTest {
 		assertThat(((String)secondKeywordSet.getKeyword().get(1).getContent().get(0)), is("keywordTwo-2"));
 	}
 
+	/**
+	 * Can we build a dataset object with an intellectual rights element?
+	 */
+	@Test
+	public void testIntellectualRights01() {
+		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
+		IntellectualRightsBuilder intellectualRightsBuilder = new IntellectualRightsBuilder("some intellectual text");
+		DatasetType result = objectUnderTest.intellectualRights(intellectualRightsBuilder).build();
+		String intellectualRightsFirstContent = (String) result.getIntellectualRights().getContent().get(0);
+		assertThat(intellectualRightsFirstContent, is("some intellectual text"));
+	}
+	
 	/**
 	 * Can we build an empty dataset without adding any empty elements to it?
 	 */
@@ -94,5 +102,6 @@ public class DatasetTypeBuilderTest {
 		assertThat(result.getCreator().size(), is(0));
 		assertNull(result.getAbstract());
 		assertThat(result.getKeywordSet().size(), is(0));
+		assertNull(result.getIntellectualRights());
 	}
 }
