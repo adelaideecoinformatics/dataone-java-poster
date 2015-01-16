@@ -9,3 +9,5 @@ However, you can also clone this repo and the `mvn clean install` and it'll be r
 This project is maintained by TERN Eco-informatics (http://ecoinformatics.org.au/) who are based in Australia. This is not the same organisation as the Eco-informatics team that provide other products (such as Morpho) that work with EML. 
 ## Why make it?
 At the time we started this project, there was nothing available that would let you solve this problem. There were products available to do XSLT transformations from other well known XML-based formats to EML but nothing to create it directly.
+
+If you have any questions of comments, contact tom.saleeba (at) adelaide (dot) edu (dot) au.
