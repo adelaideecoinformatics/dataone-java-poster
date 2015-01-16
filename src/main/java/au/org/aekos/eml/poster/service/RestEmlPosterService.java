@@ -51,18 +51,22 @@ public class RestEmlPosterService implements EmlPosterService {
 		logger.info("EML Poster: connecting to node endpoint [" + nodeEndpoint + "]");
 		try {
 			nodeClient = D1Client.getMN(nodeEndpoint);
+			nodeClient.ping();
 		} catch (ServiceFailure e) {
 			logger.error("Runtime error: Failed to build a dataONE client.", e);
+		} catch (NotImplemented e) {
+			logger.error("Runtime error: Failed when testing the connection to the dataONE node.", e);
+		} catch (InsufficientResources e) {
+			logger.error("Runtime error: Failed to ping dataONE node.", e);
 		}
 	}
 	
 	private void postMetadata() {
 		logger.info("EML Poster: POSTing data");
-		Identifier pid = new Identifier(); // TODO generate this ID dynamically
-		pid.setValue("blah123");
 		try {
 			InputStream object = new FileInputStream(metadataDirectoryPath + File.separator + emlFilename);
 			SystemMetadata sysmeta = unMarshalSystemMetadata(metadataDirectoryPath + File.separator + systemMetadataFilename);
+			Identifier pid = sysmeta.getIdentifier();
 			nodeClient.create(pid, object, sysmeta);
 			object.close();
 		} catch (IdentifierNotUnique e) {
@@ -91,12 +95,13 @@ public class RestEmlPosterService implements EmlPosterService {
 	}
 	
 	private SystemMetadata unMarshalSystemMetadata(String filePath) {
+		// See: https://mule1.dataone.org/ArchitectureDocs-current/design/SystemMetadata.html for what is required in sysmeta
         SystemMetadata smd = null;
         try {
             InputStream is = new FileInputStream(filePath);
             smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            logger.error("Failed to read sysmeta from '" + filePath + "'.", e);
         }
         return smd;
     }

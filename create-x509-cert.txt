@@ -1,0 +1,22 @@
+In order to write to the DataOne (GMN) server, you need to authenticate as a user
+that has those privileges. There is no way to authenticate from within the Java code,
+you must do it using SSL certificates.
+
+The server has certificates that it trusts, see this for more info:
+	http://pythonhosted.org/dataone.generic_member_node/setup-local-authn-ca.html
+  
+You need two things to create the required x509 file on your machine:
+	-the client certificate, e.g: /var/local/dataone/certs/client/client_cert.pem
+	-the client private key, e.g: /var/local/dataone/certs/client/client_key_nopassword.pem
+
+Once you have both of these, create the following file:
+	/tmp/x509up_u1000
+...and in it, first paste the certificate, then the private key so it looks like:
+	-----BEGIN CERTIFICATE-----
+	<snip...cert content>
+	-----END CERTIFICATE-----
+	-----BEGIN RSA PRIVATE KEY-----
+	<snip...key content>
+	-----END RSA PRIVATE KEY-----
+	
+You can now run this Java EmlPoster client and authenticate correctly.

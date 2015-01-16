@@ -6,7 +6,7 @@
 	<groupId>au.org.aekos</groupId>
 	<artifactId>EmlPoster</artifactId>
 	<version>1.0-SNAPSHOT</version>
-	<description>handles the POSTing of EML and System Metadata files to our DataOne node</description>
+	<description>handles the POSTing of EML and System Metadata files to a DataOne member node</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
