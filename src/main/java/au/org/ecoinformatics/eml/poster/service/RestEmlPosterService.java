@@ -1,4 +1,4 @@
-package au.org.aekos.eml.poster.service;
+package au.org.ecoinformatics.eml.poster.service;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -19,4 +19,4 @@ Once you have both of these, create the following file:
 	<snip...key content>
 	-----END RSA PRIVATE KEY-----
 	
-You can now run this Java EmlPoster client and authenticate correctly.
+You can now run this Java eml-poster client and authenticate correctly.

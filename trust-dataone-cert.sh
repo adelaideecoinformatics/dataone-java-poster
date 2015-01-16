@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-# Downloads the public certificate from the AEKOS DataONE member node
+# Downloads the public certificate from the a DataONE member node
 # and adds it to the trusted certificates keystore. This is required
 # to be able to connect to the server to POST data to it.
 # See https://confluence.atlassian.com/display/JIRAKB/Unable+to+Connect+to+SSL+Services+due+to+PKIX+Path+Building+Failed+sun.security.provider.certpath.SunCertPathBuilderException for more information on how this works.
 # See http://pythonhosted.org/dataone.generic_member_node/setup-local-authn-ca.html for how to get certificates into a dataONE (GMN) member node
 
 NODE_ADDRESS=130.220.209.107
-CERTIFICATE_PATH=/tmp/aekos-dataone-pub.cert
-SERVER_NAME=aekos-dataone
+CERTIFICATE_PATH=/tmp/ecoinformatics-dataone-pub.cert
+SERVER_NAME=ecoinformatics-dataone
 ARG_JAVA_HOME=$1
 if [ -z "$ARG_JAVA_HOME" ]; then
   echo "Error! You need to tell us the path to the JRE 'bin' directory."

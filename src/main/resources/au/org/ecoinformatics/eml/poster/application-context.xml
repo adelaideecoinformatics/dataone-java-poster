@@ -7,13 +7,13 @@
 			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
 
 	<context:annotation-config />
-	<context:property-placeholder location="classpath:/au/org/aekos/eml/poster/eml-poster-default.properties" />
+	<context:property-placeholder location="classpath:/au/org/ecoinformatics/eml/poster/eml-poster-default.properties" />
 
-	<bean id="application" class="au.org.aekos.eml.poster.AekosEmlPosterApplication">
+	<bean id="application" class="au.org.ecoinformatics.eml.poster.EcoinformaticsEmlPosterApplication">
 		<property name="service" ref="restEmlPosterService" />
 	</bean>
 
-	<bean id="restEmlPosterService" class="au.org.aekos.eml.poster.service.RestEmlPosterService">
+	<bean id="restEmlPosterService" class="au.org.ecoinformatics.eml.poster.service.RestEmlPosterService">
 		<property name="metadataDirectoryPath" value="${eml.poster.metadata.dir}" />
 		<property name="nodeEndpoint" value="${eml.poster.node.endpoint}" />
 	</bean>
