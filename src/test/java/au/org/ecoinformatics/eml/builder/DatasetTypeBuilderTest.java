@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import au.org.ecoinformatics.eml.jaxb.DatasetType;
+import au.org.ecoinformatics.eml.jaxb.GeographicCoverage;
 import au.org.ecoinformatics.eml.jaxb.Person;
 import au.org.ecoinformatics.eml.jaxb.ProtocolType.KeywordSet;
 
@@ -109,6 +110,20 @@ public class DatasetTypeBuilderTest {
 	}
 	
 	/**
+	 * Can we build a dataset object with a 'coverage' element?
+	 */
+	@Test
+	public void testCoverage01() {
+		String references = "some ref stuff";
+		GeographicCoverageBuilder geographicCoverageBuilder = new GeographicCoverageBuilder(new ReferencesBuilder(references));
+		CoverageBuilder coverageBuilder = new CoverageBuilder(geographicCoverageBuilder);
+		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
+		DatasetType result = objectUnderTest.coverage(coverageBuilder).build();
+		GeographicCoverage firstCoverage = (GeographicCoverage) result.getCoverage().getGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage().get(0);
+		assertThat(firstCoverage.getReferences().getValue(), is(references));
+	}
+	
+	/**
 	 * Can we build an empty dataset without adding any empty elements to it?
 	 */
 	@Test
@@ -121,5 +136,6 @@ public class DatasetTypeBuilderTest {
 		assertThat(result.getKeywordSet().size(), is(0));
 		assertNull(result.getIntellectualRights());
 		assertThat(result.getDistribution().size(), is(0));
+		assertNull(result.getCoverage());
 	}
 }

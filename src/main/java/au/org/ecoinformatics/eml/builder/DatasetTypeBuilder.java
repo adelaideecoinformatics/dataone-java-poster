@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import au.org.ecoinformatics.eml.jaxb.Coverage;
 import au.org.ecoinformatics.eml.jaxb.DatasetType;
 import au.org.ecoinformatics.eml.jaxb.DistributionType;
 import au.org.ecoinformatics.eml.jaxb.ProtocolType.KeywordSet;
@@ -18,6 +19,7 @@ public class DatasetTypeBuilder {
 	private List<KeywordSet> keywordSets = new LinkedList<KeywordSet>();
 	private TextType intellectualRights;
 	private List<DistributionType> distributions = new ArrayList<DistributionType>();
+	private Coverage coverage;
 
 	public DatasetTypeBuilder datasetTitle(String datasetTitle) {
 		//FIXME support maxOccurs="unbounded"
@@ -50,6 +52,11 @@ public class DatasetTypeBuilder {
 		this.distributions.add(distributionBuilder.build());
 		return this;
 	}
+
+	public DatasetTypeBuilder coverage(CoverageBuilder coverageBuilder) {
+		this.coverage = coverageBuilder.build();
+		return this;
+	}
 	
 	public DatasetType build() {
 		DatasetType result = new DatasetType();
@@ -62,14 +69,13 @@ public class DatasetTypeBuilder {
 		if (isSupplied(abstractPara)) {
 			result.setAbstract(abstractPara);
 		}
-		if (!keywordSets.isEmpty()) {
-			result.getKeywordSet().addAll(keywordSets);
-		}
+		result.getKeywordSet().addAll(keywordSets);
 		if (isSupplied(intellectualRights)) {
 			result.setIntellectualRights(intellectualRights);
 		}
-		if (!distributions.isEmpty()) {
-			result.getDistribution().addAll(distributions);
+		result.getDistribution().addAll(distributions);
+		if (isSupplied(coverage)) {
+			result.setCoverage(coverage);
 		}
 		return result;
 	}
