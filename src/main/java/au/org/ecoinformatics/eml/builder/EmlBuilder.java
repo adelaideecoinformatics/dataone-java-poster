@@ -21,6 +21,7 @@ public class EmlBuilder {
 		Eml result = new Eml();
 		result.setPackageId(packageId);
 		result.setDataset(dataset);
+		// TODO add verification
 		return result;
 	}
 

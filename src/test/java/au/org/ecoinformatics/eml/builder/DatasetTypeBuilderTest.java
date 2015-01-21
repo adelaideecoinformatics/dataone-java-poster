@@ -91,6 +91,24 @@ public class DatasetTypeBuilderTest {
 	}
 	
 	/**
+	 * Can we build a dataset object with two distribution elements?
+	 */
+	@Test
+	public void testDistribution01() {
+		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
+		String url1 = "http://something.com/one";
+		String url2 = "http://another.com/two";
+		DatasetType result = objectUnderTest
+			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(url1)))
+			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(url2)))
+			.build();
+		String firstOnlineUrl = result.getDistribution().get(0).getOnline().getUrl().getValue();
+		assertThat(firstOnlineUrl, is(url1));
+		String secondOnlineUrl = result.getDistribution().get(1).getOnline().getUrl().getValue();
+		assertThat(secondOnlineUrl, is(url2));
+	}
+	
+	/**
 	 * Can we build an empty dataset without adding any empty elements to it?
 	 */
 	@Test
@@ -102,5 +120,6 @@ public class DatasetTypeBuilderTest {
 		assertNull(result.getAbstract());
 		assertThat(result.getKeywordSet().size(), is(0));
 		assertNull(result.getIntellectualRights());
+		assertThat(result.getDistribution().size(), is(0));
 	}
 }

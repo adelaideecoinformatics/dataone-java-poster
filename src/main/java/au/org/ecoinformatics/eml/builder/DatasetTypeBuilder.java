@@ -1,9 +1,11 @@
 package au.org.ecoinformatics.eml.builder;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import au.org.ecoinformatics.eml.jaxb.DatasetType;
+import au.org.ecoinformatics.eml.jaxb.DistributionType;
 import au.org.ecoinformatics.eml.jaxb.ProtocolType.KeywordSet;
 import au.org.ecoinformatics.eml.jaxb.ResponsibleParty;
 import au.org.ecoinformatics.eml.jaxb.TextType;
@@ -15,6 +17,7 @@ public class DatasetTypeBuilder {
 	private TextType abstractPara;
 	private List<KeywordSet> keywordSets = new LinkedList<KeywordSet>();
 	private TextType intellectualRights;
+	private List<DistributionType> distributions = new ArrayList<DistributionType>();
 
 	public DatasetTypeBuilder datasetTitle(String datasetTitle) {
 		//FIXME support maxOccurs="unbounded"
@@ -43,6 +46,11 @@ public class DatasetTypeBuilder {
 		return this;
 	}
 
+	public DatasetTypeBuilder addDistribution(DistributionTypeBuilder distributionBuilder) {
+		this.distributions.add(distributionBuilder.build());
+		return this;
+	}
+	
 	public DatasetType build() {
 		DatasetType result = new DatasetType();
 		if (isSupplied(datasetTitle)) {
@@ -59,6 +67,9 @@ public class DatasetTypeBuilder {
 		}
 		if (isSupplied(intellectualRights)) {
 			result.setIntellectualRights(intellectualRights);
+		}
+		if (!distributions.isEmpty()) {
+			result.getDistribution().addAll(distributions);
 		}
 		return result;
 	}
