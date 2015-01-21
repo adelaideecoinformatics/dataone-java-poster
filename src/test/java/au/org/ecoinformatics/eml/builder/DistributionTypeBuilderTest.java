@@ -14,7 +14,7 @@ public class DistributionTypeBuilderTest {
 	 */
 	@Test
 	public void testOnline01() {
-		OnlineTypeBuilder onlineTypeBuilder = new OnlineTypeBuilder("http://some.url");
+		OnlineTypeBuilder onlineTypeBuilder = new OnlineTypeBuilder(new UrlTypeBuilder("http://some.url"));
 		DistributionTypeBuilder objectUnderTest = new DistributionTypeBuilder(onlineTypeBuilder);
 		DistributionType result = objectUnderTest.build();
 		assertThat(result.getOnline().getUrl().getValue(), is("http://some.url"));

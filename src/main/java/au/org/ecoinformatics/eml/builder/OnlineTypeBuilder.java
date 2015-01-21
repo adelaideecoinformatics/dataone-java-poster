@@ -8,13 +8,13 @@ import au.org.ecoinformatics.eml.jaxb.UrlType;
 
 public class OnlineTypeBuilder {
 
-	private String url;
+	private UrlType url;
 	private ConnectionType connection;
 	private ConnectionDefinitionType connectionDefinition;
 	private String onlineDescription;
 
-	public OnlineTypeBuilder(String url) {
-		this.url = url;
+	public OnlineTypeBuilder(UrlTypeBuilder urlBuilder) {
+		this.url = urlBuilder.build();
 	}
 
 	public OnlineTypeBuilder(ConnectionTypeBuilder connectionBuilder) {
@@ -33,9 +33,7 @@ public class OnlineTypeBuilder {
 	public OnlineType build() {
 		OnlineType result = new OnlineType();
 		if (isSupplied(url)) {
-			UrlType value = new UrlType();
-			value.setValue(url);
-			result.setUrl(value);
+			result.setUrl(url);
 		}
 		if (isSupplied(connection)) {
 			result.setConnection(connection);

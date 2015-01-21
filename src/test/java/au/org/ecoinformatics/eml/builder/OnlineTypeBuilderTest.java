@@ -16,7 +16,8 @@ public class OnlineTypeBuilderTest {
 	@Test
 	public void testUrl01() {
 		String url = "http://something.com/test";
-		OnlineType result = new OnlineTypeBuilder(url).build();
+		UrlTypeBuilder urlBuilder = new UrlTypeBuilder(url);
+		OnlineType result = new OnlineTypeBuilder(urlBuilder).build();
 		assertThat(result.getUrl().getValue(), is(url));
 	}
 
@@ -48,7 +49,7 @@ public class OnlineTypeBuilderTest {
 	 */
 	@Test
 	public void testOnlineDescription01() {
-		OnlineTypeBuilder objectUnderTest = new OnlineTypeBuilder("http://something.com/test");
+		OnlineTypeBuilder objectUnderTest = new OnlineTypeBuilder(new UrlTypeBuilder("http://something.com/test"));
 		OnlineType result = objectUnderTest.onlineDescription("some desc").build();
 		String firstContent = (String) result.getOnlineDescription().getContent().get(0);
 		assertThat(firstContent, is("some desc"));
@@ -59,7 +60,7 @@ public class OnlineTypeBuilderTest {
 	 */
 	@Test
 	public void testBuild01() {
-		OnlineType result = new OnlineTypeBuilder("http://something.com/test").build();
+		OnlineType result = new OnlineTypeBuilder(new UrlTypeBuilder("http://something.com/test")).build();
 		assertNull(result.getOnlineDescription());
 	}
 }

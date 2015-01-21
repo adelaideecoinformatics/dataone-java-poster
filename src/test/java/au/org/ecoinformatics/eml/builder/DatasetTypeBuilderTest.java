@@ -99,8 +99,8 @@ public class DatasetTypeBuilderTest {
 		String url1 = "http://something.com/one";
 		String url2 = "http://another.com/two";
 		DatasetType result = objectUnderTest
-			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(url1)))
-			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(url2)))
+			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(new UrlTypeBuilder(url1))))
+			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(new UrlTypeBuilder(url2))))
 			.build();
 		String firstOnlineUrl = result.getDistribution().get(0).getOnline().getUrl().getValue();
 		assertThat(firstOnlineUrl, is(url1));
