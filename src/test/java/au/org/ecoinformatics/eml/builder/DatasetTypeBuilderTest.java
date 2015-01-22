@@ -116,7 +116,7 @@ public class DatasetTypeBuilderTest {
 	public void testCoverage01() {
 		String references = "some ref stuff";
 		GeographicCoverageBuilder geographicCoverageBuilder = new GeographicCoverageBuilder(new ReferencesBuilder(references));
-		CoverageBuilder coverageBuilder = new CoverageBuilder(geographicCoverageBuilder);
+		CoverageBuilder coverageBuilder = new CoverageBuilder().geographicCoverage(geographicCoverageBuilder);
 		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
 		DatasetType result = objectUnderTest.coverage(coverageBuilder).build();
 		GeographicCoverage firstCoverage = (GeographicCoverage) result.getCoverage().getGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage().get(0);
