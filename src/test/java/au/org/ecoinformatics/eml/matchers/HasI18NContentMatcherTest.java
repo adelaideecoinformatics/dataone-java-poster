@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
 
 public class HasI18NContentMatcherTest {
 

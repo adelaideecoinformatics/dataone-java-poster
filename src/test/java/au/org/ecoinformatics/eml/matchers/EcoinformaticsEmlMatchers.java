@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.hamcrest.Matcher;
 
-import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
 
 public class EcoinformaticsEmlMatchers {
 

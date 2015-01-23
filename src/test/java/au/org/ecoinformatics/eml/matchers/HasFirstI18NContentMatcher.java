@@ -5,7 +5,7 @@ import java.util.List;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
-import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
 
 class HasFirstI18NContentMatcher extends BaseMatcher<List<I18NNonEmptyStringType>> {
 

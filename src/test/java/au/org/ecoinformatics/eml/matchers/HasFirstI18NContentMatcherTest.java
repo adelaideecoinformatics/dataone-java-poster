@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.DatasetType;
-import au.org.ecoinformatics.eml.jaxb.I18NNonEmptyStringType;
+import au.org.ecoinformatics.eml.jaxb.eml.DatasetType;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
 
 public class HasFirstI18NContentMatcherTest {
 

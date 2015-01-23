@@ -11,7 +11,7 @@ import javax.xml.bind.Marshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.org.ecoinformatics.eml.jaxb.Eml;
+import au.org.ecoinformatics.eml.jaxb.eml.Eml;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 

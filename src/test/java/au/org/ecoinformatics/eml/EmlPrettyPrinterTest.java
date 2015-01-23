@@ -2,9 +2,9 @@ package au.org.ecoinformatics.eml;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.builder.DatasetTypeBuilder;
-import au.org.ecoinformatics.eml.builder.EmlBuilder;
-import au.org.ecoinformatics.eml.jaxb.Eml;
+import au.org.ecoinformatics.eml.jaxb.eml.DatasetType;
+import au.org.ecoinformatics.eml.jaxb.eml.Eml;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
 
 public class EmlPrettyPrinterTest {
 
@@ -13,9 +13,10 @@ public class EmlPrettyPrinterTest {
 	 */
 	@Test
 	public void testPrettyPrint01() {
-		EmlBuilder emlBuilder = new EmlBuilder("package1");
-		emlBuilder.dataset(new DatasetTypeBuilder().datasetTitle("fantastic dataset").build());
-		Eml eml = emlBuilder.build();
+		Eml eml = new Eml()
+			.withDataset(new DatasetType()
+				.withId("package1")
+				.withTitle(new I18NNonEmptyStringType().withContent("fantastic dataset")));
 		EmlPrettyPrinter objectUnderTest = new EmlPrettyPrinter();
 		objectUnderTest.prettyPrint(eml, System.out);
 	}
