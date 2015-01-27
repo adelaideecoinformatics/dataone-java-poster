@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
@@ -6,17 +6,17 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.ProtocolType.KeywordSet;
+import au.org.ecoinformatics.eml.jaxb.eml.ProtocolType.KeywordSet;
+import au.org.ecoinformatics.eml.jaxb.eml.ProtocolType.KeywordSet.Keyword;
 
-public class KeywordSetBuilderTest {
+public class KeywordSetTest {
 
 	/**
 	 * Can we build an empty object?
 	 */
 	@Test
 	public void testBuild01() {
-		KeywordSetBuilder objectUnderTest = new KeywordSetBuilder();
-		KeywordSet result = objectUnderTest.build();
+		KeywordSet result = new KeywordSet();
 		assertThat(result.getKeyword().size(), is(0));
 		assertNull(result.getKeywordThesaurus());
 	}
@@ -26,12 +26,10 @@ public class KeywordSetBuilderTest {
 	 */
 	@Test
 	public void testAddKeyword01() {
-		KeywordSetBuilder objectUnderTest = new KeywordSetBuilder();
-		KeywordSet result = objectUnderTest
-			.addKeyword("keyword1")
-			.addKeyword("keywordTwo")
-			.addKeyword("keywordIII")
-			.build();
+		KeywordSet result = new KeywordSet()
+			.withKeyword(new Keyword().withContent("keyword1"))
+			.withKeyword(new Keyword().withContent("keywordTwo"), 
+					new Keyword().withContent("keywordIII"));
 		assertThat(((String)result.getKeyword().get(0).getContent().get(0)), is("keyword1"));
 		assertThat(((String)result.getKeyword().get(1).getContent().get(0)), is("keywordTwo"));
 		assertThat(((String)result.getKeyword().get(2).getContent().get(0)), is("keywordIII"));
@@ -42,10 +40,8 @@ public class KeywordSetBuilderTest {
 	 */
 	@Test
 	public void testAddKeywordThesaurus01() {
-		KeywordSetBuilder objectUnderTest = new KeywordSetBuilder();
-		KeywordSet result = objectUnderTest
-			.keywordThesaurus("KNBRegistry")
-			.build();
+		KeywordSet result = new KeywordSet()
+			.withKeywordThesaurus("KNBRegistry");
 		assertThat(result.getKeywordThesaurus(), is("KNBRegistry"));
 	}
 }

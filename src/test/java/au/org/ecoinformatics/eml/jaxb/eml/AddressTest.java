@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasFirstI18NContent;
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasI18NContent;
@@ -7,17 +7,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.Address;
+import au.org.ecoinformatics.eml.jaxb.eml.Address;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
 
-public class AddressBuilderTest {
+public class AddressTest {
 
 	/**
-	 * Do we not add null stuff to the result when they weren't supplied?
+	 * Are unsupplied items empty?
 	 */
 	@Test
 	public void testBuild01() {
-		AddressBuilder objectUnderTest = new AddressBuilder();
-		Address result = objectUnderTest.build();
+		Address result = new Address();
 		assertThat(result.getDeliveryPoint().size(), is(0));
 	}
 
@@ -26,8 +26,8 @@ public class AddressBuilderTest {
 	 */
 	@Test
 	public void testDeliveryPoint01() {
-		AddressBuilder objectUnderTest = new AddressBuilder();
-		Address result = objectUnderTest.deliveryPoint("123 Fake St").build();
+		Address result = new Address()
+			.withDeliveryPoint(new I18NNonEmptyStringType().withContent("123 Fake St"));
 		assertThat(result.getDeliveryPoint(), hasFirstI18NContent("123 Fake St"));
 	}
 
@@ -36,8 +36,8 @@ public class AddressBuilderTest {
 	 */
 	@Test
 	public void testCity01() {
-		AddressBuilder objectUnderTest = new AddressBuilder();
-		Address result = objectUnderTest.city("Adelaide").build();
+		Address result = new Address()
+			.withCity(new I18NNonEmptyStringType().withContent("Adelaide"));
 		assertThat(result.getCity(), hasI18NContent("Adelaide"));
 	}
 
@@ -46,8 +46,8 @@ public class AddressBuilderTest {
 	 */
 	@Test
 	public void testAdministrativeArea01() {
-		AddressBuilder objectUnderTest = new AddressBuilder();
-		Address result = objectUnderTest.administrativeArea("SA").build();
+		Address result = new Address()
+			.withAdministrativeArea(new I18NNonEmptyStringType().withContent("SA"));
 		assertThat(result.getAdministrativeArea(), hasI18NContent("SA"));
 	}
 
@@ -56,8 +56,8 @@ public class AddressBuilderTest {
 	 */
 	@Test
 	public void testPostalCode01() {
-		AddressBuilder objectUnderTest = new AddressBuilder();
-		Address result = objectUnderTest.postalCode("5005").build();
+		Address result = new Address()
+			.withPostalCode(new I18NNonEmptyStringType().withContent("5005"));
 		assertThat(result.getPostalCode(), hasI18NContent("5005"));
 	}
 
@@ -66,8 +66,8 @@ public class AddressBuilderTest {
 	 */
 	@Test
 	public void testCountry01() {
-		AddressBuilder objectUnderTest = new AddressBuilder();
-		Address result = objectUnderTest.country("Australia").build();
+		Address result = new Address()
+			.withCountry(new I18NNonEmptyStringType().withContent("Australia"));
 		assertThat(result.getCountry(), hasI18NContent("Australia"));
 	}
 }

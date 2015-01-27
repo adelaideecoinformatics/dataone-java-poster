@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasFirstI18NContent;
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasI18NContent;
@@ -65,8 +65,10 @@ public class ResponsiblePartyTest {
 	 */
 	@Test
 	public void testPositionName01() {
-		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		ResponsibleParty result = objectUnderTest.positionName("Big Boss").build();
+		ResponsibleParty result = new ResponsibleParty()
+			.withIndividualNameOrOrganizationNameOrPositionName(
+				new ObjectFactory().createResponsiblePartyPositionName(
+						new I18NNonEmptyStringType().withContent("Big Boss")));
 		I18NNonEmptyStringType value = ((I18NNonEmptyStringType) result.getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue());
 		assertThat(value, hasI18NContent("Big Boss"));
 	}
@@ -76,9 +78,8 @@ public class ResponsiblePartyTest {
 	 */
 	@Test
 	public void testAddress01() {
-		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		AddressBuilder addressBuilder = new AddressBuilder().city("Adelaide");
-		ResponsibleParty result = objectUnderTest.address(addressBuilder).build();
+		ResponsibleParty result = new ResponsibleParty()
+			.withAddress(new Address().withCity(new I18NNonEmptyStringType().withContent("Adelaide")));
 		Address value = result.getAddress().get(0);
 		assertThat(value.getCity(), hasI18NContent("Adelaide"));
 	}
@@ -88,9 +89,8 @@ public class ResponsiblePartyTest {
 	 */
 	@Test
 	public void testPhone01() {
-		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		PhoneBuilder phoneBuilder = new PhoneBuilder().phoneNumber("0412345678").phoneType(PhoneType.tdd);
-		ResponsibleParty result = objectUnderTest.phone(phoneBuilder).build();
+		ResponsibleParty result = new ResponsibleParty()
+			.withPhone(new ResponsibleParty.Phone().withValue("0412345678"));
 		assertThat(result.getPhone().get(0).getValue(), is("0412345678"));
 	}
 
@@ -99,8 +99,8 @@ public class ResponsiblePartyTest {
 	 */
 	@Test
 	public void testElectronicMailAddress01() {
-		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		ResponsibleParty result = objectUnderTest.electronicMailAddress("blah@mail.com").build();
+		ResponsibleParty result = new ResponsibleParty()
+			.withElectronicMailAddress(new I18NNonEmptyStringType().withContent("blah@mail.com"));
 		assertThat(result.getElectronicMailAddress(), hasFirstI18NContent("blah@mail.com"));
 	}
 
@@ -109,11 +109,9 @@ public class ResponsiblePartyTest {
 	 */
 	@Test
 	public void testAddOnlineUrl01() {
-		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		ResponsibleParty result = objectUnderTest
-				.addOnlineUrl("http://www.ecoinformatics.org.au")
-				.addOnlineUrl("http://www.aekos.org.au")
-				.build();
+		ResponsibleParty result = new ResponsibleParty()
+			.withOnlineUrl("http://www.ecoinformatics.org.au")
+			.withOnlineUrl("http://www.aekos.org.au");
 		assertThat(result.getOnlineUrl(), hasItems("http://www.ecoinformatics.org.au", "http://www.aekos.org.au"));
 	}
 
@@ -122,13 +120,10 @@ public class ResponsiblePartyTest {
 	 */
 	@Test
 	public void testAddUserId01() {
-		ResponsiblePartyBuilder objectUnderTest = new ResponsiblePartyBuilder();
-		UserIdBuilder userBuilder1 = new UserIdBuilder("user1");
-		UserIdBuilder userBuilderA = new UserIdBuilder("userA");
-		ResponsibleParty result = objectUnderTest
-				.addUserId(userBuilder1)
-				.addUserId(userBuilderA)
-				.build();
+		ResponsibleParty result = new ResponsibleParty()
+			.withUserId(
+					new ResponsibleParty.UserId().withValue("user1"),
+					new ResponsibleParty.UserId().withValue("userA"));
 		// Not awesome to expect order but we don't have equals() implemented so we can't use hasItems()
 		assertThat(result.getUserId().get(0).getValue(), is("user1"));
 		assertThat(result.getUserId().get(1).getValue(), is("userA"));

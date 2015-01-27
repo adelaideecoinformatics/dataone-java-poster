@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasFirstI18NContent;
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasI18NContent;
@@ -6,17 +6,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.Person;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
+import au.org.ecoinformatics.eml.jaxb.eml.Person;
 
-public class PersonBuilderTest {
+public class PersonTest {
 
 	/**
 	 * Can we build with a salutation?
 	 */
 	@Test
 	public void testSalutation01() {
-		PersonBuilder objectUnderTest = new PersonBuilder();
-		Person result = objectUnderTest.salutation("Mr").build();
+		Person result = new Person().withSalutation(new I18NNonEmptyStringType().withContent("Mr"));
 		assertThat(result.getSalutation(), hasFirstI18NContent("Mr"));
 	}
 
@@ -25,8 +25,7 @@ public class PersonBuilderTest {
 	 */
 	@Test
 	public void testGivenName01() {
-		PersonBuilder objectUnderTest = new PersonBuilder();
-		Person result = objectUnderTest.givenName("John").build();
+		Person result = new Person().withGivenName(new I18NNonEmptyStringType().withContent("John"));
 		assertThat(result.getGivenName(), hasFirstI18NContent("John"));
 	}
 
@@ -35,8 +34,7 @@ public class PersonBuilderTest {
 	 */
 	@Test
 	public void testSurname01() {
-		PersonBuilder objectUnderTest = new PersonBuilder();
-		Person result = objectUnderTest.surName("Bourne").build();
+		Person result = new Person().withSurName(new I18NNonEmptyStringType().withContent("Bourne"));
 		assertThat(result.getSurName(), hasI18NContent("Bourne"));
 	}
 }

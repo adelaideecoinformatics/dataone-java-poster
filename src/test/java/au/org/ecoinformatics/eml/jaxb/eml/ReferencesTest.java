@@ -1,13 +1,15 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.ViewType.References;
+import au.org.ecoinformatics.eml.jaxb.eml.ViewType;
+import au.org.ecoinformatics.eml.jaxb.eml.ViewType.References;
 
-public class ReferencesBuilderTest {
+public class ReferencesTest {
 
 	/**
 	 * Can we build with a references element?
@@ -15,8 +17,7 @@ public class ReferencesBuilderTest {
 	@Test
 	public void testReference01() {
 		String references = "some reference text";
-		ReferencesBuilder objectUnderTest = new ReferencesBuilder(references);
-		References result = objectUnderTest.build();
+		References result = new ViewType.References().withValue(references);
 		assertThat(result.getValue(), is(references));
 	}
 	
@@ -25,9 +26,9 @@ public class ReferencesBuilderTest {
 	 */
 	@Test
 	public void testSystem01() {
-		ReferencesBuilder objectUnderTest = new ReferencesBuilder("some reference text");
 		String system = "some sys";
-		References result = objectUnderTest.system(system).build();
+		References result = new ViewType.References()
+			.withSystem(system);
 		assertThat(result.getSystem().get(0), is(system));
 	}
 	
@@ -36,8 +37,8 @@ public class ReferencesBuilderTest {
 	 */
 	@Test
 	public void testBuild01() {
-		ReferencesBuilder objectUnderTest = new ReferencesBuilder("some reference text");
-		References result = objectUnderTest.build();
+		References result = new ViewType.References();
 		assertThat(result.getSystem().size(), is(0));
+		assertNull(result.getValue());
 	}
 }

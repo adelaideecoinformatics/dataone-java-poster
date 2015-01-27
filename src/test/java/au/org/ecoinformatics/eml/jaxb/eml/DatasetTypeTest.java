@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasFirstI18NContent;
 import static au.org.ecoinformatics.eml.matchers.EcoinformaticsEmlMatchers.hasI18NContent;
@@ -8,21 +8,31 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.DatasetType;
-import au.org.ecoinformatics.eml.jaxb.GeographicCoverage;
-import au.org.ecoinformatics.eml.jaxb.Person;
-import au.org.ecoinformatics.eml.jaxb.ProtocolType.KeywordSet;
+import au.org.ecoinformatics.eml.jaxb.eml.Coverage;
+import au.org.ecoinformatics.eml.jaxb.eml.DatasetType;
+import au.org.ecoinformatics.eml.jaxb.eml.DistributionType;
+import au.org.ecoinformatics.eml.jaxb.eml.GeographicCoverage;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
+import au.org.ecoinformatics.eml.jaxb.eml.ObjectFactory;
+import au.org.ecoinformatics.eml.jaxb.eml.OnlineType;
+import au.org.ecoinformatics.eml.jaxb.eml.Person;
+import au.org.ecoinformatics.eml.jaxb.eml.ProtocolType.KeywordSet;
+import au.org.ecoinformatics.eml.jaxb.eml.ProtocolType.KeywordSet.Keyword;
+import au.org.ecoinformatics.eml.jaxb.eml.ResponsibleParty;
+import au.org.ecoinformatics.eml.jaxb.eml.TextType;
+import au.org.ecoinformatics.eml.jaxb.eml.UrlType;
+import au.org.ecoinformatics.eml.jaxb.eml.ViewType.References;
 
-public class DatasetTypeBuilderTest {
+public class DatasetTypeTest {
 
 	/**
 	 * Can we build a dataset object with a title?
 	 */
 	@Test
 	public void testDatasetTitle01() {
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
 		String datasetTitle = "some dataset title";
-		DatasetType result = objectUnderTest.datasetTitle(datasetTitle).build();
+		DatasetType result = new DatasetType()
+			.withTitle(new I18NNonEmptyStringType().withContent(datasetTitle));
 		assertThat(result.getTitle(), hasFirstI18NContent("some dataset title"));
 	}
 
@@ -31,14 +41,13 @@ public class DatasetTypeBuilderTest {
 	 */
 	@Test
 	public void testCreator01() {
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		ResponsiblePartyBuilder creatorBuilder = new ResponsiblePartyBuilder().individualName(
-				new PersonBuilder()
-					.salutation("Mr")
-					.givenName("Neo")
-					.surName("Anderson")
-			);
-		DatasetType result = objectUnderTest.creator(creatorBuilder).build();
+		DatasetType result = new DatasetType()		
+			.withCreator(new ResponsibleParty().withIndividualNameOrOrganizationNameOrPositionName(
+					new ObjectFactory().createResponsiblePartyIndividualName(
+							new Person()
+								.withSalutation(new I18NNonEmptyStringType().withContent("Mr"))
+								.withGivenName(new I18NNonEmptyStringType().withContent("Neo"))
+								.withSurName(new I18NNonEmptyStringType().withContent("Anderson")))));
 		Person actualPerson = (Person) result.getCreator().get(0).getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue();
 		assertThat(actualPerson.getSurName(), hasI18NContent("Anderson"));
 	}
@@ -48,9 +57,8 @@ public class DatasetTypeBuilderTest {
 	 */
 	@Test
 	public void testAbstractPara01() {
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		AbstractParaBuilder abstractParaBuilder = new AbstractParaBuilder("some awesome abstract text");
-		DatasetType result = objectUnderTest.abstractPara(abstractParaBuilder).build();
+		DatasetType result = new DatasetType()
+			.withAbstract(new TextType().withContent("some awesome abstract text"));
 		String abstractParagraphFirstContent = (String) result.getAbstract().getContent().get(0);
 		assertThat(abstractParagraphFirstContent, is("some awesome abstract text"));
 	}
@@ -60,17 +68,13 @@ public class DatasetTypeBuilderTest {
 	 */
 	@Test
 	public void testKeywordSet01() {
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		KeywordSetBuilder keywordSetBuilder1 = new KeywordSetBuilder()
-			.addKeyword("keywordOne-1")
-			.addKeyword("keywordOne-2");
-		KeywordSetBuilder keywordSetBuilder2 = new KeywordSetBuilder()
-			.addKeyword("keywordTwo-1")
-			.addKeyword("keywordTwo-2");
-		DatasetType result = objectUnderTest
-			.addKeywordSet(keywordSetBuilder1)
-			.addKeywordSet(keywordSetBuilder2)
-			.build();
+		DatasetType result = new DatasetType()
+			.withKeywordSet(new KeywordSet().withKeyword(
+					new Keyword().withContent("keywordOne-1"),
+					new Keyword().withContent("keywordOne-2")))
+			.withKeywordSet(new KeywordSet()
+				.withKeyword(new Keyword().withContent("keywordTwo-1"))
+				.withKeyword(new Keyword().withContent("keywordTwo-2")));
 		KeywordSet firstKeywordSet = result.getKeywordSet().get(0);
 		assertThat(((String)firstKeywordSet.getKeyword().get(0).getContent().get(0)), is("keywordOne-1"));
 		assertThat(((String)firstKeywordSet.getKeyword().get(1).getContent().get(0)), is("keywordOne-2"));
@@ -84,9 +88,8 @@ public class DatasetTypeBuilderTest {
 	 */
 	@Test
 	public void testIntellectualRights01() {
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		IntellectualRightsBuilder intellectualRightsBuilder = new IntellectualRightsBuilder("some intellectual text");
-		DatasetType result = objectUnderTest.intellectualRights(intellectualRightsBuilder).build();
+		DatasetType result = new DatasetType()
+			.withIntellectualRights(new TextType().withContent("some intellectual text"));
 		String intellectualRightsFirstContent = (String) result.getIntellectualRights().getContent().get(0);
 		assertThat(intellectualRightsFirstContent, is("some intellectual text"));
 	}
@@ -96,13 +99,13 @@ public class DatasetTypeBuilderTest {
 	 */
 	@Test
 	public void testDistribution01() {
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
 		String url1 = "http://something.com/one";
 		String url2 = "http://another.com/two";
-		DatasetType result = objectUnderTest
-			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(new UrlTypeBuilder(url1))))
-			.addDistribution(new DistributionTypeBuilder(new OnlineTypeBuilder(new UrlTypeBuilder(url2))))
-			.build();
+		DatasetType result = new DatasetType()
+			.withDistribution(
+				new DistributionType().withOnline(new OnlineType().withUrl(new UrlType().withValue(url1))))
+			.withDistribution(
+				new DistributionType().withOnline(new OnlineType().withUrl(new UrlType().withValue(url2))));
 		String firstOnlineUrl = result.getDistribution().get(0).getOnline().getUrl().getValue();
 		assertThat(firstOnlineUrl, is(url1));
 		String secondOnlineUrl = result.getDistribution().get(1).getOnline().getUrl().getValue();
@@ -115,10 +118,9 @@ public class DatasetTypeBuilderTest {
 	@Test
 	public void testCoverage01() {
 		String references = "some ref stuff";
-		GeographicCoverageBuilder geographicCoverageBuilder = new GeographicCoverageBuilder(new ReferencesBuilder(references));
-		CoverageBuilder coverageBuilder = new CoverageBuilder().geographicCoverage(geographicCoverageBuilder);
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		DatasetType result = objectUnderTest.coverage(coverageBuilder).build();
+		DatasetType result = new DatasetType()
+			.withCoverage(new Coverage().withGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage(
+					new ObjectFactory().createGeographicCoverage().withReferences(new References().withValue(references))));
 		GeographicCoverage firstCoverage = (GeographicCoverage) result.getCoverage().getGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage().get(0);
 		assertThat(firstCoverage.getReferences().getValue(), is(references));
 	}
@@ -128,8 +130,7 @@ public class DatasetTypeBuilderTest {
 	 */
 	@Test
 	public void testBuild01() {
-		DatasetTypeBuilder objectUnderTest = new DatasetTypeBuilder();
-		DatasetType result = objectUnderTest.build();
+		DatasetType result = new DatasetType();
 		assertThat(result.getTitle().size(), is(0));
 		assertThat(result.getCreator().size(), is(0));
 		assertNull(result.getAbstract());

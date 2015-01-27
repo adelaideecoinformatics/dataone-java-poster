@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
@@ -6,9 +6,15 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.OnlineType;
+import au.org.ecoinformatics.eml.jaxb.eml.ConnectionDefinitionType;
+import au.org.ecoinformatics.eml.jaxb.eml.ConnectionDefinitionType.SchemeName;
+import au.org.ecoinformatics.eml.jaxb.eml.ConnectionType;
+import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
+import au.org.ecoinformatics.eml.jaxb.eml.OnlineType;
+import au.org.ecoinformatics.eml.jaxb.eml.UrlType;
+import au.org.ecoinformatics.eml.jaxb.eml.ViewType.References;
 
-public class OnlineTypeBuilderTest {
+public class OnlineTypeTest {
 
 	/**
 	 * Can we construct with a URL?
@@ -16,8 +22,8 @@ public class OnlineTypeBuilderTest {
 	@Test
 	public void testUrl01() {
 		String url = "http://something.com/test";
-		UrlTypeBuilder urlBuilder = new UrlTypeBuilder(url);
-		OnlineType result = new OnlineTypeBuilder(urlBuilder).build();
+		OnlineType result = new OnlineType()
+			.withUrl(new UrlType().withValue(url));
 		assertThat(result.getUrl().getValue(), is(url));
 	}
 
@@ -27,9 +33,10 @@ public class OnlineTypeBuilderTest {
 	@Test
 	public void testConnection01() {
 		String referencesText = "some reference";
-		ReferencesBuilder referencesBuilder = new ReferencesBuilder(referencesText);
-		ConnectionTypeBuilder connectionBuilder = new ConnectionTypeBuilder(referencesBuilder);
-		OnlineType result = new OnlineTypeBuilder(connectionBuilder).build();
+		OnlineType result = new OnlineType()
+			.withConnection(
+					new ConnectionType().withReferences(
+							new References().withValue(referencesText)));
 		assertThat(result.getConnection().getReferences().getValue(), is(referencesText));
 	}
 	
@@ -39,8 +46,10 @@ public class OnlineTypeBuilderTest {
 	@Test
 	public void testConnectionDefinition01() {
 		String schemaName = "some schema";
-		ConnectionDefinitionTypeBuilder connectionDefinitionTypeBuilder = new ConnectionDefinitionTypeBuilder(schemaName);
-		OnlineType result = new OnlineTypeBuilder(connectionDefinitionTypeBuilder).build();
+		OnlineType result = new OnlineType()
+			.withConnectionDefinition(
+					new ConnectionDefinitionType().withSchemeName(
+							new SchemeName().withValue(schemaName)));
 		assertThat(result.getConnectionDefinition().getSchemeName().getValue(), is(schemaName));
 	}
 	
@@ -49,8 +58,8 @@ public class OnlineTypeBuilderTest {
 	 */
 	@Test
 	public void testOnlineDescription01() {
-		OnlineTypeBuilder objectUnderTest = new OnlineTypeBuilder(new UrlTypeBuilder("http://something.com/test"));
-		OnlineType result = objectUnderTest.onlineDescription("some desc").build();
+		OnlineType result = new OnlineType()
+			.withOnlineDescription(new I18NNonEmptyStringType().withContent("some desc"));
 		String firstContent = (String) result.getOnlineDescription().getContent().get(0);
 		assertThat(firstContent, is("some desc"));
 	}
@@ -60,7 +69,8 @@ public class OnlineTypeBuilderTest {
 	 */
 	@Test
 	public void testBuild01() {
-		OnlineType result = new OnlineTypeBuilder(new UrlTypeBuilder("http://something.com/test")).build();
+		OnlineType result = new OnlineType();
 		assertNull(result.getOnlineDescription());
+		assertNull(result.getUrl());
 	}
 }

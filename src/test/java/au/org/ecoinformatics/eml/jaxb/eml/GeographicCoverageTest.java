@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
@@ -8,9 +8,13 @@ import java.math.BigDecimal;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.GeographicCoverage;
+import au.org.ecoinformatics.eml.jaxb.eml.GeographicCoverage;
+import au.org.ecoinformatics.eml.jaxb.eml.GeographicCoverage.BoundingCoordinates;
+import au.org.ecoinformatics.eml.jaxb.eml.GeographicCoverage.DatasetGPolygon;
+import au.org.ecoinformatics.eml.jaxb.eml.GeographicCoverage.DatasetGPolygon.DatasetGPolygonOuterGRing;
+import au.org.ecoinformatics.eml.jaxb.eml.ViewType.References;
 
-public class GeographicCoverageBuilderTest {
+public class GeographicCoverageTest {
 
 	/**
 	 * Can we build with 'geographic description' and 'bounding coordinates' elements?
@@ -18,9 +22,9 @@ public class GeographicCoverageBuilderTest {
 	@Test
 	public void testBuild01() {
 		String geographicDescription = "some desc";
-		BoundingCoordinatesBuilder boundingCoordinatesBuilder = new BoundingCoordinatesBuilder(new BigDecimal(1), new BigDecimal(2), new BigDecimal(3), new BigDecimal(4));
-		GeographicCoverageBuilder objectUnderTest = new GeographicCoverageBuilder(geographicDescription, boundingCoordinatesBuilder);
-		GeographicCoverage result = objectUnderTest.build();
+		GeographicCoverage result = new GeographicCoverage()
+			.withBoundingCoordinates(new BoundingCoordinates().withEastBoundingCoordinate(new BigDecimal(2)))
+			.withGeographicDescription(geographicDescription);
 		assertThat(result.getGeographicDescription(), is(geographicDescription));
 		assertThat(result.getBoundingCoordinates().getEastBoundingCoordinate(), is(new BigDecimal(2)));
 		assertThat(result.getDatasetGPolygon().size(), is(0));
@@ -32,11 +36,9 @@ public class GeographicCoverageBuilderTest {
 	 */
 	@Test
 	public void testGeographicDescription01() {
-		GeographicCoverageBuilder objectUnderTest = new GeographicCoverageBuilder("some desc", 
-				new BoundingCoordinatesBuilder(new BigDecimal(1), new BigDecimal(2), new BigDecimal(3), new BigDecimal(4)));
 		String gRing = "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))";
-		DatasetGPolygonBuilder datasetGPolygonBuilder = new DatasetGPolygonBuilder(new DatasetGPolygonOuterGRingBuilder(gRing));
-		GeographicCoverage result = objectUnderTest.addDatasetGPolygon(datasetGPolygonBuilder).build();
+		GeographicCoverage result = new GeographicCoverage()
+			.withDatasetGPolygon(new DatasetGPolygon().withDatasetGPolygonOuterGRing(new DatasetGPolygonOuterGRing().withGRing(gRing)));
 		assertThat(result.getDatasetGPolygon().size(), is(1));
 		assertThat(result.getDatasetGPolygon().get(0).getDatasetGPolygonOuterGRing().getGRing(), is(gRing));
 	}
@@ -47,9 +49,8 @@ public class GeographicCoverageBuilderTest {
 	@Test
 	public void testReferences01() {
 		String referencesText = "some ref";
-		ReferencesBuilder referencesBuilder = new ReferencesBuilder(referencesText);
-		GeographicCoverageBuilder objectUnderTest = new GeographicCoverageBuilder(referencesBuilder);
-		GeographicCoverage result = objectUnderTest.build();
+		GeographicCoverage result = new GeographicCoverage()
+			.withReferences(new References().withValue(referencesText));
 		assertThat(result.getReferences().getValue(), is(referencesText));
 		assertNull(result.getGeographicDescription());
 		assertNull(result.getBoundingCoordinates());

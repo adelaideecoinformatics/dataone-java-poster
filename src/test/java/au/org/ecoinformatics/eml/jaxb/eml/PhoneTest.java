@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.builder;
+package au.org.ecoinformatics.eml.jaxb.eml;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
@@ -6,17 +6,16 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.ResponsibleParty.Phone;
+import au.org.ecoinformatics.eml.jaxb.eml.ResponsibleParty.Phone;
 
-public class PhoneBuilderTest {
+public class PhoneTest {
 
 	/**
 	 * Can we build a phone object with a number?
 	 */
 	@Test
 	public void testPhoneNumber01() {
-		PhoneBuilder objectUnderTest = new PhoneBuilder();
-		Phone result = objectUnderTest.phoneNumber("0412345678").build();
+		Phone result = new Phone().withValue("0412345678");
 		assertThat(result.getValue(), is("0412345678"));
 	}
 
@@ -25,9 +24,8 @@ public class PhoneBuilderTest {
 	 */
 	@Test
 	public void testPhoneType01() {
-		PhoneBuilder objectUnderTest = new PhoneBuilder();
-		Phone result = objectUnderTest.phoneType(PhoneType.facsimile).build();
-		assertThat(result.getPhonetype(), is(PhoneType.facsimile.name()));
+		Phone result = new Phone().withPhonetype("facsimile");
+		assertThat(result.getPhonetype(), is("facsimile"));
 	}
 
 	/**
@@ -35,10 +33,9 @@ public class PhoneBuilderTest {
 	 */
 	@Test
 	public void testBuild01() {
-		PhoneBuilder objectUnderTest = new PhoneBuilder();
-		Phone result = objectUnderTest.build();
+		Phone result = new Phone();
 		assertNull(result.getValue());
-		String defaultPhoneType = PhoneType.voice.name();
+		String defaultPhoneType = "voice";
 		assertThat(result.getPhonetype(), is(defaultPhoneType));
 	}
 }
