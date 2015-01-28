@@ -8,12 +8,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.eml.Address;
-import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
-import au.org.ecoinformatics.eml.jaxb.eml.ObjectFactory;
-import au.org.ecoinformatics.eml.jaxb.eml.Person;
-import au.org.ecoinformatics.eml.jaxb.eml.ResponsibleParty;
-
 public class ResponsiblePartyTest {
 
 	/**
@@ -31,10 +25,10 @@ public class ResponsiblePartyTest {
 	}
 
 	/**
-	 * Can we build a responsible party object with an individual name?
+	 * Can we build a responsible party object with an individual name using the standard JAXB method?
 	 */
 	@Test
-	public void testCreator01() {
+	public void testIndividualName01() {
 		Person person = new Person()
 			.withSalutation(new I18NNonEmptyStringType().withContent("Mr"))
 			.withGivenName(new I18NNonEmptyStringType().withContent("Jason"))
@@ -48,10 +42,27 @@ public class ResponsiblePartyTest {
 	}
 
 	/**
-	 * Can we build a responsible party object with an organization name?
+	 * Can we build a responsible party object with an individual name using the added method?
 	 */
 	@Test
-	public void testOrgName01() {
+	public void testIndividualName02() {
+		Person person = new Person()
+			.withSalutation(new I18NNonEmptyStringType().withContent("Mr"))
+			.withGivenName(new I18NNonEmptyStringType().withContent("Jason"))
+			.withSurName(new I18NNonEmptyStringType().withContent("Bourne"));
+		ResponsibleParty result = new ResponsibleParty()
+			.withIndividualName(person);
+		Person value = ((Person) result.getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue());
+		assertThat(value.getSalutation(), hasFirstI18NContent("Mr"));
+		assertThat(value.getGivenName(), hasFirstI18NContent("Jason"));
+		assertThat(value.getSurName(), hasI18NContent("Bourne"));
+	}
+	
+	/**
+	 * Can we build a responsible party object with an organization name using the standard JAXB method?
+	 */
+	@Test
+	public void testOrganizationName01() {
 		ResponsibleParty result = new ResponsibleParty()
 			.withIndividualNameOrOrganizationNameOrPositionName(
 					new ObjectFactory().createResponsiblePartyOrganizationName(
@@ -61,7 +72,18 @@ public class ResponsiblePartyTest {
 	}
 
 	/**
-	 * Can we build a responsible party object with an position name?
+	 * Can we build a responsible party object with an organization name using the added method?
+	 */
+	@Test
+	public void testOrganizationName02() {
+		ResponsibleParty result = new ResponsibleParty()
+			.withOrganizationName(new I18NNonEmptyStringType().withContent("EcoInf"));
+		I18NNonEmptyStringType value = ((I18NNonEmptyStringType) result.getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue());
+		assertThat(value, hasI18NContent("EcoInf"));
+	}
+	
+	/**
+	 * Can we build a responsible party object with a position name using the standard JAXB method?
 	 */
 	@Test
 	public void testPositionName01() {
@@ -73,6 +95,17 @@ public class ResponsiblePartyTest {
 		assertThat(value, hasI18NContent("Big Boss"));
 	}
 
+	/**
+	 * Can we build a responsible party object with a position name with the added method?
+	 */
+	@Test
+	public void testPositionName02() {
+		ResponsibleParty result = new ResponsibleParty()
+			.withPositionName(new I18NNonEmptyStringType().withContent("Big Boss"));
+		I18NNonEmptyStringType value = ((I18NNonEmptyStringType) result.getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue());
+		assertThat(value, hasI18NContent("Big Boss"));
+	}
+	
 	/**
 	 * Can we build a responsible party object with an address?
 	 */

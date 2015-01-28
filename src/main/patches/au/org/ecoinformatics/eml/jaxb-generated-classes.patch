@@ -1,0 +1,57 @@
+diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
+index 74c2688..7aaaa93 100644
+--- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
++++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
+@@ -11,6 +11,7 @@ package au.org.ecoinformatics.eml.jaxb.eml;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
++
+ import javax.xml.bind.JAXBElement;
+ import javax.xml.bind.annotation.XmlAccessType;
+ import javax.xml.bind.annotation.XmlAccessorType;
+@@ -714,5 +715,43 @@ public class ResponsibleParty {
+         }
+ 
+     }
+-
++    
++    /*
++     * Added after JAXB generation by automatic application of a patch file
++     */
++    public ResponsibleParty withIndividualName(Person ... values) {
++        if (values!= null) {
++        	ObjectFactory factory = new ObjectFactory();
++            for (Person value: values) {
++				getIndividualNameOrOrganizationNameOrPositionName().add(factory.createResponsiblePartyIndividualName(value));
++            }
++        }
++        return this;
++    }
++    
++    /*
++     * Added after JAXB generation by automatic application of a patch file
++     */
++    public ResponsibleParty withOrganizationName(I18NNonEmptyStringType ... values) {
++        if (values!= null) {
++        	ObjectFactory factory = new ObjectFactory();
++            for (I18NNonEmptyStringType value: values) {
++				getIndividualNameOrOrganizationNameOrPositionName().add(factory.createResponsiblePartyOrganizationName(value));
++            }
++        }
++        return this;
++    }
++    
++    /*
++     * Added after JAXB generation by automatic application of a patch file
++     */
++    public ResponsibleParty withPositionName(I18NNonEmptyStringType ... values) {
++        if (values!= null) {
++        	ObjectFactory factory = new ObjectFactory();
++            for (I18NNonEmptyStringType value: values) {
++				getIndividualNameOrOrganizationNameOrPositionName().add(factory.createResponsiblePartyPositionName(value));
++            }
++        }
++        return this;
++    }
+ }

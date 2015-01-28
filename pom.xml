@@ -60,90 +60,120 @@
 		</dependency>
 	</dependencies>
 
+	<profiles>
+		<profile>
+			<id>jaxb</id>
+			<!-- regenerates the JAXB classes -->
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copyXjb</id>
+								<phase>generate-sources</phase>
+								<configuration>
+									<tasks>
+										<!-- The JAXB generation required/expects the .xjb to live in the same directory as the XSDs. I'm not happy checking 
+											it in there because that directory should only contain the XSDs from the archive. -->
+										<copy file="${basedir}/xsd/custom-bindings.xjb" tofile="${basedir}/xsd/eml-2.1.1/custom-bindings.xjb" />
+									</tasks>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>removeCopiedXjb</id>
+								<phase>process-sources</phase>
+								<configuration>
+									<tasks>
+										<delete file="${basedir}/xsd/eml-2.1.1/custom-bindings.xjb" />
+									</tasks>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>jaxb2-maven-plugin</artifactId>
+						<version>1.6</version>
+						<dependencies>
+							<dependency>
+								<groupId>org.jvnet.jaxb2_commons</groupId>
+								<artifactId>jaxb2-fluent-api</artifactId>
+								<version>3.0</version>
+								<exclusions>
+									<exclusion>
+										<groupId>com.sun.xml</groupId>
+										<artifactId>jaxb-xjc</artifactId>
+									</exclusion>
+								</exclusions>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<arguments>-Xfluent-api</arguments>
+							<extension>true</extension>
+							<outputDirectory>${jaxb.output.dir}</outputDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>sysmeta</id>
+								<goals>
+									<goal>xjc</goal>
+								</goals>
+								<configuration>
+									<packageName>au.org.ecoinformatics.eml.jaxb.sysmeta</packageName>
+									<schemaDirectory>${basedir}/xsd/</schemaDirectory>
+									<schemaFiles>dataoneTypes.xsd</schemaFiles>
+									<clearOutputDir>true</clearOutputDir>
+								</configuration>
+							</execution>
+							<execution>
+								<id>eml</id>
+								<goals>
+									<goal>xjc</goal>
+								</goals>
+								<configuration>
+									<packageName>au.org.ecoinformatics.eml.jaxb.eml</packageName>
+									<bindingDirectory>${basedir}/xsd/eml-2.1.1/</bindingDirectory>
+									<bindingFiles>custom-bindings.xjb</bindingFiles>
+									<schemaDirectory>${basedir}/xsd/eml-2.1.1/</schemaDirectory>
+									<schemaFiles>eml.xsd</schemaFiles>
+									<clearOutputDir>false</clearOutputDir>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<!-- apply a patch to the generated JAXB classes to make them less painful to use -->
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-patch-plugin</artifactId>
+						<version>1.1.1</version>
+						<configuration>
+							<patchFile>${basedir}/src/main/patches/au/org/ecoinformatics/eml/jaxb-generated-classes.patch</patchFile>
+							<targetDirectory>${basedir}</targetDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>patch</id>
+								<phase>process-sources</phase>
+								<goals>
+									<goal>apply</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copyXjb</id>
-						<phase>generate-sources</phase>
-						<configuration>
-							<tasks>
-								<!-- The JAXB generation required/expects the .xjb to live in the same directory as the XSDs. I'm not happy checking 
-									it in there because that directory should only contain the XSDs from the archive. -->
-								<copy file="${basedir}/xsd/custom-bindings.xjb" tofile="${basedir}/xsd/eml-2.1.1/custom-bindings.xjb" />
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>removeCopiedXjb</id>
-						<phase>process-sources</phase>
-						<configuration>
-							<tasks>
-								<delete file="${basedir}/xsd/eml-2.1.1/custom-bindings.xjb" />
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jaxb2-maven-plugin</artifactId>
-				<version>1.6</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.jvnet.jaxb2_commons</groupId>
-						<artifactId>jaxb2-fluent-api</artifactId>
-						<version>3.0</version>
-						<exclusions>
-							<exclusion>
-								<groupId>com.sun.xml</groupId>
-								<artifactId>jaxb-xjc</artifactId>
-							</exclusion>
-						</exclusions>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<arguments>-Xfluent-api</arguments>
-					<extension>true</extension>
-					<outputDirectory>${jaxb.output.dir}</outputDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>sysmeta</id>
-						<goals>
-							<goal>xjc</goal>
-						</goals>
-						<configuration>
-							<packageName>au.org.ecoinformatics.eml.jaxb.sysmeta</packageName>
-							<schemaDirectory>${basedir}/xsd/</schemaDirectory>
-							<schemaFiles>dataoneTypes.xsd</schemaFiles>
-							<clearOutputDir>true</clearOutputDir>
-						</configuration>
-					</execution>
-					<execution>
-						<id>eml</id>
-						<goals>
-							<goal>xjc</goal>
-						</goals>
-						<configuration>
-							<packageName>au.org.ecoinformatics.eml.jaxb.eml</packageName>
-							<bindingDirectory>${basedir}/xsd/eml-2.1.1/</bindingDirectory>
-							<bindingFiles>custom-bindings.xjb</bindingFiles>
-							<schemaDirectory>${basedir}/xsd/eml-2.1.1/</schemaDirectory>
-							<schemaFiles>eml.xsd</schemaFiles>
-							<clearOutputDir>false</clearOutputDir>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -199,6 +229,7 @@
 						<configuration>
 							<sources>
 								<source>${jaxb.output.dir}</source>
+								<source>${basedir}/src/main/patches/</source>
 							</sources>
 						</configuration>
 					</execution>
