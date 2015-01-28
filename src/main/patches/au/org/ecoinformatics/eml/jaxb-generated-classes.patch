@@ -1,7 +1,7 @@
-diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
-index 74c2688..7aaaa93 100644
---- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
-+++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
+diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java
+index 315a8d1..d520e62 100644
+--- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java
++++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java
 @@ -11,6 +11,7 @@ package au.org.ecoinformatics.eml.jaxb.eml;
  import java.util.ArrayList;
  import java.util.Collection;
@@ -10,7 +10,140 @@ index 74c2688..7aaaa93 100644
  import javax.xml.bind.JAXBElement;
  import javax.xml.bind.annotation.XmlAccessType;
  import javax.xml.bind.annotation.XmlAccessorType;
-@@ -714,5 +715,43 @@ public class ResponsibleParty {
+@@ -187,6 +188,44 @@ public class ListType {
+             return this;
+         }
+ 
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++        public ListType.Listitem withPara(ParagraphType...values) {
++            if (values!= null) {
++            	ObjectFactory factory = new ObjectFactory();
++            	for (ParagraphType currValue : values) {
++            		getParaOrItemizedlistOrOrderedlist().add(factory.createListTypeListitemPara(currValue));
++            	}
++            }
++            return this;
++        }
++
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++		public ListType.Listitem withItemizedlist(ListType...values) {
++			if (values!= null) {
++            	ObjectFactory factory = new ObjectFactory();
++            	for (ListType currValue : values) {
++            		getParaOrItemizedlistOrOrderedlist().add(factory.createListTypeListitemItemizedlist(currValue));
++            	}
++            }
++			return this;
++		}
++
++		/*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++		public ListType.Listitem withOrderedlist(ListType...values) {
++			if (values!= null) {
++            	ObjectFactory factory = new ObjectFactory();
++            	for (ListType currValue : values) {
++            		getParaOrItemizedlistOrOrderedlist().add(factory.createListTypeListitemOrderedlist(currValue));
++            	}
++            }
++			return this;
++		}
+     }
+ 
+ }
+diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java
+index 6b60cd8..8f26633 100644
+--- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java
++++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java
+@@ -12,6 +12,7 @@ import java.io.Serializable;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
++
+ import javax.xml.bind.JAXBElement;
+ import javax.xml.bind.annotation.XmlAccessType;
+ import javax.xml.bind.annotation.XmlAccessorType;
+@@ -1175,6 +1176,29 @@ public class ProtocolType {
+             return this;
+         }
+ 
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++        public ProtocolType.AssociatedParty withIndividualName(Person ... values) {
++            super.withIndividualName(values);
++            return this;
++        }
++        
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++        public ProtocolType.AssociatedParty withOrganizationName(I18NNonEmptyStringType ... values) {
++        	super.withOrganizationName(values);
++        	return this;
++        }
++        
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++        public ProtocolType.AssociatedParty withPositionName(I18NNonEmptyStringType ... values) {
++            super.withPositionName(values);
++            return this;
++        }
+     }
+ 
+ 
+diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java
+index a7427c5..5fb81a5 100644
+--- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java
++++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java
+@@ -11,6 +11,7 @@ package au.org.ecoinformatics.eml.jaxb.eml;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
++
+ import javax.xml.bind.JAXBElement;
+ import javax.xml.bind.annotation.XmlAccessType;
+ import javax.xml.bind.annotation.XmlAccessorType;
+@@ -851,6 +852,29 @@ public class ResearchProjectType {
+             return this;
+         }
+ 
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++        public ResearchProjectType.Personnel withIndividualName(Person ... values) {
++            super.withIndividualName(values);
++            return this;
++        }
++        
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++        public ResearchProjectType.Personnel withOrganizationName(I18NNonEmptyStringType ... values) {
++        	super.withOrganizationName(values);
++        	return this;
++        }
++        
++        /*
++         * Added after JAXB generation by automatic application of a patch file
++         */
++        public ResearchProjectType.Personnel withPositionName(I18NNonEmptyStringType ... values) {
++            super.withPositionName(values);
++            return this;
++        }
+     }
+ 
+ 
+diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
+index 74c2688..81ca244 100644
+--- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
++++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
+@@ -714,5 +714,43 @@ public class ResponsibleParty {
          }
  
      }

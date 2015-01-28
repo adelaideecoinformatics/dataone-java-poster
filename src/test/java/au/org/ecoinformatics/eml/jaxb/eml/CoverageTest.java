@@ -5,11 +5,6 @@ import static org.hamcrest.Matchers.is;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.eml.Coverage;
-import au.org.ecoinformatics.eml.jaxb.eml.GeographicCoverage;
-import au.org.ecoinformatics.eml.jaxb.eml.ObjectFactory;
-import au.org.ecoinformatics.eml.jaxb.eml.SingleDateTimeType;
-import au.org.ecoinformatics.eml.jaxb.eml.TemporalCoverage;
 import au.org.ecoinformatics.eml.jaxb.eml.ViewType.References;
 
 public class CoverageTest {
@@ -23,9 +18,9 @@ public class CoverageTest {
 		String id2 = "geoCov2";
 		Coverage result = new Coverage()
 			.withGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage(
-					new ObjectFactory().createGeographicCoverage().withId(id1))
+					new GeographicCoverage().withId(id1))
 			.withGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage(
-					new ObjectFactory().createGeographicCoverage().withId(id2));
+					new GeographicCoverage().withId(id2));
 		assertThat(result.getGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage().size(), is(2));
 		GeographicCoverage firstCoverage = (GeographicCoverage) result.getGeographicCoverageOrTemporalCoverageOrTaxonomicCoverage().get(0);
 		assertThat(firstCoverage.getId().get(0), is(id1));

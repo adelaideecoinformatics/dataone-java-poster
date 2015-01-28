@@ -8,19 +8,8 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.eml.Coverage;
-import au.org.ecoinformatics.eml.jaxb.eml.DatasetType;
-import au.org.ecoinformatics.eml.jaxb.eml.DistributionType;
-import au.org.ecoinformatics.eml.jaxb.eml.GeographicCoverage;
-import au.org.ecoinformatics.eml.jaxb.eml.I18NNonEmptyStringType;
-import au.org.ecoinformatics.eml.jaxb.eml.ObjectFactory;
-import au.org.ecoinformatics.eml.jaxb.eml.OnlineType;
-import au.org.ecoinformatics.eml.jaxb.eml.Person;
 import au.org.ecoinformatics.eml.jaxb.eml.ProtocolType.KeywordSet;
 import au.org.ecoinformatics.eml.jaxb.eml.ProtocolType.KeywordSet.Keyword;
-import au.org.ecoinformatics.eml.jaxb.eml.ResponsibleParty;
-import au.org.ecoinformatics.eml.jaxb.eml.TextType;
-import au.org.ecoinformatics.eml.jaxb.eml.UrlType;
 import au.org.ecoinformatics.eml.jaxb.eml.ViewType.References;
 
 public class DatasetTypeTest {
@@ -42,12 +31,11 @@ public class DatasetTypeTest {
 	@Test
 	public void testCreator01() {
 		DatasetType result = new DatasetType()		
-			.withCreator(new ResponsibleParty().withIndividualNameOrOrganizationNameOrPositionName(
-					new ObjectFactory().createResponsiblePartyIndividualName(
-							new Person()
-								.withSalutation(new I18NNonEmptyStringType().withContent("Mr"))
-								.withGivenName(new I18NNonEmptyStringType().withContent("Neo"))
-								.withSurName(new I18NNonEmptyStringType().withContent("Anderson")))));
+			.withCreator(new ResponsibleParty().withIndividualName(
+					new Person()
+					.withSalutation(new I18NNonEmptyStringType().withContent("Mr"))
+					.withGivenName(new I18NNonEmptyStringType().withContent("Neo"))
+					.withSurName(new I18NNonEmptyStringType().withContent("Anderson"))));
 		Person actualPerson = (Person) result.getCreator().get(0).getIndividualNameOrOrganizationNameOrPositionName().get(0).getValue();
 		assertThat(actualPerson.getSurName(), hasI18NContent("Anderson"));
 	}
