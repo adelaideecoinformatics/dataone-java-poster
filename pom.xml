@@ -149,23 +149,19 @@
 						</executions>
 					</plugin>
 					<plugin>
-						<!-- apply a patch to the generated JAXB classes to make them less painful to use -->
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-patch-plugin</artifactId>
-						<version>1.1.1</version>
-						<configuration>
-							<patchFile>${basedir}/src/main/patches/au/org/ecoinformatics/eml/jaxb-generated-classes.patch</patchFile>
-							<targetDirectory>${basedir}</targetDirectory>
-						</configuration>
-						<executions>
-							<execution>
-								<id>patch</id>
-								<phase>process-sources</phase>
-								<goals>
-									<goal>apply</goal>
-								</goals>
-							</execution>
-						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>patch</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-patch-plugin</artifactId>
 					</plugin>
 				</plugins>
 			</build>
@@ -173,6 +169,29 @@
 	</profiles>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- apply a patch to the generated JAXB classes to make them less painful to use -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-patch-plugin</artifactId>
+					<version>1.1.1</version>
+					<configuration>
+						<patchFile>${basedir}/src/main/patches/au/org/ecoinformatics/eml/jaxb-generated-classes.patch</patchFile>
+						<targetDirectory>${basedir}</targetDirectory>
+					</configuration>
+					<executions>
+						<execution>
+							<id>patch</id>
+							<phase>process-sources</phase>
+							<goals>
+								<goal>apply</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

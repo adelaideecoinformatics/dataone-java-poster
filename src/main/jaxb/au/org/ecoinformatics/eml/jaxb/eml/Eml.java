@@ -8,9 +8,11 @@
 
 package au.org.ecoinformatics.eml.jaxb.eml;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
@@ -18,7 +20,10 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+
 import org.w3c.dom.Element;
+
+import au.org.ecoinformatics.eml.EmlPrettyPrinter;
 
 
 /**
@@ -654,4 +659,15 @@ public class Eml {
 
     }
 
+    /*
+     * Added after JAXB generation by automatic application of a patch file
+     */
+    /**
+     * Writes this EML file out to a file
+     * 
+     * @param out	writer to use
+     */
+    public void write(PrintStream out) {
+    	new EmlPrettyPrinter().prettyPrint(this, out);
+    }
 }
