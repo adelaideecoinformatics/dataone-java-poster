@@ -1,6 +1,6 @@
 package au.org.ecoinformatics.eml;
 
-import java.io.PrintStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +23,7 @@ public class EmlPrettyPrinter {
 	 * @param eml	document to pretty print
 	 * @param out	stream to print document to
 	 */
-	public void prettyPrint(Eml eml, PrintStream out) {
+	public void prettyPrint(Eml eml, OutputStream out) {
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Eml.class);
 			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();

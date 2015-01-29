@@ -8,7 +8,7 @@
 
 package au.org.ecoinformatics.eml.jaxb.eml;
 
-import java.io.PrintStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -665,9 +665,9 @@ public class Eml {
     /**
      * Writes this EML file out to a file
      * 
-     * @param out	writer to use
+     * @param out	stream to use
      */
-    public void write(PrintStream out) {
+    public void write(OutputStream out) {
     	new EmlPrettyPrinter().prettyPrint(this, out);
     }
 }

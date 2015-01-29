@@ -1,12 +1,12 @@
 diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java
-index b50560e..ec26b0f 100644
+index b50560e..bf88428 100644
 --- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java
 +++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java
 @@ -8,9 +8,11 @@
  
  package au.org.ecoinformatics.eml.jaxb.eml;
  
-+import java.io.PrintStream;
++import java.io.OutputStream;
  import java.util.ArrayList;
  import java.util.Collection;
  import java.util.List;
@@ -36,9 +36,9 @@ index b50560e..ec26b0f 100644
 +    /**
 +     * Writes this EML file out to a file
 +     * 
-+     * @param out	writer to use
++     * @param out	stream to use
 +     */
-+    public void write(PrintStream out) {
++    public void write(OutputStream out) {
 +    	new EmlPrettyPrinter().prettyPrint(this, out);
 +    }
  }
