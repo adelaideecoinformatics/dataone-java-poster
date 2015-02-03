@@ -1,5 +1,5 @@
 diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java
-index b50560e..bf88428 100644
+index b50560e..776e45b 100644
 --- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java
 +++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/Eml.java
 @@ -8,9 +8,11 @@
@@ -21,7 +21,7 @@ index b50560e..bf88428 100644
 +
  import org.w3c.dom.Element;
  
-+import au.org.ecoinformatics.eml.EmlPrettyPrinter;
++import au.org.ecoinformatics.eml.JaxbPrettyPrinter;
 +
  
  /**
@@ -39,11 +39,11 @@ index b50560e..bf88428 100644
 +     * @param out	stream to use
 +     */
 +    public void write(OutputStream out) {
-+    	new EmlPrettyPrinter().prettyPrint(this, out);
++    	JaxbPrettyPrinter.getEmlJaxbPrettyPrinterInstance().prettyPrint(this, out);
 +    }
  }
 diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java
-index 315a8d1..d520e62 100644
+index 315a8d1..a676c41 100644
 --- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java
 +++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ListType.java
 @@ -11,6 +11,7 @@ package au.org.ecoinformatics.eml.jaxb.eml;
@@ -100,7 +100,7 @@ index 315a8d1..d520e62 100644
  
  }
 diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java
-index 6b60cd8..8f26633 100644
+index 6b60cd8..7caa542 100644
 --- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java
 +++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ProtocolType.java
 @@ -12,6 +12,7 @@ import java.io.Serializable;
@@ -142,7 +142,7 @@ index 6b60cd8..8f26633 100644
  
  
 diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java
-index a7427c5..5fb81a5 100644
+index a7427c5..7e8b70f 100644
 --- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java
 +++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResearchProjectType.java
 @@ -11,6 +11,7 @@ package au.org.ecoinformatics.eml.jaxb.eml;
@@ -184,7 +184,7 @@ index a7427c5..5fb81a5 100644
  
  
 diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
-index 74c2688..81ca244 100644
+index 74c2688..3be56cb 100644
 --- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
 +++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/eml/ResponsibleParty.java
 @@ -714,5 +714,43 @@ public class ResponsibleParty {
@@ -231,4 +231,46 @@ index 74c2688..81ca244 100644
 +        }
 +        return this;
 +    }
+ }
+diff --git src/main/jaxb/au/org/ecoinformatics/eml/jaxb/sysmeta/SystemMetadata.java src/main/jaxb/au/org/ecoinformatics/eml/jaxb/sysmeta/SystemMetadata.java
+index 19ceb98..d99945c 100644
+--- src/main/jaxb/au/org/ecoinformatics/eml/jaxb/sysmeta/SystemMetadata.java
++++ src/main/jaxb/au/org/ecoinformatics/eml/jaxb/sysmeta/SystemMetadata.java
+@@ -8,10 +8,12 @@
+ 
+ package au.org.ecoinformatics.eml.jaxb.sysmeta;
+ 
++import java.io.OutputStream;
+ import java.math.BigInteger;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
++
+ import javax.xml.bind.annotation.XmlAccessType;
+ import javax.xml.bind.annotation.XmlAccessorType;
+ import javax.xml.bind.annotation.XmlElement;
+@@ -19,6 +21,8 @@ import javax.xml.bind.annotation.XmlSchemaType;
+ import javax.xml.bind.annotation.XmlType;
+ import javax.xml.datatype.XMLGregorianCalendar;
+ 
++import au.org.ecoinformatics.eml.JaxbPrettyPrinter;
++
+ 
+ /**
+  *  System Metadata elements are partitioned into two
+@@ -618,4 +622,15 @@ public class SystemMetadata {
+         return this;
+     }
+ 
++    /*
++     * Added after JAXB generation by automatic application of a patch file
++     */
++    /**
++     * Writes this EML file out to a file
++     * 
++     * @param out	stream to use
++     */
++	public void write(OutputStream out) {
++		JaxbPrettyPrinter.getSysMetaJaxbPrettyPrinterInstance().prettyPrint(this, out);
++	}
  }

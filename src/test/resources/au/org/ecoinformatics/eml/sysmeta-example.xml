@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<d1:systemMetadata xmlns:d1="http://ns.dataone.org/service/types/v1">
+	<identifier>knb-lter-europe-deims.13013.13288</identifier>
+	<formatId>eml://ecoinformatics.org/eml-2.1.1</formatId>
+	<size>7317</size>
+	<checksum algorithm="MD5">6f5ae290b715124ebf6f2a4debf3544c</checksum>
+	<submitter>uid=ltereurope,o=LTER-Europe,dc=ecoinformatics,dc=org</submitter>
+	<rightsHolder>uid=ltereurope,o=LTER-Europe,dc=ecoinformatics,dc=org</rightsHolder>
+	<accessPolicy>
+		<allow>
+			<subject>uid=Italy, o=LTER-Europe, dc=ecoinformatics, dc=org</subject>
+			<permission>read</permission>
+			<permission>write</permission>
+			<permission>changePermission</permission>
+		</allow>
+		<allow>
+			<subject>public</subject>
+			<permission>read</permission>
+		</allow>
+	</accessPolicy>
+	<replicationPolicy replicationAllowed="false" />
+</d1:systemMetadata>
