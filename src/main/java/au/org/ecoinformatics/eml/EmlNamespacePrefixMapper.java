@@ -3,8 +3,6 @@ package au.org.ecoinformatics.eml;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
 class EmlNamespacePrefixMapper extends AbstractEcoinformaticsNamespacePrefixMapper {
 	private static final Map<String, String> nsMappings = new HashMap<String, String>();
 	static {
@@ -36,10 +34,5 @@ class EmlNamespacePrefixMapper extends AbstractEcoinformaticsNamespacePrefixMapp
 	@Override
 	Map<String, String> getNamespaceMappings() {
 		return nsMappings;
-	}
-
-	@Override
-	QName getRootQName() {
-		return new QName("eml://ecoinformatics.org/eml-2.1.1", "eml", "eml");
 	}
 }

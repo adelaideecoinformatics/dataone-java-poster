@@ -16,6 +16,7 @@
 		<slf4j.version>1.7.7</slf4j.version>
 		<jaxb.version>2.2.11</jaxb.version>
 		<jaxb.output.dir>${basedir}/src/main/jaxb/</jaxb.output.dir>
+		<eml-custom-binding-filename>eml-custom-bindings.xjb</eml-custom-binding-filename>
 	</properties>
 
 	<dependencies>
@@ -76,7 +77,7 @@
 									<tasks>
 										<!-- The JAXB generation required/expects the .xjb to live in the same directory as the XSDs. I'm not happy checking 
 											it in there because that directory should only contain the XSDs from the archive. -->
-										<copy file="${basedir}/xsd/custom-bindings.xjb" tofile="${basedir}/xsd/eml-2.1.1/custom-bindings.xjb" />
+										<copy file="${basedir}/xsd/${eml-custom-binding-filename}" tofile="${basedir}/xsd/eml-2.1.1/${eml-custom-binding-filename}" />
 									</tasks>
 								</configuration>
 								<goals>
@@ -88,7 +89,7 @@
 								<phase>process-sources</phase>
 								<configuration>
 									<tasks>
-										<delete file="${basedir}/xsd/eml-2.1.1/custom-bindings.xjb" />
+										<delete file="${basedir}/xsd/eml-2.1.1/${eml-custom-binding-filename}" />
 									</tasks>
 								</configuration>
 								<goals>
@@ -127,6 +128,8 @@
 								</goals>
 								<configuration>
 									<packageName>au.org.ecoinformatics.eml.jaxb.sysmeta</packageName>
+									<bindingDirectory>${basedir}/xsd/</bindingDirectory>
+									<bindingFiles>sysmeta-custom-bindings.xjb</bindingFiles>
 									<schemaDirectory>${basedir}/xsd/</schemaDirectory>
 									<schemaFiles>dataoneTypes.xsd</schemaFiles>
 									<clearOutputDir>true</clearOutputDir>
@@ -140,7 +143,7 @@
 								<configuration>
 									<packageName>au.org.ecoinformatics.eml.jaxb.eml</packageName>
 									<bindingDirectory>${basedir}/xsd/eml-2.1.1/</bindingDirectory>
-									<bindingFiles>custom-bindings.xjb</bindingFiles>
+									<bindingFiles>${eml-custom-binding-filename}</bindingFiles>
 									<schemaDirectory>${basedir}/xsd/eml-2.1.1/</schemaDirectory>
 									<schemaFiles>eml.xsd</schemaFiles>
 									<clearOutputDir>false</clearOutputDir>

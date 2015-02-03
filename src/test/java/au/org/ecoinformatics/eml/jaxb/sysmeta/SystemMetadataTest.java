@@ -45,9 +45,9 @@ public class SystemMetadataTest {
 			.withSubmitter(owner)
 			.withRightsHolder(owner)
 			.withAccessPolicy(new AccessPolicy()
-				.withAllow(new AccessRule()
-					.withSubject(owner)
-					.withPermission(Permission.WRITE)))
+				.withAllows(new AccessRule()
+					.withSubjects(owner)
+					.withPermissions(Permission.WRITE)))
 			.withReplicationPolicy(new ReplicationPolicy().withReplicationAllowed(false));
 		OutputStream out = new ByteArrayOutputStream();
 		objectUnderTest.write(out);

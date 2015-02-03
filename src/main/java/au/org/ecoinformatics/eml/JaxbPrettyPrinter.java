@@ -3,14 +3,14 @@ package au.org.ecoinformatics.eml;
 import java.io.OutputStream;
 
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.PropertyException;
-import javax.xml.namespace.QName;
 
 import au.org.ecoinformatics.eml.jaxb.eml.Eml;
 import au.org.ecoinformatics.eml.jaxb.sysmeta.SystemMetadata;
+
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 public class JaxbPrettyPrinter<T> {
 
@@ -19,7 +19,7 @@ public class JaxbPrettyPrinter<T> {
 	private static final JaxbPrettyPrinter<SystemMetadata> SYS_META_JAXB_PRETTY_PRINTER = 
 			new JaxbPrettyPrinter<SystemMetadata>(SystemMetadata.class, new SysMetaNamespacePrefixMapper());
 	private final Class<T> jaxbType;
-	private AbstractEcoinformaticsNamespacePrefixMapper prefixMapper;
+	private final NamespacePrefixMapper prefixMapper;
 
 	/**
 	 * Constructs a new JaxbPrettyPrinter that can handle the supplied
@@ -32,7 +32,7 @@ public class JaxbPrettyPrinter<T> {
 	 * 
 	 * @param jaxbType	type of JAXB object to pretty print
 	 */
-	JaxbPrettyPrinter(Class<T> jaxbType, AbstractEcoinformaticsNamespacePrefixMapper prefixMapper) {
+	JaxbPrettyPrinter(Class<T> jaxbType, NamespacePrefixMapper prefixMapper) {
 		this.jaxbType = jaxbType;
 		this.prefixMapper = prefixMapper;
 	}
@@ -46,25 +46,10 @@ public class JaxbPrettyPrinter<T> {
 	public void prettyPrint(T jaxbObj, OutputStream out) {
 		try {
 			Marshaller jaxbMarshaller = getConfiguredMarshaller();
-			JAXBElement<T> root = wrapObjectAsRootElement(jaxbObj);
-			jaxbMarshaller.marshal(root, out);
+			jaxbMarshaller.marshal(jaxbObj, out);
 		} catch (JAXBException e) {
 			throw new RuntimeException("Failed to pretty print the JAXB document", e);
 		}
-	}
-
-	/**
-	 * Some objects, namely {@link SystemMetadata}, don't declare themselves as a
-	 * root XML object. This fixes that but also comes with the risk that you can
-	 * force something that shouldn't be a root into being one.
-	 * 
-	 * @param jaxbObj	object to wrap as root element
-	 * @return			root element
-	 */
-	private JAXBElement<T> wrapObjectAsRootElement(T jaxbObj) {
-		QName qName = prefixMapper.getRootQName();
-		JAXBElement<T> result = new JAXBElement<T>(qName, jaxbType, jaxbObj);
-		return result;
 	}
 
 	private Marshaller getConfiguredMarshaller() throws JAXBException, PropertyException {

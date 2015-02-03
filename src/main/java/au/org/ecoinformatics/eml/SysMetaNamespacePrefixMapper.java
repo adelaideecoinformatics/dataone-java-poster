@@ -3,8 +3,6 @@ package au.org.ecoinformatics.eml;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
 class SysMetaNamespacePrefixMapper extends AbstractEcoinformaticsNamespacePrefixMapper {
 	private static final Map<String, String> nsMappings = new HashMap<String, String>();
 	static {
@@ -15,10 +13,5 @@ class SysMetaNamespacePrefixMapper extends AbstractEcoinformaticsNamespacePrefix
 	@Override
 	Map<String, String> getNamespaceMappings() {
 		return nsMappings;
-	}
-
-	@Override
-	QName getRootQName() {
-		return new QName("http://ns.dataone.org/service/types/v1", "systemMetadata", "d1");
 	}
 }

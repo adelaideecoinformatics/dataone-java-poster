@@ -2,8 +2,6 @@ package au.org.ecoinformatics.eml;
 
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +16,6 @@ abstract class AbstractEcoinformaticsNamespacePrefixMapper extends NamespacePref
 	}
 
 	abstract Map<String, String> getNamespaceMappings();
-	
-	abstract QName getRootQName();
 	
 	@Override
 	public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {

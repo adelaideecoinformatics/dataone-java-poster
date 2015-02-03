@@ -4,12 +4,13 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.junit.Test;
 
-import au.org.ecoinformatics.eml.jaxb.eml.SingleDateTimeType;
 import au.org.ecoinformatics.eml.jaxb.eml.SingleDateTimeType.AlternativeTimeScale;
-
-import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
 public class SingleDateTimeTypeTest {
 
@@ -27,11 +28,11 @@ public class SingleDateTimeTypeTest {
 	 * Can we build with a 'time' element?
 	 */
 	@Test
-	public void testTime01() {
+	public void testTime01() throws DatatypeConfigurationException {
 		int hour = 9;
 		int minute = 30;
 		int second = 54;
-		XMLGregorianCalendarImpl calendar = new XMLGregorianCalendarImpl();
+		XMLGregorianCalendar calendar = newCalendar();
 		calendar.setHour(hour);
 		calendar.setMinute(minute);
 		calendar.setSecond(second);
@@ -40,7 +41,7 @@ public class SingleDateTimeTypeTest {
 		assertThat(result.getTime().getMinute(), is(minute));
 		assertThat(result.getTime().getSecond(), is(second));
 	}
-	
+
 	/**
 	 * Can we build with an 'alternative time scale' element?
 	 */
@@ -65,5 +66,9 @@ public class SingleDateTimeTypeTest {
 		assertNull(result.getAlternativeTimeScale());
 		assertNull(result.getTime());
 		assertNull(result.getCalendarDate());
+	}
+	
+	private XMLGregorianCalendar newCalendar() throws DatatypeConfigurationException {
+		return DatatypeFactory.newInstance().newXMLGregorianCalendar();
 	}
 }
