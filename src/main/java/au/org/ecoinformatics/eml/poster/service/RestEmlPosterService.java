@@ -26,11 +26,14 @@ import org.slf4j.LoggerFactory;
 public class RestEmlPosterService implements EmlPosterService {
 
 	private static final Logger logger = LoggerFactory.getLogger(RestEmlPosterService.class);
-	private String metadataDirectoryPath;
 	private String nodeEndpoint;
 	private MNode nodeClient;
+	private String metadataDirectoryPath;
 	private String systemMetadataFilename;
 	private String emlFilename;
+	
+	private InputStream emlData;
+	private SystemMetadata sysmetaData;
 	
 	@Override
 	public void doPost() {
@@ -42,9 +45,12 @@ public class RestEmlPosterService implements EmlPosterService {
 	
 	private void readMetadataFiles() {
 		logger.info("EML Poster: reading metadata files");
-		// FIXME dynamically load all file pairs from the directory
-		systemMetadataFilename = "smd.xml";
-		emlFilename = "eml.xml";
+		try {
+			emlData = new FileInputStream(metadataDirectoryPath + File.separator + emlFilename);
+		} catch (FileNotFoundException e) {
+			logger.error("Failed to load the EML file: " + emlFilename, e);
+		}
+		sysmetaData = unMarshalSystemMetadata(metadataDirectoryPath + File.separator + systemMetadataFilename);
 	}
 
 	private void connectToNode() {
@@ -64,11 +70,9 @@ public class RestEmlPosterService implements EmlPosterService {
 	private void postMetadata() {
 		logger.info("EML Poster: POSTing data");
 		try {
-			InputStream object = new FileInputStream(metadataDirectoryPath + File.separator + emlFilename);
-			SystemMetadata sysmeta = unMarshalSystemMetadata(metadataDirectoryPath + File.separator + systemMetadataFilename);
-			Identifier pid = sysmeta.getIdentifier();
-			nodeClient.create(pid, object, sysmeta);
-			object.close();
+			Identifier pid = sysmetaData.getIdentifier();
+			nodeClient.create(pid, emlData, sysmetaData);
+			emlData.close();
 		} catch (IdentifierNotUnique e) {
 			logger.error("Runtime error: failed to POST to the dataONE node", e);
 		} catch (InsufficientResources e) {
@@ -116,5 +120,13 @@ public class RestEmlPosterService implements EmlPosterService {
 
 	public void setNodeEndpoint(String nodeEndpoint) {
 		this.nodeEndpoint = nodeEndpoint;
+	}
+
+	public void setSystemMetadataFilename(String systemMetadataFilename) {
+		this.systemMetadataFilename = systemMetadataFilename;
+	}
+
+	public void setEmlFilename(String emlFilename) {
+		this.emlFilename = emlFilename;
 	}
 }

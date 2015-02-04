@@ -14,7 +14,9 @@
 	</bean>
 
 	<bean id="restEmlPosterService" class="au.org.ecoinformatics.eml.poster.service.RestEmlPosterService">
-		<property name="metadataDirectoryPath" value="${eml.poster.metadata.dir}" />
-		<property name="nodeEndpoint" value="${eml.poster.node.endpoint}" />
+		<property name="metadataDirectoryPath" value="${eml-poster.source.dir}" />
+		<property name="nodeEndpoint" value="${eml-poster.node.endpoint}" />
+		<property name="systemMetadataFilename" value="${eml-poster.file.sysmeta}" />
+		<property name="emlFilename" value="${eml-poster.file.eml}" />
 	</bean>
 </beans>

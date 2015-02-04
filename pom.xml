@@ -23,6 +23,8 @@
 
 	<properties>
 		<springframework.version>3.2.2.RELEASE</springframework.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.6</java.version>
 	</properties>
 
 	<dependencies>
@@ -63,7 +65,7 @@
 									<outputFile>${project.build.directory}/${project.artifactId}-dependencies-${project.version}.${project.packaging}</outputFile>
 									<artifactSet>
 										<excludes>
-											<exclude>au.org.aekos:EavToRdfCrawler</exclude>
+											<exclude>au.org.ecoinformatics:eml-poster</exclude>
 										</excludes>
 									</artifactSet>
 									<filters>
@@ -92,4 +94,50 @@
 			</build>
 		</profile>
 	</profiles>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.17</version>
+				<configuration>
+					<redirectTestOutputToFile>true</redirectTestOutputToFile>
+					<includes>
+						<include>**/*.class</include>
+					</includes>
+					<excludes>
+						<!-- Exclude all of maven-failsafe-plugin's includes -->
+						<exclude>**/IT*.java</exclude>
+						<exclude>**/*IT.java</exclude>
+						<exclude>**/*ITCase.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

@@ -14,9 +14,23 @@ public class EcoinformaticsEmlPosterApplication {
 	private EmlPosterService service;
 
 	public void run() {
+		// TODO validate args
 		service.doPost();
 	}
 
+	/**
+	 * Entry point for the EML-POSTer application.
+	 * <br /><br />
+	 * Available command line arguments (used as <code>--&lt;arg&gt;=&lt;value&gt;</code>):
+	 * <ul>
+	 * <li>eml-poster.source.dir=&lt;path&gt;: (MANDATORY) full path of the directory to read files from</li>
+	 * <li>eml-poster.node.endpoint=&lt;url&gt;: (MANDATORY) full URL of the DataONE node endpoint</li>
+	 * <li>eml-poster.file.eml=&lt;filename&gt;: (MANDATORY) filename of the EML file to read</li>
+	 * <li>eml-poster.file.sysmeta=&lt;filename&gt;: (MANDATORY) filename of the SysMeta file to read</li>
+	 * </ul>
+	 * 
+	 * @param args			See Javadoc above for accepted values
+	 */
 	public static void main(String[] args) throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] {"classpath:/au/org/ecoinformatics/eml/poster/application-context.xml"}, false);
