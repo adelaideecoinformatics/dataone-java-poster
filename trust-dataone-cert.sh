@@ -3,12 +3,14 @@
 # Downloads the public certificate from the a DataONE member node
 # and adds it to the trusted certificates keystore. This is required
 # to be able to connect to the server to POST data to it.
+# You can re-run this script as many times as you want, it'll handle an existing alias and remove it
 # See https://confluence.atlassian.com/display/JIRAKB/Unable+to+Connect+to+SSL+Services+due+to+PKIX+Path+Building+Failed+sun.security.provider.certpath.SunCertPathBuilderException for more information on how this works.
 # See http://pythonhosted.org/dataone.generic_member_node/setup-local-authn-ca.html for how to get certificates into a dataONE (GMN) member node
 
 NODE_ADDRESS=130.220.209.107
-CERTIFICATE_PATH=/tmp/ecoinformatics-dataone-pub.cert
+CERTIFICATE_PATH=/tmp/x509up_u1000
 SERVER_NAME=ecoinformatics-dataone
+DEFAULT_KEYSTORE_PASSWD=changeit
 ARG_JAVA_HOME=$1
 if [ -z "$ARG_JAVA_HOME" ]; then
   echo "Error! You need to tell us the path to the JRE 'bin' directory."
@@ -25,12 +27,29 @@ if [ ! -d "$SECURITY_DIR" ]; then
   exit 1
 fi
 
-echo "Downloading certificate to $CERTIFICATE_PATH"
+function runKeytoolCommand {
+  COMMAND=$1
+  EXTRA_INPUT=$2
+  #>&2 echo $COMMAND
+  printf "$DEFAULT_KEYSTORE_PASSWD\n$EXTRA_INPUT\n" | $ARG_JAVA_HOME/keytool -keystore $SECURITY_DIR/cacerts $COMMAND
+  >&2 printf "(Entered default password of \"$DEFAULT_KEYSTORE_PASSWD\" for you)\n"
+}
+
+echo ">>> Download certificate to $CERTIFICATE_PATH"
 openssl s_client -connect $NODE_ADDRESS:443 < /dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > $CERTIFICATE_PATH
-echo "Adding trusted certificate..."
-echo "  If you get prompted for a password, the default is: changeit"
-$ARG_JAVA_HOME/keytool -import -alias $SERVER_NAME -keystore $SECURITY_DIR/cacerts -file $CERTIFICATE_PATH
-echo "Done :D"
+printf "<<< Download certificate\n\n"
+echo ">>> Check already added alises"
+ALREADY_LISTED_ALIASES_COUNT=`runKeytoolCommand "-list" | grep $SERVER_NAME | wc -l`
+if [ "$ALREADY_LISTED_ALIASES_COUNT" == "1" ]; then
+  echo "Alias already listed. Removing it so we can re-add it."
+  runKeytoolCommand "-delete -alias $SERVER_NAME"
+fi
+printf "<<< Check already added alises\n\n"
+echo ">>> Adding trusted certificate"
+echo "using the default password of: \"$DEFAULT_KEYSTORE_PASSWD\" and automatically trusting it"
+runKeytoolCommand "-import -alias $SERVER_NAME -file $CERTIFICATE_PATH" "yes"
+printf "<<< Adding trusted certificate\n\n"
+echo "Script completed :D"
 if [ "$(whoami)" != "root" ]; then
   echo "WARNING! You didn't run as sudo/root so if that failed, try again as a superuser"
 fi

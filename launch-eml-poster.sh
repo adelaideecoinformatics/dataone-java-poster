@@ -4,23 +4,34 @@ cd `dirname $0`
 SOURCE_DIR=$1
 SYSMETA_FILENAME=$2
 EML_FILENAME=$3
+CERTIFICATE_FILE=/tmp/x509up_u1000
+CERT_SCRIPT=trust-dataone-cert.sh
 USAGE_MSG="  Usage: $0 <source-dir> <sysmeta filename> <eml filename>"
 EXAMPLE_MSG="  Example: $0 /tmp sysmeta.xml eml.xml"
 LOGS_DIR=logs
 UNIQUE_ID=`date +%Y%m%d_%H%M`
+if [ ! -f $CERTIFICATE_FILE ];then
+  echo "WARNING: the (default) certificate file doesn't exist ($CERTIFICATE_FILE)"
+  echo " You should run the $CERT_SCRIPT script to create it"
+  echo "...pausing for effect..."
+  sleep 2
+fi
 if [ -z "$SOURCE_DIR" ];then
   echo "Startup error: you need to pass the source directory that the files live in as the first arg" 
-  printf $USAGE_MSG
+  echo $USAGE_MSG
+  echo $EXAMPLE_MSG
   exit 1
 fi
 if [ -z "$SYSMETA_FILENAME" ];then
   echo "Startup error: you need to pass the filename of the sysmeta (System Metadata) file as the second arg" 
   echo $USAGE_MSG
+  echo $EXAMPLE_MSG
   exit 1
 fi
 if [ -z "$EML_FILENAME" ];then
   echo "Startup error: you need to pass the filename of the EML file as the third arg" 
   echo $USAGE_MSG
+  echo $EXAMPLE_MSG
   exit 1
 fi
 mkdir -p $LOGS_DIR

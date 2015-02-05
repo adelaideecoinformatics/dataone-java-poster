@@ -20,3 +20,5 @@ Once you have both of these, create the following file:
 	-----END RSA PRIVATE KEY-----
 	
 You can now run this Java eml-poster client and authenticate correctly.
+
+Note: the trust script DOES NOT create this certificate for you!
