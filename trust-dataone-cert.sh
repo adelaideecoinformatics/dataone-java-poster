@@ -3,13 +3,15 @@
 # Downloads the public certificate from the a DataONE member node
 # and adds it to the trusted certificates keystore. This is required
 # to be able to connect to the server to POST data to it.
-# You can re-run this script as many times as you want, it'll handle an existing alias and remove it
+
+# You can re-run this script as many times as you want, it'll handle an existing alias and remove it.
+
 # See https://confluence.atlassian.com/display/JIRAKB/Unable+to+Connect+to+SSL+Services+due+to+PKIX+Path+Building+Failed+sun.security.provider.certpath.SunCertPathBuilderException for more information on how this works.
 # See http://pythonhosted.org/dataone.generic_member_node/setup-local-authn-ca.html for how to get certificates into a dataONE (GMN) member node
 
 NODE_ADDRESS=130.220.209.107
-CERTIFICATE_PATH=/tmp/x509up_u1000
 SERVER_NAME=ecoinformatics-dataone
+CERTIFICATE_PATH=/tmp/$SERVER_NAME-pub.cert
 DEFAULT_KEYSTORE_PASSWD=changeit
 ARG_JAVA_HOME=$1
 if [ -z "$ARG_JAVA_HOME" ]; then
@@ -22,7 +24,7 @@ fi
 
 SECURITY_DIR=$ARG_JAVA_HOME/../lib/security
 if [ ! -d "$SECURITY_DIR" ]; then
-  echo "Error! The passed java bin directory doesn't have $SECURITY_DIR as a valid relative path"
+  echo "Error! The passed Java bin directory doesn't have $SECURITY_DIR as a valid relative path"
   echo "  Have you checked inside the jre/ directory in the java install?"
   exit 1
 fi
@@ -51,5 +53,13 @@ runKeytoolCommand "-import -alias $SERVER_NAME -file $CERTIFICATE_PATH" "yes"
 printf "<<< Adding trusted certificate\n\n"
 echo "Script completed :D"
 if [ "$(whoami)" != "root" ]; then
+  echo -e "
+   __          __     _____  _   _ _____ _   _  _____ 
+   \ \        / /\   |  __ \| \ | |_   _| \ | |/ ____|
+    \ \  /\  / /  \  | |__) |  \| | | | |  \| | |  __ 
+     \ \/  \/ / /\ \ |  _  /| . \` | | | | . \` | | |_ |
+      \  /\  / ____ \| | \ \| |\  |_| |_| |\  | |__| |
+       \/  \/_/    \_\_|  \_\_| \_|_____|_| \_|\_____|
+  "
   echo "WARNING! You didn't run as sudo/root so if that failed, try again as a superuser"
 fi
