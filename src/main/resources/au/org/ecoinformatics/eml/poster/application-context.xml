@@ -14,9 +14,19 @@
 	</bean>
 
 	<bean id="restEmlPosterService" class="au.org.ecoinformatics.eml.poster.service.RestEmlPosterService">
-		<property name="metadataDirectoryPath" value="${eml-poster.source.dir}" />
-		<property name="nodeEndpoint" value="${eml-poster.node.endpoint}" />
+		<property name="operation" value="${eml-poster.operation}" />
+		<property name="nodeEndpoint" value="${eml-poster.endpoint}" />
 		<property name="systemMetadataFilename" value="${eml-poster.file.sysmeta}" />
 		<property name="emlFilename" value="${eml-poster.file.eml}" />
+		<property name="operationStrategies">
+			<map>
+				<entry key="create">
+					<bean class="au.org.ecoinformatics.eml.poster.service.CreateEmlPosterStrategy" />
+				</entry>
+				<entry key="delete">
+					<bean class="au.org.ecoinformatics.eml.poster.service.DeleteEmlPosterStrategy" />
+				</entry>
+			</map>
+		</property>
 	</bean>
 </beans>

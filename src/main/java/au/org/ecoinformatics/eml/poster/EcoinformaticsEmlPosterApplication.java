@@ -1,5 +1,8 @@
 package au.org.ecoinformatics.eml.poster;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
@@ -11,11 +14,17 @@ import au.org.ecoinformatics.eml.poster.service.EmlPosterService;
  */
 public class EcoinformaticsEmlPosterApplication {
 
+	private static final Logger logger = LoggerFactory.getLogger(EcoinformaticsEmlPosterApplication.class);
 	private EmlPosterService service;
+	
+	@Value("${eml-poster.operation}")
+	private String operation;
 
 	public void run() {
+		logger.info(String.format("Starting EML-POSTer to perform the %s operation", operation));
 		// TODO validate args
 		service.doPost();
+		logger.info("Finished EML-POSTer");
 	}
 
 	/**
@@ -23,10 +32,10 @@ public class EcoinformaticsEmlPosterApplication {
 	 * <br /><br />
 	 * Available command line arguments (used as <code>--&lt;arg&gt;=&lt;value&gt;</code>):
 	 * <ul>
-	 * <li>eml-poster.source.dir=&lt;path&gt;: (MANDATORY) full path of the directory to read files from</li>
-	 * <li>eml-poster.node.endpoint=&lt;url&gt;: (MANDATORY) full URL of the DataONE node endpoint</li>
+	 * <li>eml-poster.endpoint=&lt;url&gt;: (MANDATORY) full URL of the DataONE node endpoint</li>
 	 * <li>eml-poster.file.eml=&lt;filename&gt;: (MANDATORY) filename of the EML file to read</li>
 	 * <li>eml-poster.file.sysmeta=&lt;filename&gt;: (MANDATORY) filename of the SysMeta file to read</li>
+	 * <li>eml-poster.operation=&lt;op&gt;: (Optional) operation to perform</li>
 	 * </ul>
 	 * 
 	 * @param args			See Javadoc above for accepted values

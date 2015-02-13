@@ -1,23 +1,16 @@
 package au.org.ecoinformatics.eml.poster.service;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.dataone.client.v1.MNode;
 import org.dataone.client.v1.itk.D1Client;
-import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
-import org.dataone.service.exceptions.InvalidRequest;
-import org.dataone.service.exceptions.InvalidSystemMetadata;
-import org.dataone.service.exceptions.InvalidToken;
-import org.dataone.service.exceptions.NotAuthorized;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
-import org.dataone.service.exceptions.UnsupportedType;
-import org.dataone.service.types.v1.Identifier;
 import org.dataone.service.types.v1.SystemMetadata;
 import org.dataone.service.util.TypeMarshaller;
 import org.slf4j.Logger;
@@ -28,9 +21,10 @@ public class RestEmlPosterService implements EmlPosterService {
 	private static final Logger logger = LoggerFactory.getLogger(RestEmlPosterService.class);
 	private String nodeEndpoint;
 	private MNode nodeClient;
-	private String metadataDirectoryPath;
 	private String systemMetadataFilename;
 	private String emlFilename;
+	private String operation;
+	private Map<String, EmlPosterStrategy> operationStrategies;
 	
 	private InputStream emlData;
 	private SystemMetadata sysmetaData;
@@ -46,11 +40,11 @@ public class RestEmlPosterService implements EmlPosterService {
 	private void readMetadataFiles() {
 		logger.info("EML Poster: reading metadata files");
 		try {
-			emlData = new FileInputStream(metadataDirectoryPath + File.separator + emlFilename);
+			emlData = new FileInputStream(emlFilename);
 		} catch (FileNotFoundException e) {
 			logger.error("Failed to load the EML file: " + emlFilename, e);
 		}
-		sysmetaData = unMarshalSystemMetadata(metadataDirectoryPath + File.separator + systemMetadataFilename);
+		sysmetaData = unMarshalSystemMetadata(systemMetadataFilename);
 	}
 
 	private void connectToNode() {
@@ -68,36 +62,29 @@ public class RestEmlPosterService implements EmlPosterService {
 	}
 	
 	private void postMetadata() {
-		logger.info("EML Poster: POSTing data");
+		EmlPosterStrategy selectedStrategy = operationStrategies.get(operation);
+		if (selectedStrategy == null) {
+			logger.warn(String.format("Warning: could NOT find a strategy for operation %s, available operations are: %s", operation, getAvailableOperations()));
+		}
+		selectedStrategy.execute(sysmetaData, emlData, nodeClient);
 		try {
-			Identifier pid = sysmetaData.getIdentifier();
-			nodeClient.create(pid, emlData, sysmetaData);
 			emlData.close();
-		} catch (IdentifierNotUnique e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (InsufficientResources e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (InvalidRequest e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (InvalidSystemMetadata e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (InvalidToken e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (NotAuthorized e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (NotImplemented e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (ServiceFailure e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (UnsupportedType e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (FileNotFoundException e) {
-			logger.error("Runtime error: failed to load the EML file from: " + emlFilename, e);
 		} catch (IOException e) {
 			logger.error("Runtime error: failed to close EML file: " + emlFilename, e);
 		}
 	}
 	
+	String getAvailableOperations() {
+		StringBuilder result = new StringBuilder();;
+		for (String currKey : operationStrategies.keySet()) {
+			if (result.length() > 0) {
+				result.append(", ");
+			}
+			result.append(currKey);
+		}
+		return result.toString();
+	}
+
 	private SystemMetadata unMarshalSystemMetadata(String filePath) {
 		// See: https://mule1.dataone.org/ArchitectureDocs-current/design/SystemMetadata.html for what is required in sysmeta
         SystemMetadata smd = null;
@@ -114,8 +101,8 @@ public class RestEmlPosterService implements EmlPosterService {
 		logger.info("Finished POSTing metadata");
 	}
 
-	public void setMetadataDirectoryPath(String metadataDirectoryPath) {
-		this.metadataDirectoryPath = metadataDirectoryPath;
+	public void setOperation(String operation) {
+		this.operation = operation;
 	}
 
 	public void setNodeEndpoint(String nodeEndpoint) {
@@ -128,5 +115,9 @@ public class RestEmlPosterService implements EmlPosterService {
 
 	public void setEmlFilename(String emlFilename) {
 		this.emlFilename = emlFilename;
+	}
+
+	public void setOperationStrategies(Map<String, EmlPosterStrategy> operationStrategies) {
+		this.operationStrategies = operationStrategies;
 	}
 }
