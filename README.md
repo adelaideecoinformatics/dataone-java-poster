@@ -19,6 +19,7 @@ When it comes to calling it from your code, you'll probably want to create the E
             new DatasetType()
               .withTitle(new I18NNonEmptyStringType().withContent("best dataset ever"))
               // ...and all the other components);
+        eml.validate();
         eml.write(System.out);
 
 ...or the SystemMetadata class:
@@ -33,6 +34,7 @@ When it comes to calling it from your code, you'll probably want to create the E
 			.withFormatId(EmlApiInfo.EML_FORMAT_ID)
 			// ...and all the other components
 			.withReplicationPolicy(new ReplicationPolicy().withReplicationAllowed(true));
+        sysMeta.validate();
         sysMeta.write(System.out);
 
 Writing to System.out isn't very useful though so you can write to a file with something like this:
@@ -71,7 +73,7 @@ There is a bash script `update-patch.sh` that will update the patch file. The wo
 
  1. make some changes to the generated JAXB classes
  1. run `update-patch.sh` to update the patch file from your changes
- 1. check the patch file and optionally remove any patch hunks you don't think should be there (comments about generation date)
- 1. revert your changed to the JAXB classes
+ 1. check the patch file and optionally remove any patch hunks you don't think should be there (comments about generation date, etc)
+ 1. revert your changes to the JAXB classes
  1. run maven to apply the patch (see above) to make sure it works
  1. add everything (including the JAXB classes, because it makes life easy) to version control and commit
