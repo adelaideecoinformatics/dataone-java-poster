@@ -63,17 +63,16 @@ This project uses a maven plugin to generate JAXB classes from the XSDs and also
 
 You can regenerate all the JAXB classes and apply the patch with:
 
-        mvn clean package -Pjaxb
+        mvn clean test -Pjaxb
 
 ...or if you only want to apply the patch, use:
 
-        mvn clean package -Ppatch
+        mvn clean process-sources -Ppatch
 
 There is a bash script `update-patch.sh` that will update the patch file. The workflow is:
 
  1. make some changes to the generated JAXB classes
- 1. run `update-patch.sh` to update the patch file from your changes
- 1. check the patch file and optionally remove any patch hunks you don't think should be there (comments about generation date, etc)
- 1. revert your changes to the JAXB classes
- 1. run maven to apply the patch (see above) to make sure it works
+ 1. run `update-patch.sh` to update/regenerated the patch file from your changes
+ 1. check the patch file. The hunks associated with the `Generated on` comment usually don't work so use emacs in "diff" mode to split and edit the patch file to remove all of them. It's painfully manual but I haven't thought of a better way yet.
+ 1. run maven to apply the patch (see above) to make sure it works. Don't worry about reverting changes, they'll be steam rolled by JAXB
  1. add everything (including the JAXB classes, because it makes life easy) to version control and commit
