@@ -17,6 +17,7 @@
 		<jaxb.version>2.2.11</jaxb.version>
 		<jaxb.output.dir>${basedir}/src/main/jaxb/</jaxb.output.dir>
 		<eml-custom-binding-filename>eml-custom-bindings.xjb</eml-custom-binding-filename>
+		<xsd-path>${basedir}/src/main/resources/au/org/ecoinformatics/eml/xsd</xsd-path>
 	</properties>
 
 	<dependencies>
@@ -126,7 +127,7 @@
 								<tasks>
 									<!-- The JAXB generation required/expects the .xjb to live in the same directory as the XSDs. I'm not happy checking 
 										it in there because that directory should only contain the XSDs from the archive. -->
-									<copy file="${basedir}/xsd/${eml-custom-binding-filename}" tofile="${basedir}/xsd/eml-2.1.1/${eml-custom-binding-filename}" />
+									<copy file="${xsd-path}/${eml-custom-binding-filename}" tofile="${xsd-path}/eml-2.1.1/${eml-custom-binding-filename}" />
 								</tasks>
 							</configuration>
 							<goals>
@@ -138,7 +139,7 @@
 							<phase>process-sources</phase>
 							<configuration>
 								<tasks>
-									<delete file="${basedir}/xsd/eml-2.1.1/${eml-custom-binding-filename}" />
+									<delete file="${xsd-path}/eml-2.1.1/${eml-custom-binding-filename}" />
 								</tasks>
 							</configuration>
 							<goals>
@@ -177,9 +178,9 @@
 							</goals>
 							<configuration>
 								<packageName>au.org.ecoinformatics.eml.jaxb.sysmeta</packageName>
-								<bindingDirectory>${basedir}/xsd/</bindingDirectory>
+								<bindingDirectory>${xsd-path}</bindingDirectory>
 								<bindingFiles>sysmeta-custom-bindings.xjb</bindingFiles>
-								<schemaDirectory>${basedir}/xsd/</schemaDirectory>
+								<schemaDirectory>${xsd-path}</schemaDirectory>
 								<schemaFiles>dataoneTypes.xsd</schemaFiles>
 								<clearOutputDir>true</clearOutputDir>
 							</configuration>
@@ -191,9 +192,9 @@
 							</goals>
 							<configuration>
 								<packageName>au.org.ecoinformatics.eml.jaxb.eml</packageName>
-								<bindingDirectory>${basedir}/xsd/eml-2.1.1/</bindingDirectory>
+								<bindingDirectory>${xsd-path}/eml-2.1.1/</bindingDirectory>
 								<bindingFiles>${eml-custom-binding-filename}</bindingFiles>
-								<schemaDirectory>${basedir}/xsd/eml-2.1.1/</schemaDirectory>
+								<schemaDirectory>${xsd-path}/eml-2.1.1/</schemaDirectory>
 								<schemaFiles>eml.xsd</schemaFiles>
 								<clearOutputDir>false</clearOutputDir>
 							</configuration>

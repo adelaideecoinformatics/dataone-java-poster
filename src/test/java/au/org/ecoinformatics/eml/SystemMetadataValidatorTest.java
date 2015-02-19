@@ -13,7 +13,7 @@ import au.org.ecoinformatics.eml.jaxb.sysmeta.Subject;
 import au.org.ecoinformatics.eml.jaxb.sysmeta.SystemMetadata;
 
 public class SystemMetadataValidatorTest {
-
+	
 	/**
 	 * Is an empty SysMeta document invalid?
 	 */
