@@ -1,6 +1,8 @@
 # EML API
 ## What is it?
-This is a Java API that lets you programmatically create an EML document (or a SysMeta document) and write it out to an XML file. This file could then be loaded into DataONE amongst other things.
+This is a Java API that lets you programmatically create an EML or a SysMeta document, validate it and write it out to an XML file. This file could then be loaded into DataONE amongst other things.
+
+It's worth mentioning that all required schema files are inside this artifact so the validation will still work without an internet connection.
 
 ## How do I use it?
 The repository is built and published to a maven repostory: http://maven.dataone.org/au/org/ecoinformatics/eml-api/
