@@ -1,9 +1,6 @@
 package au.org.ecoinformatics.eml;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,85 +22,88 @@ class EmlInJarLSResourceResolver implements LSResourceResolver {
 	
 	private static final Logger logger = LoggerFactory.getLogger(EmlInJarLSResourceResolver.class);
 	private static final Map<ResolutionStrategyKey, ResolutionStrategy> resolutionStrategies = getStrategies();
-	private final String localBasePath;
+	private final String localXsdBasePath;
+	private String emlSubdirName;
 
 	/**
-	 * @param localBasePath		path to look in for requested relative XSD file names
+	 * @param localXsdBasePath		path to look in for requested relative XSD file names
+	 * @param emlSubdirName			name of the subdirectory that has the EML XSDs
 	 */
-	public EmlInJarLSResourceResolver(String localBasePath) {
-		this.localBasePath = localBasePath;
+	public EmlInJarLSResourceResolver(String localXsdBasePath, String emlSubdirName) {
+		this.localXsdBasePath = localXsdBasePath;
+		this.emlSubdirName = emlSubdirName;
 	}
 	
 	@Override
 	public LSInput resolveResource(String type, String namespaceURI, String publicId, String systemId, String baseURI) {
-		boolean isUrl = isAValidUrl(systemId);
-		ResolutionStrategy strategy = resolutionStrategies.get(new ResolutionStrategyKey(isUrl));
-		return strategy.handle(publicId, systemId, localBasePath);
-	}
-	
-	boolean isAValidUrl(String systemId) {
-		try {
-			new URL(systemId);
-			return true;
-		} catch (MalformedURLException e) {
-			return false;
-		}
+		ResolutionStrategy strategy = resolutionStrategies.get(ResolutionStrategyKey.newKey(systemId));
+		String xsdPath = strategy.getPath(localXsdBasePath, emlSubdirName, systemId);
+		logger.debug(String.format("Attempting to load requested XSD '%s' from %s", systemId, xsdPath));
+		InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(xsdPath);
+		return new LSInputImpl(publicId, systemId, resourceAsStream);
 	}
 
 	private interface ResolutionStrategy {
-
-		LSInput handle(String publicId, String systemId, String localBasePath);
-		
+		String getPath(String localXsdBasePath, String emlSubdirName, String systemId);
 	}
 	
-	private static class ClasspathFileResolutionStrategy implements ResolutionStrategy {
-
+	private static class EmlXsdResolutionStrategy implements ResolutionStrategy {
 		@Override
-		public LSInput handle(String publicId, String systemId, String localBasePath) {
-			String fullXsdPath = localBasePath + systemId;
-			logger.debug(String.format("Attempting to load requested XSD '%s' from %s", systemId, fullXsdPath));
-			InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(fullXsdPath);
-		    return new LSInputImpl(publicId, systemId, resourceAsStream);
+		public String getPath(String localXsdBasePath, String emlSubdirName, String systemId) {
+			return localXsdBasePath + emlSubdirName + systemId;
+		}
+	}
+
+	private static class ThirdPartyXsdResolutionStrategy implements ResolutionStrategy {
+
+		private static final String DONT_USE_SUBDIR = "";
+		private static final String XML_XSD_FILENAME = "2001-03-xml.xsd";
+		private static final String XML_DTD_FILENAME = "2009-XMLSchema.dtd";
+		private static final String DATATYPES_DTD_FILENAME = "2001-datatypes.dtd";
+		private static final Map<String, String> XSD_NAME_MAPPINGS = new HashMap<String, String>();
+		static {
+			XSD_NAME_MAPPINGS.put("http://www.w3.org/2009/01/xml.xsd", XML_XSD_FILENAME);
+			XSD_NAME_MAPPINGS.put("XMLSchema.dtd", XML_DTD_FILENAME);
+			XSD_NAME_MAPPINGS.put("datatypes.dtd", DATATYPES_DTD_FILENAME);
 		}
 		
-	}
-
-	private static class URLResolutionStrategy implements ResolutionStrategy {
-
 		@Override
-		public LSInput handle(String publicId, String systemId, String localBasePath) {
-			logger.debug(String.format("Attempting to load requested XSD '%s' from %s", systemId, systemId));
-			try {
-				InputStream urlStream = new URL("http://www.w3.org/2009/01/xml.xsd").openStream();
-				return new LSInputImpl(publicId, systemId, urlStream);
-			} catch (MalformedURLException e) {
-				throw new RuntimeException("Failed to read the remote XSD", e);
-			} catch (IOException e) {
-				throw new RuntimeException("Failed to read the remote XSD", e);
-			}
+		public String getPath(String localXsdBasePath, String emlSubdirName, String systemId) {
+			String localXsdFilename = XSD_NAME_MAPPINGS.get(systemId);
+			logger.info(String.format("Mapped the requested '%s' to '%s'", systemId, localXsdFilename));
+			explodeIfNull(localXsdFilename);
+			return localXsdBasePath + DONT_USE_SUBDIR + localXsdFilename;
+		}
+
+		private void explodeIfNull(String s) {
+			s.toString();
 		}
 	}
-	
 	
 	private static Map<ResolutionStrategyKey, ResolutionStrategy> getStrategies() {
 		Map<ResolutionStrategyKey, ResolutionStrategy> result = new HashMap<ResolutionStrategyKey, ResolutionStrategy>();
-		result.put(new ResolutionStrategyKey(false), new ClasspathFileResolutionStrategy());
-		result.put(new ResolutionStrategyKey(true), new URLResolutionStrategy());
+		result.put(new ResolutionStrategyKey(true), new EmlXsdResolutionStrategy());
+		result.put(new ResolutionStrategyKey(false), new ThirdPartyXsdResolutionStrategy());
 		return result;
 	}
 	
 	private static class ResolutionStrategyKey {
-		private final boolean isUrl;
+		private static final String EML_PREFIX = "eml";
+		private final boolean isEmlXsd;
 
-		public ResolutionStrategyKey(boolean isUrl) {
-			this.isUrl = isUrl;
+		public ResolutionStrategyKey(boolean isEmlXsd) {
+			this.isEmlXsd = isEmlXsd;
 		}
 
+		public static ResolutionStrategyKey newKey(String systemId) {
+			return new ResolutionStrategyKey(systemId.startsWith(EML_PREFIX));
+		}
+		
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + (isUrl ? 1231 : 1237);
+			result = prime * result + (isEmlXsd ? 1231 : 1237);
 			return result;
 		}
 
@@ -116,7 +116,7 @@ class EmlInJarLSResourceResolver implements LSResourceResolver {
 			if (getClass() != obj.getClass())
 				return false;
 			ResolutionStrategyKey other = (ResolutionStrategyKey) obj;
-			if (isUrl != other.isUrl)
+			if (isEmlXsd != other.isEmlXsd)
 				return false;
 			return true;
 		}

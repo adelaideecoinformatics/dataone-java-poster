@@ -19,8 +19,9 @@ class JaxbUtils<T> {
 
 	private static final String PREFIX_MAPPER_PROPERTY_NAME = "com.sun.xml.bind.namespacePrefixMapper";
 	private static final String SYSMETA_XSD_LOCATION = "au/org/ecoinformatics/eml/xsd/dataoneTypes.xsd";
-	private static final String EML_XSD_BASE = "au/org/ecoinformatics/eml/xsd/eml-2.1.1/";
-	private static final String EML_XSD_LOCATION = EML_XSD_BASE + "eml.xsd";
+	private static final String XSD_BASE = "au/org/ecoinformatics/eml/xsd/";
+	private static final String EML_SUBDIR = "eml-2.1.1/";
+	private static final String EML_XSD_LOCATION = XSD_BASE + EML_SUBDIR + "eml.xsd";
 	
 	private final Class<T> jaxbType;
 	private final NamespacePrefixMapper prefixMapper;
@@ -71,8 +72,8 @@ class JaxbUtils<T> {
 	}
 	
 	public static JaxbUtils<Eml> newEmlInstance() {
-		// Could load from https://knb.ecoinformatics.org/knb/schema/eml-2.1.1/eml.xsd too, but it's sloooooooow
-		return new JaxbUtils<Eml>(Eml.class, new EmlNamespacePrefixMapper(), EML_XSD_LOCATION, new EmlInJarLSResourceResolver(EML_XSD_BASE));
+		// Could load XSDs over the network (e.g: https://knb.ecoinformatics.org/knb/schema/eml-2.1.1/eml.xsd) too, but it's sloooooooow
+		return new JaxbUtils<Eml>(Eml.class, new EmlNamespacePrefixMapper(), EML_XSD_LOCATION, new EmlInJarLSResourceResolver(XSD_BASE, EML_SUBDIR));
 	}
 	
 	public static JaxbUtils<SystemMetadata> newSysMetaInstance() {
