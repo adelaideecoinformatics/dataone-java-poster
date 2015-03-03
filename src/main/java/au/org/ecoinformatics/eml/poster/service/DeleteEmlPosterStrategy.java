@@ -21,7 +21,7 @@ public class DeleteEmlPosterStrategy implements EmlPosterStrategy {
 	public void execute(SystemMetadata sysmetaData, InputStream emlData, MNode nodeClient) {
 		try {
 			Identifier pid = sysmetaData.getIdentifier();
-			logger.info("EML Poster: performing a 'delete' operation for pid: " + pid);
+			logger.info("EML Poster: performing a 'delete' operation for pid: " + pid.getValue());
 			nodeClient.delete(pid);
 		} catch (InvalidToken e) {
 			logger.error("Runtime error: failed to POST to the dataONE node", e);
