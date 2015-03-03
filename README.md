@@ -15,7 +15,7 @@ To use this project locally, follow these *first time only* set up steps:
         # Add server public certificate to Java keyring, run with no args for help
         sudo ./trust-dataone-cert.sh /usr/lib/jvm/java-7-oracle/jre/bin
         # Build a certificate to allow you to write to DataONE, run with -h for help. Replace IP with your DateONE node.
-        ./build_certificate.sh -i tern-projects.pem -c 130.220.209.107
+        ./build-certificate.sh -i tern-projects.pem -c 130.220.209.107
 
 Then, you can run the tool like this:
 
