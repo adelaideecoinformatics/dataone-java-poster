@@ -6,29 +6,37 @@ CERT_MAKER_USER="ubuntu"
 CERT_MAKER_HOST=""
 CERT_MAKER_PEM=""
 CERT_MAKER_OUTPUT_FILENAME=/tmp/x509up_u1000
+CERT_MAKER_LOCAL_MODE=false
 
 function printHelp {
   cat <<END_OF_HELP
-   Creates a certificate from a remote dataone instance.
+   Creates a certificate from a dataONE instance
+   either remote or local.
  
    Usage:
      $0 [OPTIONS]
-   Example:
+   Example for remote mode:
      $0 -i tern-projects.pem -c 130.220.209.107
+   Example for local mode:
+     $0 -l
 
-   Mandatory Options:
+   Mandatory Options when not in local mode:
      -c <host>         IP or hostname of the DataONE instance
      -i <pem>          PEM file to use to connect
  
    Optional Options:
+     -l                run in local mode (current machine is the dataONE instance)
      -h                display this help and exit
 END_OF_HELP
 }
 
-while getopts ":hc:i:" opt; do
+while getopts ":hc:i:l" opt; do
   case $opt in
     c)
       CERT_MAKER_HOST=$OPTARG
+      ;;
+    l)
+      CERT_MAKER_LOCAL_MODE=true
       ;;
     i)
       CERT_MAKER_PEM=$OPTARG
@@ -56,12 +64,12 @@ while getopts ":hc:i:" opt; do
   esac
 done
 
-if [ -z "$CERT_MAKER_HOST" ]; then
+if [ "$CERT_MAKER_LOCAL_MODE" = false ] && [ -z "$CERT_MAKER_HOST" ]; then
   echo "ERROR: you must pass a host to connect to."
   echo "Run $0 -h for more information"
   exit 1
 fi
-if [ -z "$CERT_MAKER_PEM" ]; then
+if [ "$CERT_MAKER_LOCAL_MODE" = false ] && [ -z "$CERT_MAKER_PEM" ]; then
   echo "ERROR: you must pass a PEM file to use to connect."
   echo "Run $0 -h for more information"
   exit 1
@@ -70,9 +78,15 @@ fi
 CERT_MAKER_CERT_FILENAME=/var/local/dataone/certs/client/client_cert.pem
 CERT_MAKER_KEY_FILENAME=/var/local/dataone/certs/client/client_key_nopassword.pem
 CERT_MAKER_COMMAND="cat $CERT_MAKER_CERT_FILENAME | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' && sudo cat $CERT_MAKER_KEY_FILENAME"
-echo ">>> Executing command on server $CERT_MAKER_HOST"
-CERT_MAKER_CERTIFICATE=`ssh -i $CERT_MAKER_PEM -l $CERT_MAKER_USER $CERT_MAKER_HOST $CERT_MAKER_COMMAND`
-printf "<<< Executing command on server $CERT_MAKER_HOST\n\n"
+if [ "$CERT_MAKER_LOCAL_MODE" == true ]; then
+  echo ">>> Executing command locally"
+  CERT_MAKER_CERTIFICATE=$(eval $CERT_MAKER_COMMAND)
+  printf "<<< Executing command locally\n\n"
+else
+  echo ">>> Executing command on server $CERT_MAKER_HOST"
+  CERT_MAKER_CERTIFICATE=`ssh -i $CERT_MAKER_PEM -l $CERT_MAKER_USER $CERT_MAKER_HOST $CERT_MAKER_COMMAND`
+  printf "<<< Executing command on server $CERT_MAKER_HOST\n\n"
+fi
 
 echo ">>> Writing certificate to $CERT_MAKER_OUTPUT_FILENAME"
 echo -e "$CERT_MAKER_CERTIFICATE" > $CERT_MAKER_OUTPUT_FILENAME

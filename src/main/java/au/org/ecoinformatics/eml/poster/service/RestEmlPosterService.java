@@ -38,7 +38,7 @@ public class RestEmlPosterService implements EmlPosterService {
 	}
 	
 	private void readMetadataFiles() {
-		logger.info("EML Poster: reading metadata files");
+		logger.info("EML Poster: reading EML metadata file " + emlFilename);
 		try {
 			emlData = new FileInputStream(emlFilename);
 		} catch (FileNotFoundException e) {
@@ -89,7 +89,8 @@ public class RestEmlPosterService implements EmlPosterService {
 		// See: https://mule1.dataone.org/ArchitectureDocs-current/design/SystemMetadata.html for what is required in sysmeta
         SystemMetadata smd = null;
         try {
-            InputStream is = new FileInputStream(filePath);
+            logger.info("EML Poster: reading sysmeta file " + filePath);
+        	InputStream is = new FileInputStream(filePath);
             smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
         } catch (Exception e) {
             logger.error("Failed to read sysmeta from '" + filePath + "'.", e);
