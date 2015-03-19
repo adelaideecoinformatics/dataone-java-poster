@@ -6,9 +6,6 @@ USAGE_MSG="
   Usage: $0 <target-dir> <targer-server> <sysmeta-suffix> \n
   Example: $0 /data/harvested-data/some-project https://130.220.209.107/mn -sysmeta"
 TARGET_FILE_EXT=xml
-LOGS_DIR=logs
-UNIQUE_ID=`date +%Y%m%d_%H%M`
-mkdir -p $LOGS_DIR
 if [ ! -d "$TARGET_DIR" ];then
   echo "Startup error: you need to pass a target directory that exists as the first arg"
   echo -e $USAGE_MSG
