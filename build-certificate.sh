@@ -16,7 +16,7 @@ function printHelp {
    Usage:
      $0 [OPTIONS]
    Example for remote mode:
-     $0 -i tern-projects.pem -c 130.220.209.107
+     $0 -i tern-projects.pem -c dataone.ecoinformatics.org.au
    Example for local mode:
      sudo bash $0 -l
 
