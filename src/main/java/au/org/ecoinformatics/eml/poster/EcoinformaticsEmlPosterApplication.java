@@ -7,6 +7,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.SimpleCommandLinePropertySource;
 
+import au.org.ecoinformatics.eml.poster.service.EcoinformaticsEmlPosterException;
 import au.org.ecoinformatics.eml.poster.service.EmlPosterService;
 
 /**
@@ -23,7 +24,11 @@ public class EcoinformaticsEmlPosterApplication {
 	public void run() {
 		logger.info(String.format("Starting EML-POSTer to perform the %s operation", operation));
 		// TODO validate args
-		service.doPost();
+		try {
+			service.doPost();
+		} catch (EcoinformaticsEmlPosterException e) {
+			logger.error("ERROR: Bugga, something exploded", e);
+		}
 		logger.info("Finished EML-POSTer");
 	}
 

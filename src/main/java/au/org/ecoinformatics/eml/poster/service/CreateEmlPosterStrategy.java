@@ -2,7 +2,7 @@ package au.org.ecoinformatics.eml.poster.service;
 
 import java.io.InputStream;
 
-import org.dataone.client.v1.MNode;
+import org.dataone.client.MNode;
 import org.dataone.service.exceptions.IdentifierNotUnique;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.InvalidRequest;

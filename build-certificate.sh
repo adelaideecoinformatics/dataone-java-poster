@@ -18,7 +18,7 @@ function printHelp {
    Example for remote mode:
      $0 -i tern-projects.pem -c 130.220.209.107
    Example for local mode:
-     $0 -l
+     sudo bash $0 -l
 
    Mandatory Options when not in local mode:
      -c <host>         IP or hostname of the DataONE instance

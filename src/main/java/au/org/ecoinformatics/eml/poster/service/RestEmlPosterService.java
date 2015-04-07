@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
-import org.dataone.client.v1.MNode;
-import org.dataone.client.v1.itk.D1Client;
+import org.dataone.client.D1Client;
+import org.dataone.client.MNode;
 import org.dataone.service.exceptions.InsufficientResources;
 import org.dataone.service.exceptions.NotImplemented;
 import org.dataone.service.exceptions.ServiceFailure;
@@ -30,38 +30,38 @@ public class RestEmlPosterService implements EmlPosterService {
 	private SystemMetadata sysmetaData;
 	
 	@Override
-	public void doPost() {
+	public void doPost() throws EcoinformaticsEmlPosterException {
 		readMetadataFiles();
 		connectToNode();
 		postMetadata();
 		writeStats();
 	}
 	
-	private void readMetadataFiles() {
+	private void readMetadataFiles() throws EcoinformaticsEmlPosterException {
 		logger.info("EML Poster: reading EML metadata file " + emlFilename);
 		try {
 			emlData = new FileInputStream(emlFilename);
 		} catch (FileNotFoundException e) {
-			logger.error("Failed to load the EML file: " + emlFilename, e);
+			throw new EcoinformaticsEmlPosterException("Failed to load the EML file: " + emlFilename, e);
 		}
 		sysmetaData = unMarshalSystemMetadata(systemMetadataFilename);
 	}
 
-	private void connectToNode() {
+	private void connectToNode() throws EcoinformaticsEmlPosterException {
 		logger.info("EML Poster: connecting to node endpoint [" + nodeEndpoint + "]");
 		try {
 			nodeClient = D1Client.getMN(nodeEndpoint);
 			nodeClient.ping();
 		} catch (ServiceFailure e) {
-			logger.error("Runtime error: Failed to build a dataONE client.", e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: Failed to build a dataONE client.", e);
 		} catch (NotImplemented e) {
-			logger.error("Runtime error: Failed when testing the connection to the dataONE node.", e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: Failed when testing the connection to the dataONE node.", e);
 		} catch (InsufficientResources e) {
-			logger.error("Runtime error: Failed to ping dataONE node.", e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: Failed to ping dataONE node.", e);
 		}
 	}
-	
-	private void postMetadata() {
+
+	private void postMetadata() throws EcoinformaticsEmlPosterException {
 		EmlPosterStrategy selectedStrategy = operationStrategies.get(operation);
 		if (selectedStrategy == null) {
 			logger.warn(String.format("Warning: could NOT find a strategy for operation %s, available operations are: %s", operation, getAvailableOperations()));
@@ -70,7 +70,7 @@ public class RestEmlPosterService implements EmlPosterService {
 		try {
 			emlData.close();
 		} catch (IOException e) {
-			logger.error("Runtime error: failed to close EML file: " + emlFilename, e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: failed to close EML file: " + emlFilename, e);
 		}
 	}
 	
@@ -85,17 +85,15 @@ public class RestEmlPosterService implements EmlPosterService {
 		return result.toString();
 	}
 
-	private SystemMetadata unMarshalSystemMetadata(String filePath) {
+	private SystemMetadata unMarshalSystemMetadata(String filePath) throws EcoinformaticsEmlPosterException {
 		// See: https://mule1.dataone.org/ArchitectureDocs-current/design/SystemMetadata.html for what is required in sysmeta
-        SystemMetadata smd = null;
         try {
             logger.info("EML Poster: reading sysmeta file " + filePath);
         	InputStream is = new FileInputStream(filePath);
-            smd = TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
+            return TypeMarshaller.unmarshalTypeFromStream(SystemMetadata.class, is);
         } catch (Exception e) {
-            logger.error("Failed to read sysmeta from '" + filePath + "'.", e);
+        	throw new EcoinformaticsEmlPosterException("Failed to read sysmeta from '" + filePath + "'.", e);
         }
-        return smd;
     }
 	
 	private void writeStats() {

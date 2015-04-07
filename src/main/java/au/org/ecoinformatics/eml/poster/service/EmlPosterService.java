@@ -4,6 +4,7 @@ public interface EmlPosterService {
 
 	/**
 	 * Read the required files and POST them to the member node
+	 * @throws EcoinformaticsEmlPosterException when something goes wrong
 	 */
-	void doPost();
+	void doPost() throws EcoinformaticsEmlPosterException;
 }
