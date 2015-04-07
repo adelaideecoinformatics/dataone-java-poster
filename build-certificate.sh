@@ -77,7 +77,7 @@ fi
 
 CERT_MAKER_CERT_FILENAME=/var/local/dataone/certs/client/client_cert.pem
 CERT_MAKER_KEY_FILENAME=/var/local/dataone/certs/client/client_key_nopassword.pem
-CERT_MAKER_COMMAND="cat $CERT_MAKER_CERT_FILENAME | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' && sudo cat $CERT_MAKER_KEY_FILENAME"
+CERT_MAKER_COMMAND="sudo cat $CERT_MAKER_CERT_FILENAME | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' && sudo cat $CERT_MAKER_KEY_FILENAME"
 if [ "$CERT_MAKER_LOCAL_MODE" == true ]; then
   echo ">>> Executing command locally"
   CERT_MAKER_CERTIFICATE=$(eval $CERT_MAKER_COMMAND)
