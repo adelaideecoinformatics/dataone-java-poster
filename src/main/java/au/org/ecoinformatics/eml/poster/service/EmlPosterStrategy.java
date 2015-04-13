@@ -7,6 +7,5 @@ import org.dataone.service.types.v1.SystemMetadata;
 
 public interface EmlPosterStrategy {
 
-	void execute(SystemMetadata sysmetaData, InputStream emlData, MNode nodeClient);
-
+	void execute(SystemMetadata sysmetaData, InputStream emlData, MNode nodeClient) throws EcoinformaticsEmlPosterException;
 }

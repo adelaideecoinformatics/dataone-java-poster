@@ -18,21 +18,19 @@ public class DeleteEmlPosterStrategy implements EmlPosterStrategy {
 	private static final Logger logger = LoggerFactory.getLogger(DeleteEmlPosterStrategy.class);
 	
 	@Override
-	public void execute(SystemMetadata sysmetaData, InputStream emlData, MNode nodeClient) {
+	public void execute(SystemMetadata sysmetaData, InputStream emlData, MNode nodeClient) throws EcoinformaticsEmlPosterException {
 		try {
 			Identifier pid = sysmetaData.getIdentifier();
 			logger.info("EML Poster: performing a 'delete' operation for pid: " + pid.getValue());
 			nodeClient.delete(pid);
-		} catch (InvalidToken e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
+		} catch (InvalidToken | ServiceFailure e) {
+			throw new EcoinformaticsEmlPosterException("Runtime error: failed to POST to the dataONE node", e);
 		} catch (NotAuthorized e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: authorisation failure", e);
 		} catch (NotImplemented e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
-		} catch (ServiceFailure e) {
-			logger.error("Runtime error: failed to POST to the dataONE node", e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: requested operation isn't available on the server", e);
 		} catch (NotFound e) {
-			logger.error("Runtime error: failed to find existing object to update", e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: failed to find existing object to update", e);
 		}
 	}
 }

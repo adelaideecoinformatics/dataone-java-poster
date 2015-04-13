@@ -75,8 +75,8 @@ if [ "$CERT_MAKER_LOCAL_MODE" = false ] && [ -z "$CERT_MAKER_PEM" ]; then
   exit 1
 fi
 
-CERT_MAKER_CERT_FILENAME=/var/local/dataone/certs/client/client_cert.pem
-CERT_MAKER_KEY_FILENAME=/var/local/dataone/certs/client/client_key_nopassword.pem
+CERT_MAKER_CERT_FILENAME=/var/local/dataone/certs/local_ca/client_cert.pem
+CERT_MAKER_KEY_FILENAME=/var/local/dataone/certs/local_ca/private/client_key_nopassword.pem
 CERT_MAKER_COMMAND="sudo cat $CERT_MAKER_CERT_FILENAME | awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' && sudo cat $CERT_MAKER_KEY_FILENAME"
 if [ "$CERT_MAKER_LOCAL_MODE" == true ]; then
   echo ">>> Executing command locally"

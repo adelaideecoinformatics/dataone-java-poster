@@ -8,7 +8,7 @@ OPERATION=$4
 CERTIFICATE_FILE=/tmp/x509up_u1000
 CERT_SCRIPT="build-certificate.sh"
 USAGE_MSG="  Usage: $0 <endpoint URL> <sysmeta file path> <eml file path> [operation]"
-EXAMPLE_MSG="  Example: $0 https://130.220.209.107/mn /tmp/sysmeta.xml /tmp/eml.xml create"
+EXAMPLE_MSG="  Example: $0 https://dataone.ecoinformatics.org.au/mn /tmp/sysmeta.xml /tmp/eml.xml create"
 LOGS_DIR=logs
 UNIQUE_ID=`date +%Y%m%d_%H%M`
 if [ ! -f $CERTIFICATE_FILE ];then

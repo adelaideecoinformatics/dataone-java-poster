@@ -24,7 +24,7 @@
 	<properties>
 		<springframework.version>3.2.2.RELEASE</springframework.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.6</java.version>
+		<java.version>1.7</java.version>
 		<maven-shade-plugin.version>2.2</maven-shade-plugin.version>
 	</properties>
 
