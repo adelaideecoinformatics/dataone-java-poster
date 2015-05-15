@@ -22,6 +22,10 @@ fi
 FILES_PROCESSED=0
 for f in $TARGET_DIR/$EML_FILE_GLOB; do
   SELECTOR='packageId="\([-A-Za-z0-9._/]*\)"'
+  if [[ "$(grep "$SELECTOR" $f)" == "" ]]; then
+    echo "Skipping file due to no regex match: $f"
+    continue
+  fi
   REPLACEMENT="packageId=\"\1$SUFFIX\""
   sed -i "s/$SELECTOR/$REPLACEMENT/" "$f"
   ((FILES_PROCESSED++))
