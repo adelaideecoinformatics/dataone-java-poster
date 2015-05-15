@@ -11,6 +11,7 @@ tar czf $OUTPUT_FILE --transform 's,^,eml-poster/,' \
   rename-sysmeta-to-suit-eml-poster.sh \
   trust-dataone-cert.sh \
   build-certificate.sh \
+  suffix-package-ids.sh \
   create-x509-cert.txt
 if [ "$?" != "0" ]; then
   exit $?
