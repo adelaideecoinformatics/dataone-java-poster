@@ -18,8 +18,8 @@ import org.dataone.service.types.v1.ObjectList;
 public class FindIdsRig {
 	
 	private static final Logger logger = Logger.getLogger(FindIdsRig.class);
-	private static final int LARGER_THAN_THE_NUMBER_OF_RESULTS_WELL_EVER_HAVE = 999999;
-	private static final int RESULT_SIZE = LARGER_THAN_THE_NUMBER_OF_RESULTS_WELL_EVER_HAVE;
+	private static final int LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE = 999999;
+	private static final int RESULT_SIZE = LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE;
 	
 	// Edit these if required \/
 	private static final String NODE_ENDPOINT = "https://dataone.ecoinformatics.org.au/mn";
@@ -78,7 +78,7 @@ public class FindIdsRig {
 			String formattedAsJavaArrayItem = "\"" + identifierText + "\",";
 			logger.info(formattedAsJavaArrayItem);
 		}
-		logger.info(String.format("#Finished search for identifiers. Searched %d objects and matched %d", 
+		logger.info(String.format("# Finished search for identifiers. Searched %d objects and matched %d", 
 				objectsProcessed, objectsMatched));
 	}
 	

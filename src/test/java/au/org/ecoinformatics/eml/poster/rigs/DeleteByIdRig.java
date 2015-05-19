@@ -14,6 +14,8 @@ import org.dataone.service.types.v1.Identifier;
  * 
  * Build a list of identifiers using the {@link FindIdsRig} and copy-paste
  * them into the static initialiser for the IDS_TO_DELETE.
+ * 
+ * You'll need to have the X509 certificate which you get by running build-certificate.sh.
  */
 public class DeleteByIdRig {
 	
