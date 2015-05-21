@@ -24,9 +24,9 @@ public class FindIdsRig {
 	// Edit these if required \/
 	private static final String NODE_ENDPOINT = "https://dataone.ecoinformatics.org.au/mn";
 	private static final String TARGET_FORMAT_ID = "eml://ecoinformatics.org/eml-2.1.1";
-	private static final List<String> INCLUDE_REGEX_FILTERS = new ArrayList<String>();
-	static {
-		INCLUDE_REGEX_FILTERS.addAll(Arrays.asList(
+	private static List<String> getRegexIncludeFiltersForRealRun() {
+		List<String> result = new ArrayList<String>();
+		result.addAll(Arrays.asList(
 			new String[] {
 				// FIXME could also just negate what we expect from AEKOS
 				"^bradford\\..+",
@@ -45,12 +45,18 @@ public class FindIdsRig {
 				"^wahyuni\\..+"
 			}
 		));
+		return result;
 	}
 	// Edit these if required /\
-	
+
+	private final List<String> regexIncludeFilters;
 	private MNode nodeClient;
 	private int objectsProcessed = 0;
 	private int objectsMatched = 0;
+
+	public FindIdsRig(List<String> regexIncludeFilters) {
+		this.regexIncludeFilters = regexIncludeFilters;
+	}
 
 	private void run() throws Throwable {
 		setup();
@@ -82,8 +88,8 @@ public class FindIdsRig {
 				objectsProcessed, objectsMatched));
 	}
 	
-	static boolean matchesAnyFilter(String identifier) {
-		for (String currFilter : INCLUDE_REGEX_FILTERS) {
+	boolean matchesAnyFilter(String identifier) {
+		for (String currFilter : regexIncludeFilters) {
 			if (identifier.matches(currFilter)) {
 				logger.debug("# Matched using filter: " + currFilter);
 				return true;
@@ -94,7 +100,7 @@ public class FindIdsRig {
 
 	public static void main(String[] args) {
 		try {
-			new FindIdsRig().run();
+			new FindIdsRig(getRegexIncludeFiltersForRealRun()).run();
 		} catch (Throwable e) {
 			logger.fatal("# FAILURE: couldn't delete an object", e);
 		}

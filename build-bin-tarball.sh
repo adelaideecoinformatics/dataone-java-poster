@@ -7,7 +7,6 @@ tar czf $OUTPUT_FILE --transform 's,^,eml-poster/,' \
   target/eml-poster-dependencies-1.0-SNAPSHOT.jar \
   target/eml-poster-1.0-SNAPSHOT.jar \
   launch-eml-poster.sh \
-  run-for-all-xml-in-dir.sh \
   rename-sysmeta-to-suit-eml-poster.sh \
   trust-dataone-cert.sh \
   build-certificate.sh \

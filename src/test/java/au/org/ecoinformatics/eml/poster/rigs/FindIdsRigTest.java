@@ -3,6 +3,10 @@ package au.org.ecoinformatics.eml.poster.rigs;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Test;
 
 public class FindIdsRigTest {
@@ -12,16 +16,18 @@ public class FindIdsRigTest {
 	 */
 	@Test
 	public void testDoesntMatchAnyFilters01() {
-		boolean result = FindIdsRig.matchesAnyFilter("ltern2.105.17");
+		FindIdsRig objectUnderTest = getObjectUnderTestWithPreconfiguredIncludeFilters();
+		boolean result = objectUnderTest.matchesAnyFilter("ltern2.105.17");
 		assertTrue("Should match", result);
 	}
-	
+
 	/**
 	 * Can we match a datalibrarian record?
 	 */
 	@Test
 	public void testDoesntMatchAnyFilters02() {
-		boolean result = FindIdsRig.matchesAnyFilter("datalibrarian.73.26");
+		FindIdsRig objectUnderTest = getObjectUnderTestWithPreconfiguredIncludeFilters();
+		boolean result = objectUnderTest.matchesAnyFilter("datalibrarian.73.26");
 		assertTrue("Should match", result);
 	}
 	
@@ -30,7 +36,19 @@ public class FindIdsRigTest {
 	 */
 	@Test
 	public void testDoesntMatchAnyFilters03() {
-		boolean result = FindIdsRig.matchesAnyFilter("aekos.org.au/collection/gov.au/abares/gcrs_SA");
+		FindIdsRig objectUnderTest = getObjectUnderTestWithPreconfiguredIncludeFilters();
+		boolean result = objectUnderTest.matchesAnyFilter("aekos.org.au/collection/gov.au/abares/gcrs_SA");
 		assertFalse("Should NOT match", result);
+	}
+	
+	private FindIdsRig getObjectUnderTestWithPreconfiguredIncludeFilters() {
+		List<String> filters = new ArrayList<String>();
+		filters.addAll(Arrays.asList(
+			new String[] {
+				"^datalibrarian\\..+",
+				"^ltern2\\..+"
+			}
+		));
+		return new FindIdsRig(filters);
 	}
 }

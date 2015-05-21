@@ -11,13 +11,21 @@
 
 	<bean id="application" class="au.org.ecoinformatics.eml.poster.EcoinformaticsEmlPosterApplication">
 		<property name="service" ref="restEmlPosterService" />
+		<property name="validators">
+			<set>
+				<bean class="au.org.ecoinformatics.eml.poster.argval.MutuallyExclusiveArgValidator">
+					<property name="directoryPath" value="${eml-poster.directory}" />
+					<property name="emlFilePath" value="${eml-poster.file.eml}" />
+					<property name="smdFilePath" value="${eml-poster.file.sysmeta}" />
+					<property name="argUnsetPlaceholder" value="${arg.unset.placeholder}" />
+				</bean>
+			</set>
+		</property>
 	</bean>
 
 	<bean id="restEmlPosterService" class="au.org.ecoinformatics.eml.poster.service.RestEmlPosterService">
 		<property name="operation" value="${eml-poster.operation}" />
 		<property name="nodeEndpoint" value="${eml-poster.endpoint}" />
-		<property name="systemMetadataFilename" value="${eml-poster.file.sysmeta}" />
-		<property name="emlFilename" value="${eml-poster.file.eml}" />
 		<property name="operationStrategies">
 			<map>
 				<entry key="create">

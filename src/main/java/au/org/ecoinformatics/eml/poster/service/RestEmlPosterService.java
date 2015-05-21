@@ -1,11 +1,16 @@
 package au.org.ecoinformatics.eml.poster.service;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.dataone.client.D1Client;
 import org.dataone.client.MNode;
 import org.dataone.service.exceptions.InsufficientResources;
@@ -19,32 +24,47 @@ import org.slf4j.LoggerFactory;
 public class RestEmlPosterService implements EmlPosterService {
 
 	private static final Logger logger = LoggerFactory.getLogger(RestEmlPosterService.class);
+	private static final String HARDCODED_SYSMETA_SUFFIX = "-sysmeta";
 	private String nodeEndpoint;
 	private MNode nodeClient;
-	private String systemMetadataFilename;
-	private String emlFilename;
 	private String operation;
 	private Map<String, EmlPosterStrategy> operationStrategies;
-	
-	private InputStream emlData;
-	private SystemMetadata sysmetaData;
+	private int filesProcessed = 0;
 	
 	@Override
-	public void doPost() throws EcoinformaticsEmlPosterException {
-		readMetadataFiles();
+	public void doPostForWholeDirectory(String directoryPath) throws EcoinformaticsEmlPosterException {
+		FilenameFilter filter = new SuffixFileFilter(".xml");
+		Path directory = Paths.get(directoryPath);
 		connectToNode();
-		postMetadata();
+		for (File currFile : directory.toFile().listFiles(filter)) {
+			String emlFilePath = currFile.getAbsolutePath();
+			String smdFilePath = calculateSmdFilePath(emlFilePath);
+			// TODO add switch to push past errors and handle exceptions here
+			DataoneRecord record = readRecord(emlFilePath, smdFilePath);
+			postRecord(record);
+			filesProcessed++;
+		}
+		writeStats();
+	}
+
+	@Override
+	public void doPostForSingleRecord(String emlFilePath, String smdFilePath) throws EcoinformaticsEmlPosterException {
+		DataoneRecord record = readRecord(emlFilePath, smdFilePath);
+		connectToNode();
+		postRecord(record);
+		filesProcessed++;
 		writeStats();
 	}
 	
-	private void readMetadataFiles() throws EcoinformaticsEmlPosterException {
-		logger.info("EML Poster: reading EML metadata file " + emlFilename);
+	private DataoneRecord readRecord(String emlFilePath, String smdFilePath) throws EcoinformaticsEmlPosterException {
+		logger.info("EML Poster: reading EML metadata file " + emlFilePath);
 		try {
-			emlData = new FileInputStream(emlFilename);
+			FileInputStream emlData = new FileInputStream(emlFilePath);
+			SystemMetadata sysmetaData = unMarshalSystemMetadata(smdFilePath);
+			return new DataoneRecord(emlData, emlFilePath, sysmetaData);
 		} catch (FileNotFoundException e) {
-			throw new EcoinformaticsEmlPosterException("Failed to load the EML file: " + emlFilename, e);
+			throw new EcoinformaticsEmlPosterException("Failed to load the EML file: " + emlFilePath, e);
 		}
-		sysmetaData = unMarshalSystemMetadata(systemMetadataFilename);
 	}
 
 	private void connectToNode() throws EcoinformaticsEmlPosterException {
@@ -61,16 +81,16 @@ public class RestEmlPosterService implements EmlPosterService {
 		}
 	}
 
-	private void postMetadata() throws EcoinformaticsEmlPosterException {
+	private void postRecord(DataoneRecord record) throws EcoinformaticsEmlPosterException {
 		EmlPosterStrategy selectedStrategy = operationStrategies.get(operation);
 		if (selectedStrategy == null) {
 			logger.warn(String.format("Warning: could NOT find a strategy for operation %s, available operations are: %s", operation, getAvailableOperations()));
 		}
-		selectedStrategy.execute(sysmetaData, emlData, nodeClient);
+		selectedStrategy.execute(record.sysmetaData, record.emlData, nodeClient);
 		try {
-			emlData.close();
+			record.emlData.close();
 		} catch (IOException e) {
-			throw new EcoinformaticsEmlPosterException("Runtime error: failed to close EML file: " + emlFilename, e);
+			throw new EcoinformaticsEmlPosterException("Runtime error: failed to close EML file: " + record.emlFilePath, e);
 		}
 	}
 	
@@ -97,9 +117,16 @@ public class RestEmlPosterService implements EmlPosterService {
     }
 	
 	private void writeStats() {
+		logger.info(String.format("Processed %s files", filesProcessed));
 		logger.info("Finished POSTing metadata");
 	}
 
+	private String calculateSmdFilePath(String emlFilePath) {
+		// FIXME I'm sure other people would appreciate more flexibility here.
+		// Some sort of pattern language to describe how the files are paired based on name
+		return emlFilePath + HARDCODED_SYSMETA_SUFFIX;
+	}
+	
 	public void setOperation(String operation) {
 		this.operation = operation;
 	}
@@ -108,15 +135,19 @@ public class RestEmlPosterService implements EmlPosterService {
 		this.nodeEndpoint = nodeEndpoint;
 	}
 
-	public void setSystemMetadataFilename(String systemMetadataFilename) {
-		this.systemMetadataFilename = systemMetadataFilename;
-	}
-
-	public void setEmlFilename(String emlFilename) {
-		this.emlFilename = emlFilename;
-	}
-
 	public void setOperationStrategies(Map<String, EmlPosterStrategy> operationStrategies) {
 		this.operationStrategies = operationStrategies;
+	}
+	
+	private static class DataoneRecord {
+		private final InputStream emlData;
+		private final String emlFilePath;
+		private final SystemMetadata sysmetaData;
+		
+		public DataoneRecord(InputStream emlData, String emlFilePath, SystemMetadata sysmetaData) {
+			this.emlData = emlData;
+			this.emlFilePath = emlFilePath;
+			this.sysmetaData = sysmetaData;
+		}
 	}
 }
