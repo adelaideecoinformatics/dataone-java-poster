@@ -1,4 +1,4 @@
-# EML POSTer
+# DataONE-Java-POSTer
 ## What is it?
 
 This is a utility written in Java that lets you upload (a RESTful POST) EML documents and their corresponding sysmeta to a DataONE instance. It's actually just a wrapper around `d1_libclient_java` (http://maven.dataone.org/org/dataone/d1_libclient_java/). The member node implementation that it was written against is GMN http://pythonhosted.org/dataone.generic_member_node/index.html.
@@ -10,7 +10,7 @@ At this stage, it isn't hosted in any maven repository but stay tuned as it shou
 To use this project locally, follow these *first time only* set up steps:
 
         git clone <this repo URL>
-        cd eml-poster/
+        cd dataone-java-poster/
         mvn clean install
         # Add server public certificate to Java keyring, run with no args for help
         sudo ./trust-dataone-cert.sh /usr/lib/jvm/java-7-oracle/jre/bin
@@ -19,7 +19,7 @@ To use this project locally, follow these *first time only* set up steps:
 
 Then, you can run the tool like this:
 
-        cd eml-poster/
+        cd dataone-java-poster/
         # Run with no args for help. Replace IP with your DataONE node.
         ./launch-eml-poster.sh https://130.220.209.107/mn /tmp/sysmeta.xml /tmp/eml.xml
 

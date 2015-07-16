@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>au.org.ecoinformatics</groupId>
-	<artifactId>eml-poster</artifactId>
+	<artifactId>dataone-java-poster</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<description>handles the POSTing of EML and System Metadata (sysmeta) files to a DataOne member node</description>
 
