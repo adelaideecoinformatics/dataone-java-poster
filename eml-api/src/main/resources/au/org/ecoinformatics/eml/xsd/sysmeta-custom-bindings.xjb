@@ -1,0 +1,8 @@
+<jaxb:bindings version="1.0" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" jaxb:extensionBindingPrefixes="xjc">
+	<jaxb:globalBindings>
+		<!-- this puts XJC into "simple-minded binding mode" so we get the @XmlRootElement annotation where we need it -->
+		<!-- see: https://weblogs.java.net/blog/2006/03/03/why-does-jaxb-put-xmlrootelement-sometimes-not-always -->
+		<xjc:simple />
+	</jaxb:globalBindings>
+</jaxb:bindings> 
