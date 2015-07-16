@@ -1,7 +1,7 @@
-/target
-/.classpath
-/.project
-/META-INF
+target/
+.classpath
+.project
+META-INF/
 .settings
-/bin
-/logs
+bin/
+logs/
