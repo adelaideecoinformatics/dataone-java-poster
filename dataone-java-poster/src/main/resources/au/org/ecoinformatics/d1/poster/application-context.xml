@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+	<context:annotation-config />
+	<context:property-placeholder location="classpath:/au/org/ecoinformatics/d1/poster/dataone-poster-default.properties" />
+
+	<bean id="application" class="au.org.ecoinformatics.d1.poster.EcoinformaticsDataOnePosterApplication">
+		<property name="service" ref="restDataonePosterService" />
+		<property name="validators">
+			<set>
+				<bean class="au.org.ecoinformatics.d1.poster.argval.MutuallyExclusiveArgValidator">
+					<property name="directoryPath" value="${dataone-poster.directory}" />
+					<property name="objectFilePath" value="${dataone-poster.file.object}" />
+					<property name="sysmetaFilePath" value="${dataone-poster.file.sysmeta}" />
+					<property name="argUnsetPlaceholder" value="${arg.unset.placeholder}" />
+				</bean>
+			</set>
+		</property>
+	</bean>
+
+	<bean id="restDataonePosterService" class="au.org.ecoinformatics.d1.poster.service.RestDataonePosterService">
+		<property name="operation" value="${dataone-poster.operation}" />
+		<property name="nodeEndpoint" value="${dataone-poster.endpoint}" />
+		<property name="operationStrategies">
+			<map>
+				<entry key="create">
+					<bean class="au.org.ecoinformatics.d1.poster.service.CreateDataonePosterStrategy" />
+				</entry>
+				<entry key="delete">
+					<bean class="au.org.ecoinformatics.d1.poster.service.DeleteDataonePosterStrategy" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+</beans>

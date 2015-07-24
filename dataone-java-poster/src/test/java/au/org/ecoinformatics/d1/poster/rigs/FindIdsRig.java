@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.poster.rigs;
+package au.org.ecoinformatics.d1.poster.rigs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,20 +29,7 @@ public class FindIdsRig {
 		result.addAll(Arrays.asList(
 			new String[] {
 				// FIXME could also just negate what we expect from AEKOS
-				"^bradford\\..+",
-				"^datalibrarian\\..+",
-				"^ellsworth\\..+",
-				"^fahmi\\..+",
-				"^lloyd\\..+",
-				"^lollback\\..+",
-				"^ltern2\\..+",
-				"^ltern\\..+",
-				"^mccafferty\\..+",
-				"^McKeown\\..+",
-				"^shuker\\..+",
-				"^supersite\\..+",
-				"^tucker\\..+",
-				"^wahyuni\\..+"
+				".*oeh.*"
 			}
 		));
 		return result;

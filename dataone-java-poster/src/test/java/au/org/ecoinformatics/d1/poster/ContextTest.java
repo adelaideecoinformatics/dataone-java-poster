@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.poster;
+package au.org.ecoinformatics.d1.poster;
 
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -11,7 +11,7 @@ public class ContextTest {
 	@Test
 	public void testContext01() throws Throwable {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				new String[] {"classpath:/au/org/ecoinformatics/eml/poster/application-context.xml"});
+				new String[] {"classpath:/au/org/ecoinformatics/d1/poster/application-context.xml"});
 		context.close();
 	}
 }

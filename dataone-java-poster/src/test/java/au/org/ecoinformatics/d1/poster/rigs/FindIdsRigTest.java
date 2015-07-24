@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.poster.rigs;
+package au.org.ecoinformatics.d1.poster.rigs;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

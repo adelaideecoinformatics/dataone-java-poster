@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.poster.rigs;
+package au.org.ecoinformatics.d1.poster.rigs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +10,7 @@ import org.dataone.service.types.v1.Identifier;
 
 /**
  * This is NOT a test. This is a rig to connect to the live DataONE instance
- * and delete objects by a specified ID.
+ * and *delete* objects by a specified ID. THINGS WILL BE DESTROYED, so be careful.
  * 
  * Build a list of identifiers using the {@link FindIdsRig} and copy-paste
  * them into the static initialiser for the IDS_TO_DELETE.

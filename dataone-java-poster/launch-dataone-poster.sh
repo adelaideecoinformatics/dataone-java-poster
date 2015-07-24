@@ -5,7 +5,7 @@ CERT_SCRIPT="build-certificate.sh"
 
 function printHelpAndExit {
 cat <<END-OF-HELP
-  eml-poster bash wrapper script.
+  dataone-java-poster bash wrapper script.
 
   Usage: $0 [OPTIONS]
   Examples:
@@ -15,10 +15,10 @@ cat <<END-OF-HELP
   Mandatory:
     -e <endpoint URL>  full URL (including protocol) of the endpoint to use
    then either both of:
-    -f <EML file>      path to EML file to load
+    -f <Object file>   path to object file to load (e.g. EML)
     -s <Sysmeta file>  path to Sysmeta file to load
    or only:
-    -d <dir>           directory to scan for records to load (expects EML records to
+    -d <dir>           directory to scan for records to load (expects object records to
                        end with .xml and corresponding sysmeta to have .xml-sysmeta)
 
   Optional:
@@ -50,7 +50,7 @@ while getopts ":e:o:f:s:d:h" opt; do
       DIRECTORY_PATH=$OPTARG
       ;;  
     f)
-      EML_FILENAME=$OPTARG
+      OBJECT_FILENAME=$OPTARG
       ;;
     s)
       SYSMETA_FILENAME=$OPTARG
@@ -73,24 +73,24 @@ if [ -z "$ENDPOINT" ];then
   echo "Startup error: no endpoint supplied. Run $0 -h for help"
   exit 1
 fi
-PROG_ARGS="--eml-poster.endpoint=$ENDPOINT"
+PROG_ARGS="--dataone-poster.endpoint=$ENDPOINT"
 if [ ! -z "$SYSMETA_FILENAME" ];then
-  PROG_ARGS="$PROG_ARGS --eml-poster.file.sysmeta=$SYSMETA_FILENAME"
+  PROG_ARGS="$PROG_ARGS --dataone-poster.file.sysmeta=$SYSMETA_FILENAME"
 fi
-if [ ! -z "$EML_FILENAME" ];then
-  PROG_ARGS="$PROG_ARGS --eml-poster.file.eml=$EML_FILENAME"
+if [ ! -z "$OBJECT_FILENAME" ];then
+  PROG_ARGS="$PROG_ARGS --dataone-poster.file.object=$OBJECT_FILENAME"
 fi
 if [ ! -z "$DIRECTORY_PATH" ];then
-  PROG_ARGS="$PROG_ARGS --eml-poster.directory=$DIRECTORY_PATH"
+  PROG_ARGS="$PROG_ARGS --dataone-poster.directory=$DIRECTORY_PATH"
 fi
 if [ ! -z "$OPERATION" ];then
-  PROG_ARGS="$PROG_ARGS --eml-poster.operation=$OPERATION"
+  PROG_ARGS="$PROG_ARGS --dataone-poster.operation=$OPERATION"
 fi
 
 mkdir -p $LOGS_DIR
 
 time java -Xms256m -Xmx5G -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -noverify \
--cp target/eml-poster-1.0-SNAPSHOT.jar:target/eml-poster-dependencies-1.0-SNAPSHOT.jar \
-au.org.ecoinformatics.eml.poster.EcoinformaticsEmlPosterApplication \
-$PROG_ARGS 2>&1 | tee $LOGS_DIR/eml-poster_$UNIQUE_ID.log
+-cp target/dataone-java-poster-1.0-SNAPSHOT.jar:target/dataone-java-poster-dependencies-1.0-SNAPSHOT.jar \
+au.org.ecoinformatics.d1.poster.EcoinformaticsDataOnePosterApplication \
+$PROG_ARGS 2>&1 | tee $LOGS_DIR/dataone-poster_$UNIQUE_ID.log
 

@@ -1,4 +1,4 @@
-package au.org.ecoinformatics.eml.poster.argval;
+package au.org.ecoinformatics.d1.poster.argval;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,31 +7,31 @@ import org.apache.jcs.access.exception.InvalidArgumentException;
 
 public class MutuallyExclusiveArgValidator implements ArgValidator {
 
-	private String emlFilePath;
-	private String smdFilePath;
+	private String objectFilePath;
+	private String sysmetaFilePath;
 	private String directoryPath;
 	/**
-	 * The value that argument that haven't been supplied will have
+	 * The value that arguments that haven't been supplied will have
 	 */
 	private String argUnsetPlaceholder;
 	private static final Map<ArgsSuppliedKey, ValidationOutcomeStrategy> validationStrategies = initStrategyMap();
 	
 	@Override
 	public void validate() throws InvalidArgumentException {
-		boolean emlFilePathSupplied = !(emlFilePath == argUnsetPlaceholder);
-		boolean smdFilePathSupplied = !(smdFilePath == argUnsetPlaceholder);
+		boolean objectFilePathSupplied = !(objectFilePath == argUnsetPlaceholder);
+		boolean sysmetaFilePathSupplied = !(sysmetaFilePath == argUnsetPlaceholder);
 		boolean directoryPathSupplied = !(directoryPath == argUnsetPlaceholder);
-		ArgsSuppliedKey key = new ArgsSuppliedKey(emlFilePathSupplied, smdFilePathSupplied, directoryPathSupplied);
+		ArgsSuppliedKey key = new ArgsSuppliedKey(objectFilePathSupplied, sysmetaFilePathSupplied, directoryPathSupplied);
 		ValidationOutcomeStrategy strategy = validationStrategies.get(key);
 		strategy.doOutcome();
 	}
 
-	public void setEmlFilePath(String emlFilePath) {
-		this.emlFilePath = emlFilePath;
+	public void setObjectFilePath(String objectFilePath) {
+		this.objectFilePath = objectFilePath;
 	}
 
-	public void setSmdFilePath(String smdFilePath) {
-		this.smdFilePath = smdFilePath;
+	public void setSysmetaFilePath(String sysmetaFilePath) {
+		this.sysmetaFilePath = sysmetaFilePath;
 	}
 
 	public void setDirectoryPath(String directoryPath) {
@@ -43,13 +43,13 @@ public class MutuallyExclusiveArgValidator implements ArgValidator {
 	}
 
 	private static class ArgsSuppliedKey {
-		private final boolean emlFilePathSupplied;
-		private final boolean smdFilePathSupplied;
+		private final boolean objectFilePathSupplied;
+		private final boolean sysmetaFilePathSupplied;
 		private final boolean directoryPathSupplied;
 
-		public ArgsSuppliedKey(boolean emlFilePathSupplied, boolean smdFilePathSupplied, boolean directoryPathSupplied) {
-			this.emlFilePathSupplied = emlFilePathSupplied;
-			this.smdFilePathSupplied = smdFilePathSupplied;
+		public ArgsSuppliedKey(boolean objectFilePathSupplied, boolean sysmetaFilePathSupplied, boolean directoryPathSupplied) {
+			this.objectFilePathSupplied = objectFilePathSupplied;
+			this.sysmetaFilePathSupplied = sysmetaFilePathSupplied;
 			this.directoryPathSupplied = directoryPathSupplied;
 		}
 
@@ -58,8 +58,8 @@ public class MutuallyExclusiveArgValidator implements ArgValidator {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result + (directoryPathSupplied ? 1231 : 1237);
-			result = prime * result + (emlFilePathSupplied ? 1231 : 1237);
-			result = prime * result + (smdFilePathSupplied ? 1231 : 1237);
+			result = prime * result + (objectFilePathSupplied ? 1231 : 1237);
+			result = prime * result + (sysmetaFilePathSupplied ? 1231 : 1237);
 			return result;
 		}
 
@@ -74,9 +74,9 @@ public class MutuallyExclusiveArgValidator implements ArgValidator {
 			ArgsSuppliedKey other = (ArgsSuppliedKey) obj;
 			if (directoryPathSupplied != other.directoryPathSupplied)
 				return false;
-			if (emlFilePathSupplied != other.emlFilePathSupplied)
+			if (objectFilePathSupplied != other.objectFilePathSupplied)
 				return false;
-			if (smdFilePathSupplied != other.smdFilePathSupplied)
+			if (sysmetaFilePathSupplied != other.sysmetaFilePathSupplied)
 				return false;
 			return true;
 		}
@@ -89,12 +89,12 @@ public class MutuallyExclusiveArgValidator implements ArgValidator {
 	private static Map<ArgsSuppliedKey, ValidationOutcomeStrategy> initStrategyMap() {
 		Map<ArgsSuppliedKey, ValidationOutcomeStrategy> result = new HashMap<ArgsSuppliedKey, ValidationOutcomeStrategy>();
 		result.put(new ArgsSuppliedKey(false, false, false), failWithFragment("but nothing was supplied"));
-		result.put(new ArgsSuppliedKey(true,  false, false), failWithFragment("only EML was supplied"));
-		result.put(new ArgsSuppliedKey(false, true,  false), failWithFragment("only SMD was supplied"));
+		result.put(new ArgsSuppliedKey(true,  false, false), failWithFragment("only Object was supplied"));
+		result.put(new ArgsSuppliedKey(false, true,  false), failWithFragment("only Sysmeta was supplied"));
 		result.put(new ArgsSuppliedKey(true,  true,  false), pass());
 		result.put(new ArgsSuppliedKey(false, false, true),  pass());
-		result.put(new ArgsSuppliedKey(false, true,  true),  failWithFragment("directory was supplied with SMD"));
-		result.put(new ArgsSuppliedKey(true,  false, true),  failWithFragment("directory was supplied with EML"));
+		result.put(new ArgsSuppliedKey(false, true,  true),  failWithFragment("directory was supplied with Sysmeta"));
+		result.put(new ArgsSuppliedKey(true,  false, true),  failWithFragment("directory was supplied with Object"));
 		result.put(new ArgsSuppliedKey(true,  true,  true),  failWithFragment("both were supplied"));
 		return result;
 	}
@@ -104,7 +104,7 @@ public class MutuallyExclusiveArgValidator implements ArgValidator {
 			@Override
 			public void doOutcome() throws InvalidArgumentException {
 				throw new InvalidArgumentException("User error: you must supply either "
-						+ "(eml file path AND smd file path) OR (directory path), " + fragment);
+						+ "(object file path AND sysmeta file path) OR (directory path), " + fragment);
 			}};
 	}
 

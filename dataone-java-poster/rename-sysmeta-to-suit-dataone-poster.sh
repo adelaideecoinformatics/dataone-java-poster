@@ -1,7 +1,7 @@
 #!/bin/bash
 TARGET_DIR=$1
 USAGE_MSG="
-  The eml-poster utility expects a pair of files: foo-eml.xml and foo-eml.xml-sysmeta but \n
+  The dataone-poster utility expects a pair of files: foo-eml.xml and foo-eml.xml-sysmeta but \n
   the RdfToEmlCrawler doesn't produce them like this. This script renames them to suit.\n
   Usage: $0 <target-dir> \n
   Example: $0 /data/aekos-eml/"
