@@ -22,7 +22,7 @@ cat <<END-OF-HELP
                        end with .xml and corresponding sysmeta to have .xml-sysmeta)
 
   Optional:
-    -o [create|delete] operation to perform, default: create
+    -o [operation]     operation to perform [create|delete|update], default: create
     -h                 display this help and exit
 END-OF-HELP
 exit 0

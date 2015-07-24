@@ -42,6 +42,7 @@ import au.org.ecoinformatics.eml.jaxb.sysmeta.SystemMetadata;
 
 public class DefaultSysMetaService implements SysMetaService {
 
+	private static final String TARGET_FILE_EXTENSION = ".xml";
 	private static final int NUMBER_OF_REPLICAS = 1;
 	private static final String PUBLIC = "public";
 	private static final Logger logger = LoggerFactory.getLogger(DefaultSysMetaService.class);
@@ -57,7 +58,8 @@ public class DefaultSysMetaService implements SysMetaService {
 
 	@Override
 	public void doGenerateForDirectory(Path directory) {
-		FilenameFilter filter = new SuffixFileFilter(".xml");
+		logger.info(String.format("Searching directory %s for files with the extension %s", directory.toString(), TARGET_FILE_EXTENSION));
+		FilenameFilter filter = new SuffixFileFilter(TARGET_FILE_EXTENSION);
 		for (File currFile : directory.toFile().listFiles(filter)) {
 			doGenerateForFile(currFile.toPath()); // TODO add switch to push past errors and handle exceptions here
 			filesProcessed++;

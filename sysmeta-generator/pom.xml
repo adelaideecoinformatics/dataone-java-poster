@@ -68,7 +68,7 @@
 									<outputFile>${project.build.directory}/${project.artifactId}-dependencies-${project.version}.${project.packaging}</outputFile>
 									<artifactSet>
 										<excludes>
-											<exclude>au.org.aekos:SysMetaGenerator</exclude>
+											<exclude>au.org.ecoinformatics:sysmeta-generator</exclude>
 										</excludes>
 									</artifactSet>
 									<filters>

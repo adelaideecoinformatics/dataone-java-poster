@@ -22,7 +22,7 @@ fi
 PROG_ARGS="--sysmeta-generator.input.path=$IN_PATH"
 PROG_ARGS="$PROG_ARGS --sysmeta-generator.file.output.suffix=$OUT_SUFFIX"
 
-java -Xms256m -Xmx5G -XX:MaxPermSize=256m -XX:+HeapDumpOnOutOfMemoryError -noverify \
--cp target/SysMetaGenerator-1.0-SNAPSHOT.jar:target/SysMetaGenerator-dependencies-1.0-SNAPSHOT.jar \
+java -Xms256m -Xmx5G -XX:MaxPermSize=256m -noverify \
+-cp target/sysmeta-generator-1.0-SNAPSHOT.jar:target/sysmeta-generator-dependencies-1.0-SNAPSHOT.jar \
 au.org.aekos.sysmetagen.AekosSysMetaGeneratorApplication \
 $PROG_ARGS 2>&1 | tee $LOGS_DIR/sysmeta_generator_$UNIQUE_ID.log

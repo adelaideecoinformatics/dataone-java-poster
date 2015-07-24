@@ -34,6 +34,9 @@
 				<entry key="delete">
 					<bean class="au.org.ecoinformatics.d1.poster.service.DeleteDataonePosterStrategy" />
 				</entry>
+				<entry key="update">
+					<bean class="au.org.ecoinformatics.d1.poster.service.UpdateDataonePosterStrategy" />
+				</entry>
 			</map>
 		</property>
 	</bean>
