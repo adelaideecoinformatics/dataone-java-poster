@@ -89,7 +89,7 @@ public class FindIdsRig {
 		try {
 			new FindIdsRig(getRegexIncludeFiltersForRealRun()).run();
 		} catch (Throwable e) {
-			logger.fatal("# FAILURE: couldn't delete an object", e);
+			logger.fatal("# FAILURE: couldn't list objects", e);
 		}
 	}
 }

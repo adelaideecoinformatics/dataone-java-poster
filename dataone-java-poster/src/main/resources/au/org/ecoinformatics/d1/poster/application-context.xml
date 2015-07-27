@@ -23,19 +23,21 @@
 		</property>
 	</bean>
 
+	<bean id="createStategy" class="au.org.ecoinformatics.d1.poster.service.CreateDataonePosterStrategy" />
+
 	<bean id="restDataonePosterService" class="au.org.ecoinformatics.d1.poster.service.RestDataonePosterService">
 		<property name="operation" value="${dataone-poster.operation}" />
 		<property name="nodeEndpoint" value="${dataone-poster.endpoint}" />
 		<property name="operationStrategies">
 			<map>
-				<entry key="create">
-					<bean class="au.org.ecoinformatics.d1.poster.service.CreateDataonePosterStrategy" />
-				</entry>
+				<entry key="create" value-ref="createStategy" />
 				<entry key="delete">
 					<bean class="au.org.ecoinformatics.d1.poster.service.DeleteDataonePosterStrategy" />
 				</entry>
 				<entry key="update">
-					<bean class="au.org.ecoinformatics.d1.poster.service.UpdateDataonePosterStrategy" />
+					<bean class="au.org.ecoinformatics.d1.poster.service.UpdateDataonePosterStrategy">
+						<property name="fallbackStrategy" ref="createStategy" />
+					</bean>
 				</entry>
 			</map>
 		</property>

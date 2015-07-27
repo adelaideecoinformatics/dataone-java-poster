@@ -45,6 +45,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	private final Set<String> seenPids = new HashSet<String>();
 	private boolean isKnownIdentifiersPopulated = false;
 	private Map<String, Identifier> knownIdentifiersOnServer;
+	private DataonePosterStrategy fallbackStrategy;
 	
 	@Override
 	public void execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
@@ -69,6 +70,9 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			throw new EcoinformaticsDataonePosterException("Runtime error: requested operation is not available on the server", e);
 		} catch (NotFound e) {
 			throw new EcoinformaticsDataonePosterException("Runtime error: couldn't find existing record to update (when performing the operation)", e);
+		} catch (NoExistingRecordFoundException e) {
+			logger.warn("Encountered problem during 'update', going to fallback strategy", e);
+			fallbackStrategy.execute(sysmetaData, objectData, nodeClient);
 		}
 	}
 
@@ -89,16 +93,25 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	 * @param pid	PID to get newest version of
 	 * @return		newest version, if one exists, otherwise an explosion
 	 * @throws EcoinformaticsDataonePosterException	when we cannot find an existing version
+	 * @throws NoExistingRecordFoundException		when no version of this record exists 
 	 */
-	Identifier findNewestExistingPid(Identifier pid) throws EcoinformaticsDataonePosterException {
+	Identifier findNewestExistingPid(Identifier pid) throws EcoinformaticsDataonePosterException, NoExistingRecordFoundException {
 		String newPidWithoutVersion = trimVersionFromPid(pid);
 		if (serverHasVersionOf(newPidWithoutVersion)) {
 			return knownIdentifiersOnServer.get(newPidWithoutVersion);
 		}
-		throw new IllegalStateException("Runtime error: couldn't find existing record to update (when searching for it)");
-		// TODO flip to create here to behave as an upsert
+		throw new NoExistingRecordFoundException("Couldn't find existing record for " + newPidWithoutVersion);
 	}
 
+	private class NoExistingRecordFoundException extends Exception {
+
+		private static final long serialVersionUID = 1L;
+
+		public NoExistingRecordFoundException(String message) {
+			super(message);
+		}
+	}
+	
 	/**
 	 * Checks if the server has a (presumably older) version of the supplied PID.
 	 * Note: ANY existing version is considered older, we don't check version numbers.
@@ -174,5 +187,9 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	int extractVersionFromPid(Identifier pid) {
 		String pidString = pid.getValue();
 		return Integer.parseInt(pidString.substring(pidString.length() -8));
+	}
+
+	public void setFallbackStrategy(DataonePosterStrategy fallbackStrategy) {
+		this.fallbackStrategy = fallbackStrategy;
 	}
 }
