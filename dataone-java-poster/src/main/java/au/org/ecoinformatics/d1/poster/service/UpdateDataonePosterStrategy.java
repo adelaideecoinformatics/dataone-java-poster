@@ -71,7 +71,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 		} catch (NotFound e) {
 			throw new EcoinformaticsDataonePosterException("Runtime error: couldn't find existing record to update (when performing the operation)", e);
 		} catch (NoExistingRecordFoundException e) {
-			logger.warn("Encountered problem during 'update', going to fallback strategy", e);
+			logger.warn("Encountered problem during 'update'. " + e.getMessage() + ". Going to fallback strategy");
 			fallbackStrategy.execute(sysmetaData, objectData, nodeClient);
 		}
 	}
