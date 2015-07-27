@@ -43,7 +43,7 @@ import au.org.ecoinformatics.eml.jaxb.sysmeta.SystemMetadata;
 public class DefaultSysMetaService implements SysMetaService {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultSysMetaService.class);
-	private static final String AUTHENTICATED_USER_SUBJECT_STRING = "authenticatedUser";
+	static final String AUTHENTICATED_USER_SUBJECT_STRING = "authenticatedUser";
 	private static final String TARGET_FILE_EXTENSION = ".xml";
 	private static final int NUMBER_OF_REPLICAS = 1;
 	private static final String PUBLIC = "public";

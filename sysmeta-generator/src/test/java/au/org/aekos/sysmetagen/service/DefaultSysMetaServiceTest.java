@@ -2,6 +2,7 @@ package au.org.aekos.sysmetagen.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNull;
 
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -29,8 +30,8 @@ public class DefaultSysMetaServiceTest {
 		assertThat(result.getSize(), is(new BigInteger("123")));
 		assertThat(result.getFormatId(), is("eml://ecoinformatics.org/eml-2.1.1"));
 		assertThat(result.getChecksum().getValue(), is("checksumA1B2"));
-		assertThat(result.getRightsHolder().getValue(), is("a contact"));
-		assertThat(result.getSubmitter().getValue(), is("a contact"));
+		assertThat(result.getRightsHolder().getValue(), is(DefaultSysMetaService.AUTHENTICATED_USER_SUBJECT_STRING));
+		assertNull(result.getSubmitter());
 	}
 	
 	/**
@@ -45,8 +46,8 @@ public class DefaultSysMetaServiceTest {
 		assertThat(result.getSize(), is(new BigInteger("123")));
 		assertThat(result.getFormatId(), is("http://www.isotc211.org/2005/gmd"));
 		assertThat(result.getChecksum().getValue(), is("checksumA1B2"));
-		assertThat(result.getRightsHolder().getValue(), is("a contact"));
-		assertThat(result.getSubmitter().getValue(), is("a contact"));
+		assertThat(result.getRightsHolder().getValue(), is(DefaultSysMetaService.AUTHENTICATED_USER_SUBJECT_STRING));
+		assertNull(result.getSubmitter());
 	}
 	
 	/**
