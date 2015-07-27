@@ -42,10 +42,11 @@ import au.org.ecoinformatics.eml.jaxb.sysmeta.SystemMetadata;
 
 public class DefaultSysMetaService implements SysMetaService {
 
+	private static final Logger logger = LoggerFactory.getLogger(DefaultSysMetaService.class);
+	private static final String AUTHENTICATED_USER_SUBJECT_STRING = "authenticatedUser";
 	private static final String TARGET_FILE_EXTENSION = ".xml";
 	private static final int NUMBER_OF_REPLICAS = 1;
 	private static final String PUBLIC = "public";
-	private static final Logger logger = LoggerFactory.getLogger(DefaultSysMetaService.class);
 	private static final String MD5_ALGORITHM = "MD5";
 	private static final boolean ALWAYS_REPLICATE = true;
 	private static final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -122,9 +123,7 @@ public class DefaultSysMetaService implements SysMetaService {
 			}
 		} catch (ParserConfigurationException e) {
 			throw new XmlParserException("Programmer error: Failed build a document builder", e);
-		} catch (SAXException e) {
-			throw new XmlParserException("Data error: Failed parse the XML data", e);
-		} catch (IOException e) {
+		} catch (SAXException | IOException e) {
 			throw new XmlParserException("Data error: Failed parse the XML data", e);
 		}
 		throw new NoParserFoundException("Programmer error: no parser found");
@@ -140,7 +139,7 @@ public class DefaultSysMetaService implements SysMetaService {
 	}
 	
 	SystemMetadata createSysMetaFile(SysMetaFragments details, BigInteger size, String checksum) {
-		Subject submitterSubject = new Subject().withValue(details.getContact());
+		Subject authenticatedUserSubject = new Subject().withValue(AUTHENTICATED_USER_SUBJECT_STRING);
 		SystemMetadata result = new SystemMetadata()
 			.withIdentifier(new Identifier().withValue(details.getIdentifier()))
 			.withFormatId(details.getFormatId())
@@ -148,12 +147,11 @@ public class DefaultSysMetaService implements SysMetaService {
 		 	.withChecksum(new Checksum()
 		 		.withValue(checksum)
 		 		.withAlgorithm(MD5_ALGORITHM))
-	 		.withRightsHolder(submitterSubject)
-	 		.withSubmitter(submitterSubject)
+	 		.withRightsHolder(authenticatedUserSubject)
 			.withAccessPolicy(new AccessPolicy()
 				.withAllows(
 					new AccessRule()
-					.withSubjects(submitterSubject)
+					.withSubjects(authenticatedUserSubject)
 					.withPermissions(
 						Permission.READ, 
 						Permission.WRITE, 
