@@ -2,6 +2,9 @@
 # Creates a tarball with everything required to run standalone. Useful for pushing to a remote box to run
 cd `dirname $0`
 mvn clean package -Pshade
+if [ "$?" != "0" ]; then
+  exit $?
+fi
 OUTPUT_FILE=target/dataone-poster-bin.tar.gz
 tar czf $OUTPUT_FILE --transform 's,^,dataone-java-poster/,' \
   target/dataone-java-poster-dependencies-1.0-SNAPSHOT.jar \

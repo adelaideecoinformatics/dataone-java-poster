@@ -22,14 +22,14 @@ public class FindIdsRig {
 	private static final int RESULT_SIZE = LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE;
 	
 	// Edit these if required \/
-	private static final String NODE_ENDPOINT = "https://dataone.ecoinformatics.org.au/mn";
+	private static final String NODE_ENDPOINT = "https://dataone-dev.ecoinformatics.org.au/mn";
 	private static final String TARGET_FORMAT_ID = "eml://ecoinformatics.org/eml-2.1.1";
 	private static List<String> getRegexIncludeFiltersForRealRun() {
 		List<String> result = new ArrayList<String>();
 		result.addAll(Arrays.asList(
 			new String[] {
 				// FIXME could also just negate what we expect from AEKOS
-				".*oeh.*"
+				".*20150723"
 			}
 		));
 		return result;

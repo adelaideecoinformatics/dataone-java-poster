@@ -22,7 +22,7 @@ public class DeleteByIdRig {
 	private static final Logger logger = Logger.getLogger(DeleteByIdRig.class);
 	
 	// Edit these if required \/
-	private static final String NODE_ENDPOINT = "https://dataone.ecoinformatics.org.au/mn";
+	private static final String NODE_ENDPOINT = "https://dataone-dev.ecoinformatics.org.au/mn";
 	private static final List<String> IDS_TO_DELETE = new ArrayList<String>();
 	static {
 		IDS_TO_DELETE.addAll(Arrays.asList(

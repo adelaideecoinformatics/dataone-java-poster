@@ -138,6 +138,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 		if (isKnownIdentifiersPopulated) {
 			return;
 		}
+		isKnownIdentifiersPopulated = true;
 		logger.info("Starting population of known idenitifers from server");
 		knownIdentifiersOnServer = new HashMap<String, Identifier>();
 		Date now = new Date();
@@ -148,6 +149,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			for (ObjectInfo currObject : allObjs.getObjectInfoList()) {
 				Identifier currExistingPid = currObject.getIdentifier();
 				if (!isIdentifierOfAekosType(currExistingPid)) {
+					logger.debug("Ignoring non-AEKOS ID: " + currExistingPid.getValue());
 					continue;
 				}
 				String currPidWithoutVersion = trimVersionFromPid(currExistingPid);
