@@ -5,7 +5,7 @@ mvn clean package -Pshade
 if [ "$?" != "0" ]; then
   exit $?
 fi
-OUTPUT_FILE=target/dataone-poster-bin.tar.gz
+OUTPUT_FILE=target/dataone-java-poster.tar.gz
 tar czf $OUTPUT_FILE --transform 's,^,dataone-java-poster/,' \
   target/dataone-java-poster-dependencies-1.0-SNAPSHOT.jar \
   target/dataone-java-poster-1.0-SNAPSHOT.jar \
