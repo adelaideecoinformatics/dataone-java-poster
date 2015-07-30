@@ -83,15 +83,62 @@ public class UpdateDataonePosterStrategyTest {
 	}
 	
 	/**
-	 * Can we extract the version from a PID?
+	 * Can we extract the version from a AEKOS PID?
 	 */
 	@Test
-	public void testExtractVersionFromPid01() throws Throwable {
+	public void testExtractVersionFromPid01() {
 		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
 		Identifier pid = new Identifier();
 		pid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20151212");
 		int result = objectUnderTest.extractVersionFromPid(pid);
 		assertThat(result, is(20151212));
+	}
+	
+	/**
+	 * Do this method explode when we give it a non-AEKOS PID?
+	 */
+	@Test(expected=NumberFormatException.class)
+	public void testExtractVersionFromPid02() {
+		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
+		Identifier pid = new Identifier();
+		pid.setValue("lloyd.238.26");
+		objectUnderTest.extractVersionFromPid(pid);
+	}
+	
+	/**
+	 * Can we tell when a PID is NOT an AEKOS one?
+	 */
+	@Test
+	public void testIsIdentifierOfAekosType01() throws Throwable {
+		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
+		Identifier pid = new Identifier();
+		pid.setValue("lloyd.238.26");
+		boolean result = objectUnderTest.isIdentifierOfAekosType(pid);
+		assertFalse("PID should NOT be considered an AEKOS one", result);
+	}
+	
+	/**
+	 * Can we tell when a PID is an AEKOS one?
+	 */
+	@Test
+	public void testIsIdentifierOfAekosType02() throws Throwable {
+		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
+		Identifier pid = new Identifier();
+		pid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20151212");
+		boolean result = objectUnderTest.isIdentifierOfAekosType(pid);
+		assertTrue("PID should be considered an AEKOS one", result);
+	}
+	
+	/**
+	 * Can we tell when a really short PID is NOT an AEKOS one?
+	 */
+	@Test
+	public void testIsIdentifierOfAekosType03() throws Throwable {
+		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
+		Identifier pid = new Identifier();
+		pid.setValue("d.1.2");
+		boolean result = objectUnderTest.isIdentifierOfAekosType(pid);
+		assertFalse("PID should NOT be considered an AEKOS one", result);
 	}
 	
 	/**

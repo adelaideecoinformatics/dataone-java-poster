@@ -41,6 +41,8 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	private static final Integer GET_ALL_RESULTS = LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE;
 	private static final ObjectFormatIdentifier ALL_FORMATS = null;
 	private static final String PID_VERSION_SUFFIX_REGEX = "\\.20\\d{6}$";
+	private static final int LENGTH_OF_AEKOS_PID_VERSION = 8;
+	private static final int LENGTH_OF_AEKOS_PID_VERSION_SUFFIX = LENGTH_OF_AEKOS_PID_VERSION + ".".length();
 
 	private final Set<String> seenPids = new HashSet<String>();
 	private boolean isKnownIdentifiersPopulated = false;
@@ -145,9 +147,12 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			logger.debug(String.format("Received %s known objects from the server", allObjs.sizeObjectInfoList()));
 			for (ObjectInfo currObject : allObjs.getObjectInfoList()) {
 				Identifier currExistingPid = currObject.getIdentifier();
+				if (!isIdentifierOfAekosType(currExistingPid)) {
+					continue;
+				}
 				String currPidWithoutVersion = trimVersionFromPid(currExistingPid);
-				if (serverHasVersionOf(currPidWithoutVersion) && currentKnownVersionOfPidIsNewerThan(currExistingPid)) {
-					// don't need to update our mapping
+				boolean dontNeedToUpdateMapping = serverHasVersionOf(currPidWithoutVersion) && currentKnownVersionOfPidIsNewerThan(currExistingPid);
+				if (dontNeedToUpdateMapping) {
 					continue;
 				}
 				int pidVersion = extractVersionFromPid(currExistingPid);
@@ -164,6 +169,15 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 		}
 	}
 
+	boolean isIdentifierOfAekosType(Identifier pid) {
+		String pidString = pid.getValue();
+		if (pidString.length() < LENGTH_OF_AEKOS_PID_VERSION_SUFFIX) {
+			return false;
+		}
+		String lastSection = pidString.substring(pidString.length() - LENGTH_OF_AEKOS_PID_VERSION_SUFFIX);
+		return lastSection.matches(PID_VERSION_SUFFIX_REGEX);
+	}
+	
 	/**
 	 * Determines if the supplied PID is older than the version currently in the known
 	 * identifiers. We're still processing the known identifiers list so it's only _currently_
@@ -186,7 +200,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 
 	int extractVersionFromPid(Identifier pid) {
 		String pidString = pid.getValue();
-		return Integer.parseInt(pidString.substring(pidString.length() -8));
+		return Integer.parseInt(pidString.substring(pidString.length() - LENGTH_OF_AEKOS_PID_VERSION));
 	}
 
 	public void setFallbackStrategy(DataonePosterStrategy fallbackStrategy) {
