@@ -10,10 +10,8 @@ tar czf $OUTPUT_FILE --transform 's,^,dataone-java-poster/,' \
   target/dataone-java-poster-dependencies-1.0-SNAPSHOT.jar \
   target/dataone-java-poster-1.0-SNAPSHOT.jar \
   launch-dataone-poster.sh \
-  rename-sysmeta-to-suit-dataone-poster.sh \
   trust-dataone-cert.sh \
   build-certificate.sh \
-  suffix-package-ids.sh \
   create-x509-cert.txt
 if [ "$?" != "0" ]; then
   exit $?
