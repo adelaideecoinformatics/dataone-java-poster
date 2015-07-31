@@ -44,6 +44,7 @@ public class DefaultSysMetaService implements SysMetaService {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultSysMetaService.class);
 	static final String AUTHENTICATED_USER_SUBJECT_STRING = "authenticatedUser";
+	private static final Subject AUTHENTICATED_USER_SUBJECT = new Subject().withValue(AUTHENTICATED_USER_SUBJECT_STRING);
 	private static final String TARGET_FILE_EXTENSION = ".xml";
 	private static final int NUMBER_OF_REPLICAS = 1;
 	private static final String PUBLIC = "public";
@@ -139,7 +140,6 @@ public class DefaultSysMetaService implements SysMetaService {
 	}
 	
 	SystemMetadata createSysMetaFile(SysMetaFragments details, BigInteger size, String checksum) {
-		Subject authenticatedUserSubject = new Subject().withValue(AUTHENTICATED_USER_SUBJECT_STRING);
 		SystemMetadata result = new SystemMetadata()
 			.withIdentifier(new Identifier().withValue(details.getIdentifier()))
 			.withFormatId(details.getFormatId())
@@ -147,11 +147,11 @@ public class DefaultSysMetaService implements SysMetaService {
 		 	.withChecksum(new Checksum()
 		 		.withValue(checksum)
 		 		.withAlgorithm(MD5_ALGORITHM))
-	 		.withRightsHolder(authenticatedUserSubject)
+	 		.withRightsHolder(AUTHENTICATED_USER_SUBJECT)
 			.withAccessPolicy(new AccessPolicy()
 				.withAllows(
 					new AccessRule()
-					.withSubjects(authenticatedUserSubject)
+					.withSubjects(AUTHENTICATED_USER_SUBJECT)
 					.withPermissions(
 						Permission.READ, 
 						Permission.WRITE, 
