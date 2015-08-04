@@ -52,6 +52,9 @@
 			<id>shade</id>
 			<!-- in a profile because we only need to build the shaded JAR during 
 				development when we launch from this directory -->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<build>
 				<plugins>
 					<plugin>
