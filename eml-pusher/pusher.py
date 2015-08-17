@@ -70,10 +70,10 @@ def main(host, directory):
                 old_records = sorted([id for id in ids_in_server if package_id_no_version==id[0:len(id)-8]])
                 if len(old_records)>0:
                     debug("found existing records: %s" % old_records)
-                    last_id=old_records[-1]
-                    if last_id==package_id:
+                    if package_id in old_records:
                         debug("this record already exists.")
                         continue
+                    last_id=old_records[-1]
                     last_record_content = requests.get(url+"/"+last_id, verify=False).content.strip()
                     debug(last_record_content[:200])
                     server_content_without_id=trim_package_id(last_record_content)
