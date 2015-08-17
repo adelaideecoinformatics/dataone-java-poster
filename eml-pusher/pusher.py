@@ -7,6 +7,16 @@ from xml.etree import ElementTree
 import sys, os
 import subprocess
 import traceback
+import json
+import xmltodict
+
+class XmlDiff(object):
+    def __init__(self, xml1, xml2):
+        self.dict1 = json.loads(json.dumps((xmltodict.parse(xml1))))
+        self.dict2 = json.loads(json.dumps((xmltodict.parse(xml2))))
+
+    def equal(self):
+        return self.dict1 == self.dict2
 
 debug=1
 
@@ -40,7 +50,7 @@ def trim_package_id(content):
 
 def main(host, directory):
     url = "https://"+host+"/mn/v1/object"
-    response = requests.get(url, verify=False)
+    response = requests.get(url+"?count=1000000", verify=False)
     ids_in_server = []
     tree = ElementTree.fromstring(response.content)
     for e in tree.iter('identifier'):
@@ -60,16 +70,19 @@ def main(host, directory):
                 old_records = sorted([id for id in ids_in_server if package_id_no_version==id[0:len(id)-8]])
                 if len(old_records)>0:
                     debug("found existing records: %s" % old_records)
-                    last_id=old_records[0]
+                    last_id=old_records[-1]
                     if last_id==package_id:
-                        debug("this record exists already")
+                        debug("this record already exists.")
                         continue
-                    last_record_content = requests.get(url+"/"+last_id, verify=False).content
+                    last_record_content = requests.get(url+"/"+last_id, verify=False).content.strip()
+                    debug(last_record_content[:200])
                     server_content_without_id=trim_package_id(last_record_content)
-                    with file(filename) as f:
-                        local_content = f.read()
+                    with open(filename) as f:
+                        local_content = f.read().strip()
                     local_content_without_id=trim_package_id(local_content)
-                    if server_content_without_id==local_content_without_id:
+                    same_xml=(XmlDiff(server_content_without_id, local_content_without_id).equal())
+                    debug("same? %s" % same_xml)
+                    if same_xml: #server_content_without_id==local_content_without_id:
                         debug("content is identical to the last record in server, skip it")
                         continue
                     else:
