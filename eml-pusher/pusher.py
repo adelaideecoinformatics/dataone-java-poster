@@ -27,7 +27,24 @@ def debug(msg):
     print msg
     
 def run_eml_poster(host, filename, update):
-    poster_cmd="../dataone-java-poster/launch-dataone-poster.sh -e https://%s/mn -s %s -f %s" %(host,filename+"-sysmeta",filename)
+    # generator sysmeta
+    sysmeta_generator_cmd="../sysmeta-generator/launch-generator.sh %s -sysmeta"%filename
+    try:
+        sp = subprocess.Popen(sysmeta_generator_cmd, shell=True,
+                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (cmd_out, cmd_err) = sp.communicate(input=None)
+        returncode = sp.returncode
+        if returncode != 0:
+            print("Error running sysmeta-generator: %s, returncode %s"% (sysmeta_generator_cmd, returncode))
+            print("cmd_out %s cmd_err %s" % (cmd_out,cmd_err))
+        debug("return code %d, cmd_out %s"%(returncode, cmd_out))
+    except:
+        print("Problem running poster: %s, unexpected error..." % sysmeta_generator_cmd)
+        traceback.print_exc()
+        return
+    
+    sysmeta_filename=filename+'-sysmeta'
+    poster_cmd="../dataone-java-poster/launch-dataone-poster.sh -e https://%s/mn -s %s -f %s" %(host,sysmeta_filename,filename)
     if update:
         poster_cmd=poster_cmd+" -o update"
     try:
@@ -38,7 +55,7 @@ def run_eml_poster(host, filename, update):
         if returncode != 0:
             print("Error running poster: %s, returncode %s"% (poster_cmd, returncode))
             print("cmd_out %s cmd_err %s" % (cmd_out,cmd_err))
-        debug("return code %d, cmd_out %s"%(returncode, cmd_out))
+        debug("cmd %s return code %d, cmd_out %s"%(poster_cmd, returncode, cmd_out))
     except:
         print("Problem running poster: %s, unexpected error..." % poster_cmd)
         traceback.print_exc()

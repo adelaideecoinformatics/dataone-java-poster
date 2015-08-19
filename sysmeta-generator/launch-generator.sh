@@ -2,6 +2,7 @@
 # Reads either the single file or all files in the directory and creates a system metadata
 # record for each file. The sysmeta record will have the filename of the input with the
 # suffix appended.
+cd `dirname $0`
 IN_PATH=$1
 OUT_SUFFIX=$2
 USAGE_MSG="  Usage: $0 <input-path> <output-suffix>"
