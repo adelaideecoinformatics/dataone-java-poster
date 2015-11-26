@@ -33,21 +33,18 @@ import org.slf4j.LoggerFactory;
 public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 
 	private static final Logger logger = LoggerFactory.getLogger(UpdateDataonePosterStrategy.class);
-	private static final String NOTHING = "";
 	private static final int START_FROM_FIRST_RESULT = 0;
 	private static final Boolean INCLUDE_REPLICATED = Boolean.TRUE;
 	private static final Date START_OF_TIME = new Date(0l);
 	private static final int LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE = 999999;
 	private static final Integer GET_ALL_RESULTS = LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE;
 	private static final ObjectFormatIdentifier ALL_FORMATS = null;
-	private static final String PID_VERSION_SUFFIX_REGEX = "\\.20\\d{6}$";
-	private static final int LENGTH_OF_AEKOS_PID_VERSION = 8;
-	private static final int LENGTH_OF_AEKOS_PID_VERSION_SUFFIX = LENGTH_OF_AEKOS_PID_VERSION + ".".length();
 
 	private final Set<String> seenPids = new HashSet<String>();
 	private boolean isKnownIdentifiersPopulated = false;
 	private Map<String, Identifier> knownIdentifiersOnServer;
 	private DataonePosterStrategy fallbackStrategy;
+	private Set<PidProcessingStrategy> pidProcessingStrategies = new HashSet<PidProcessingStrategy>();
 	
 	@Override
 	public void execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
@@ -58,8 +55,11 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			verifyPidHasntBeenSeenYet(newPid);
 			Identifier existingPid = findNewestExistingPid(newPid);
 			nodeClient.update(existingPid, objectData, newPid, sysmetaData);
+			PidProcessingStrategy pidStrategy = getStrategyFor(newPid.getValue()); // assume that the old and new PIDs are the same format
 			logger.info(String.format("Updated %s from version %s to %s", 
-					trimVersionFromPid(existingPid), extractVersionFromPid(existingPid), extractVersionFromPid(newPid)));
+					pidStrategy.trimVersionFromPid(existingPid.getValue()), 
+					pidStrategy.extractVersionFromPid(existingPid.getValue()), 
+					pidStrategy.extractVersionFromPid(newPid.getValue())));
 		} catch (IdentifierNotUnique | InsufficientResources | ServiceFailure | UnsupportedType | InvalidToken e) {
 			throw new EcoinformaticsDataonePosterException("Runtime error: failed to POST to the dataONE node", e);
 		} catch (InvalidRequest e) {
@@ -98,7 +98,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	 * @throws NoExistingRecordFoundException		when no version of this record exists 
 	 */
 	Identifier findNewestExistingPid(Identifier pid) throws EcoinformaticsDataonePosterException, NoExistingRecordFoundException {
-		String newPidWithoutVersion = trimVersionFromPid(pid);
+		String newPidWithoutVersion = getStrategyFor(pid.getValue()).trimVersionFromPid(pid.getValue());
 		if (serverHasVersionOf(newPidWithoutVersion)) {
 			return knownIdentifiersOnServer.get(newPidWithoutVersion);
 		}
@@ -148,16 +148,14 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			logger.debug(String.format("Received %s known objects from the server", allObjs.sizeObjectInfoList()));
 			for (ObjectInfo currObject : allObjs.getObjectInfoList()) {
 				Identifier currExistingPid = currObject.getIdentifier();
-				if (!isIdentifierOfAekosType(currExistingPid)) {
-					logger.debug("Ignoring non-AEKOS ID: " + currExistingPid.getValue());
-					continue;
-				}
-				String currPidWithoutVersion = trimVersionFromPid(currExistingPid);
+				String currExistingPidValue = currExistingPid.getValue();
+				PidProcessingStrategy pidStrategy = getStrategyFor(currExistingPidValue);
+				String currPidWithoutVersion = pidStrategy.trimVersionFromPid(currExistingPidValue);
 				boolean dontNeedToUpdateMapping = serverHasVersionOf(currPidWithoutVersion) && currentKnownVersionOfPidIsNewerThan(currExistingPid);
 				if (dontNeedToUpdateMapping) {
 					continue;
 				}
-				int pidVersion = extractVersionFromPid(currExistingPid);
+				int pidVersion = pidStrategy.extractVersionFromPid(currExistingPidValue);
 				if (knownIdentifiersOnServer.containsKey(currPidWithoutVersion)) {
 					logger.debug(String.format("Updating known PID mapping for %s to version %s", currPidWithoutVersion, pidVersion));
 				} else {
@@ -170,15 +168,6 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			throw new EcoinformaticsDataonePosterException("Runtime error: failed to retrieve the list of all existing objects", e);
 		}
 	}
-
-	boolean isIdentifierOfAekosType(Identifier pid) {
-		String pidString = pid.getValue();
-		if (pidString.length() < LENGTH_OF_AEKOS_PID_VERSION_SUFFIX) {
-			return false;
-		}
-		String lastSection = pidString.substring(pidString.length() - LENGTH_OF_AEKOS_PID_VERSION_SUFFIX);
-		return lastSection.matches(PID_VERSION_SUFFIX_REGEX);
-	}
 	
 	/**
 	 * Determines if the supplied PID is older than the version currently in the known
@@ -189,23 +178,30 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	 * @return		<code>true</code> if the supplied PID is older, <code>false</code> otherwise
 	 */
 	boolean currentKnownVersionOfPidIsNewerThan(Identifier pid) {
-		String pidWithoutVersion = trimVersionFromPid(pid);
+		PidProcessingStrategy pidStrategy = getStrategyFor(pid.getValue());
+		String pidWithoutVersion = pidStrategy.trimVersionFromPid(pid.getValue());
 		Identifier currentKnownPid = knownIdentifiersOnServer.get(pidWithoutVersion);
-		int versionOfCurrentNewestPid = extractVersionFromPid(currentKnownPid);
-		int versionOfSuppliedPid = extractVersionFromPid(pid);
+		int versionOfCurrentNewestPid = pidStrategy.extractVersionFromPid(currentKnownPid.getValue());
+		int versionOfSuppliedPid = pidStrategy.extractVersionFromPid(pid.getValue());
 		return versionOfCurrentNewestPid > versionOfSuppliedPid;
 	}
 
-	String trimVersionFromPid(Identifier pid) {
-		return pid.getValue().replaceAll(PID_VERSION_SUFFIX_REGEX, NOTHING);
-	}
-
-	int extractVersionFromPid(Identifier pid) {
-		String pidString = pid.getValue();
-		return Integer.parseInt(pidString.substring(pidString.length() - LENGTH_OF_AEKOS_PID_VERSION));
+	PidProcessingStrategy getStrategyFor(String pid) {
+		for (PidProcessingStrategy currStrategy : pidProcessingStrategies) {
+			if (!currStrategy.canHandle(pid)) {
+				continue;
+			}
+			return currStrategy;
+		}
+		// TODO handle more gracefully so we can continue
+		throw new IllegalStateException("Programmer error: couldn't find a strategy to handle the supplied ID '" + pid + "'.");
 	}
 
 	public void setFallbackStrategy(DataonePosterStrategy fallbackStrategy) {
 		this.fallbackStrategy = fallbackStrategy;
+	}
+
+	public void setPidProcessingStrategies(Set<PidProcessingStrategy> pidProcessingStrategies) {
+		this.pidProcessingStrategies = pidProcessingStrategies;
 	}
 }

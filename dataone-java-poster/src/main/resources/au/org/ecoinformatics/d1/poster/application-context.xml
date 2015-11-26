@@ -37,6 +37,12 @@
 				<entry key="update">
 					<bean class="au.org.ecoinformatics.d1.poster.service.UpdateDataonePosterStrategy">
 						<property name="fallbackStrategy" ref="createStategy" />
+						<property name="pidProcessingStrategies">
+							<set>
+								<bean class="au.org.ecoinformatics.d1.poster.service.AekosPidProcessingStrategy" />
+								<bean class="au.org.ecoinformatics.d1.poster.service.SupersitesLternPidProcessingStrategy" />
+							</set>
+						</property>
 					</bean>
 				</entry>
 			</map>

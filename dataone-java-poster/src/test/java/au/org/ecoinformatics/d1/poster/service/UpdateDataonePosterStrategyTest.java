@@ -8,25 +8,15 @@ import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.dataone.service.types.v1.Identifier;
 import org.junit.Test;
 
 public class UpdateDataonePosterStrategyTest {
 
-	/**
-	 * Can we trim the version from an identifier?
-	 */
-	@Test
-	public void testTrimVersionFromPid01() {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier pid = new Identifier();
-		pid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20150515");
-		String result = objectUnderTest.trimVersionFromPid(pid);
-		assertThat(result, is("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG"));
-	}
-	
 	/**
 	 * Can we tell when we haven't and then have seen a PID before?
 	 */
@@ -49,17 +39,11 @@ public class UpdateDataonePosterStrategyTest {
 	 */
 	@Test
 	public void testCurrentKnownVersionOfPidIsNewerThan01() throws Throwable {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier newPid = new Identifier();
-		newPid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20151212");
-		Field f = UpdateDataonePosterStrategy.class.getDeclaredField("knownIdentifiersOnServer");
-		f.setAccessible(true);
-		Map<String, Identifier> knownIdentifiers = new HashMap<String, Identifier>();
-		knownIdentifiers.put("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG", newPid);
-		f.set(objectUnderTest, knownIdentifiers);
-		Identifier oldPid = new Identifier();
-		oldPid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20150101");
-		boolean result = objectUnderTest.currentKnownVersionOfPidIsNewerThan(oldPid);
+		UpdateDataonePosterStrategy objectUnderTest = getObjectUnderTestWithKnownPid(
+				"aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG", ".20151212");
+		Identifier olderPid = new Identifier();
+		olderPid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20150101");
+		boolean result = objectUnderTest.currentKnownVersionOfPidIsNewerThan(olderPid);
 		assertTrue("server version should be considered newer", result);
 	}
 	
@@ -68,77 +52,12 @@ public class UpdateDataonePosterStrategyTest {
 	 */
 	@Test
 	public void testCurrentKnownVersionOfPidIsNewerThan02() throws Throwable {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier oldPid = new Identifier();
-		oldPid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20150101");
-		Field f = UpdateDataonePosterStrategy.class.getDeclaredField("knownIdentifiersOnServer");
-		f.setAccessible(true);
-		Map<String, Identifier> knownIdentifiers = new HashMap<String, Identifier>();
-		knownIdentifiers.put("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG", oldPid);
-		f.set(objectUnderTest, knownIdentifiers);
-		Identifier newPid = new Identifier();
-		newPid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20151212");
-		boolean result = objectUnderTest.currentKnownVersionOfPidIsNewerThan(oldPid);
+		UpdateDataonePosterStrategy objectUnderTest = getObjectUnderTestWithKnownPid(
+				"aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG", ".20150101");
+		Identifier newerPid = new Identifier();
+		newerPid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20151212");
+		boolean result = objectUnderTest.currentKnownVersionOfPidIsNewerThan(newerPid);
 		assertFalse("server version should NOT be considered newer", result);
-	}
-	
-	/**
-	 * Can we extract the version from a AEKOS PID?
-	 */
-	@Test
-	public void testExtractVersionFromPid01() {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier pid = new Identifier();
-		pid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20151212");
-		int result = objectUnderTest.extractVersionFromPid(pid);
-		assertThat(result, is(20151212));
-	}
-	
-	/**
-	 * Do this method explode when we give it a non-AEKOS PID?
-	 */
-	@Test(expected=NumberFormatException.class)
-	public void testExtractVersionFromPid02() {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier pid = new Identifier();
-		pid.setValue("lloyd.238.26");
-		objectUnderTest.extractVersionFromPid(pid);
-	}
-	
-	/**
-	 * Can we tell when a PID is NOT an AEKOS one?
-	 */
-	@Test
-	public void testIsIdentifierOfAekosType01() throws Throwable {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier pid = new Identifier();
-		pid.setValue("lloyd.238.26");
-		boolean result = objectUnderTest.isIdentifierOfAekosType(pid);
-		assertFalse("PID should NOT be considered an AEKOS one", result);
-	}
-	
-	/**
-	 * Can we tell when a PID is an AEKOS one?
-	 */
-	@Test
-	public void testIsIdentifierOfAekosType02() throws Throwable {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier pid = new Identifier();
-		pid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20151212");
-		boolean result = objectUnderTest.isIdentifierOfAekosType(pid);
-		assertTrue("PID should be considered an AEKOS one", result);
-	}
-	
-	/**
-	 * Can we tell when a really short PID is NOT an AEKOS one?
-	 */
-	@Test
-	public void testIsIdentifierOfAekosType03() throws Throwable {
-		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier pid = new Identifier();
-		pid.setValue("d.1.2");
-		boolean result = objectUnderTest.isIdentifierOfAekosType(pid);
-		assertFalse("PID should NOT be considered an AEKOS one", result);
 	}
 	
 	/**
@@ -146,15 +65,72 @@ public class UpdateDataonePosterStrategyTest {
 	 */
 	@Test
 	public void testFindNewestExistingPid01() throws Throwable {
+		String identifier = "aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG";
+		String version = ".20150101";
+		UpdateDataonePosterStrategy objectUnderTest = getObjectUnderTestWithKnownPid(identifier, version);
+		Identifier olderPid = new Identifier();
+		olderPid.setValue(identifier+".19990101");
+		Identifier result = objectUnderTest.findNewestExistingPid(olderPid);
+		Identifier newestPid = new Identifier();
+		newestPid.setValue(identifier+version);
+		assertThat(result, is(newestPid));
+	}
+	
+	/**
+	 * Can we find the first strategy that can handle the PID?
+	 */
+	@Test
+	public void testGetStrategyFor01() throws Throwable {
 		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
-		Identifier pid = new Identifier();
-		pid.setValue("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20150101");
+		Set<PidProcessingStrategy> pidProcessingStrategies = new HashSet<PidProcessingStrategy>();
+		pidProcessingStrategies.add(new PickMePidProcessingStrategy());
+		pidProcessingStrategies.add(new CantDoAnythingPidProcessingStrategy());
+		objectUnderTest.setPidProcessingStrategies(pidProcessingStrategies);
+		PidProcessingStrategy result = objectUnderTest.getStrategyFor("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG.20150101");
+		assertTrue(result instanceof PickMePidProcessingStrategy);
+	}
+
+	/**
+	 * Is the expected exception thrown when we can't find a strategy?
+	 */
+	@Test(expected=IllegalStateException.class)
+	public void testGetStrategyFor02() throws Throwable {
+		UpdateDataonePosterStrategy objectUnderTest = new UpdateDataonePosterStrategy();
+		Set<PidProcessingStrategy> pidProcessingStrategies = new HashSet<PidProcessingStrategy>();
+		pidProcessingStrategies.add(new CantDoAnythingPidProcessingStrategy());
+		objectUnderTest.setPidProcessingStrategies(pidProcessingStrategies);
+		objectUnderTest.getStrategyFor("nothing.will.process.me");
+	}
+	
+	private class CantDoAnythingPidProcessingStrategy implements PidProcessingStrategy {
+		@Override public String trimVersionFromPid(String pid) { return null; }
+		@Override public int extractVersionFromPid(String pid) { return 0; }
+		@Override public boolean canHandle(String pid) {
+			return false;
+		}
+	}
+	
+	private class PickMePidProcessingStrategy implements PidProcessingStrategy {
+		@Override public String trimVersionFromPid(String pid) { return null; }
+		@Override public int extractVersionFromPid(String pid) { return 0; }
+		@Override public boolean canHandle(String pid) {
+			return true;
+		}
+	}
+	
+	private UpdateDataonePosterStrategy getObjectUnderTestWithKnownPid(
+			String identifier, String version) throws NoSuchFieldException, IllegalAccessException {
+		UpdateDataonePosterStrategy result = new UpdateDataonePosterStrategy();
+		Identifier knownPid = new Identifier();
+		knownPid.setValue(identifier+version);
 		Field f = UpdateDataonePosterStrategy.class.getDeclaredField("knownIdentifiersOnServer");
 		f.setAccessible(true);
 		Map<String, Identifier> knownIdentifiers = new HashMap<String, Identifier>();
-		knownIdentifiers.put("aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/JTH_GG", pid);
-		f.set(objectUnderTest, knownIdentifiers);
-		Identifier result = objectUnderTest.findNewestExistingPid(pid);
-		assertThat(result, is(pid));
+		knownIdentifiers.put(identifier, knownPid);
+		f.set(result, knownIdentifiers);
+		Set<PidProcessingStrategy> strategies = new HashSet<PidProcessingStrategy>();
+		strategies.add(new AekosPidProcessingStrategy());
+		result.setPidProcessingStrategies(strategies);
+		return result;
 	}
 }
