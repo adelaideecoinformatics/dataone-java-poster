@@ -76,6 +76,17 @@ public class SupersitesLternPidProcessingStrategyTest {
 	}
 	
 	/**
+	 * Can we handle a PID with no dots?
+	 */
+	@Test
+	public void testCanHandle05() throws Throwable {
+		SupersitesLternPidProcessingStrategy objectUnderTest = new SupersitesLternPidProcessingStrategy();
+		String pid = "lolololol";
+		boolean result = objectUnderTest.canHandle(pid);
+		assertFalse("PID should NOT be considered a Supersites one", result);
+	}
+	
+	/**
 	 * Can we extract the version from a Supersites PID?
 	 */
 	@Test

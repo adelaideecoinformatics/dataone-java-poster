@@ -22,11 +22,12 @@ public class CreateDataonePosterStrategy implements DataonePosterStrategy {
 	private static final Logger logger = LoggerFactory.getLogger(CreateDataonePosterStrategy.class);
 	
 	@Override
-	public void execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
+	public boolean execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
 		logger.info("DataONE Poster: performing a 'create' operation");
 		try {
 			Identifier pid = sysmetaData.getIdentifier();
 			nodeClient.create(pid, objectData, sysmetaData);
+			return true;
 		} catch (IdentifierNotUnique | InsufficientResources | ServiceFailure | UnsupportedType | InvalidToken e) {
 			throw new EcoinformaticsDataonePosterException("Runtime error: failed to POST to the dataONE node", e);
 		} catch (InvalidRequest e) {

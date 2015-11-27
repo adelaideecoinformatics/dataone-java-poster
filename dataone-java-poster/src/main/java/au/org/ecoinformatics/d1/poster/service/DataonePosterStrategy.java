@@ -13,7 +13,8 @@ public interface DataonePosterStrategy {
 	 * @param sysmetaData	sysmeta record
 	 * @param objectData	stream of data for the object
 	 * @param nodeClient	client to use for communication with the DataONE server
+	 * @return <code>true</code> if the operation was a success, <code>false</code> otherwise
 	 * @throws EcoinformaticsDataonePosterException	when things go wrong
 	 */
-	void execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException;
+	boolean execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException;
 }

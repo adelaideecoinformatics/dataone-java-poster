@@ -33,11 +33,11 @@ import org.slf4j.LoggerFactory;
 public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 
 	private static final Logger logger = LoggerFactory.getLogger(UpdateDataonePosterStrategy.class);
-	private static final int START_FROM_FIRST_RESULT = 0;
-	private static final Boolean INCLUDE_REPLICATED = Boolean.TRUE;
+	static final int START_FROM_FIRST_RESULT = 0;
+	static final Boolean INCLUDE_REPLICATED = Boolean.TRUE;
 	private static final Date START_OF_TIME = new Date(0l);
 	private static final int LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE = 999999;
-	private static final Integer GET_ALL_RESULTS = LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE;
+	static final Integer GET_ALL_RESULTS = LARGER_THAN_THE_NUMBER_OF_RESULTS_WE_WILL_EVER_HAVE;
 	private static final ObjectFormatIdentifier ALL_FORMATS = null;
 
 	private final Set<String> seenPids = new HashSet<String>();
@@ -47,7 +47,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	private Set<PidProcessingStrategy> pidProcessingStrategies = new HashSet<PidProcessingStrategy>();
 	
 	@Override
-	public void execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
+	public boolean execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
 		logger.info("DataONE Poster: performing an 'update' operation");
 		populateKnownPidsIfRequired(nodeClient);
 		try {
@@ -60,6 +60,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 					pidStrategy.trimVersionFromPid(existingPid.getValue()), 
 					pidStrategy.extractVersionFromPid(existingPid.getValue()), 
 					pidStrategy.extractVersionFromPid(newPid.getValue())));
+			return true;
 		} catch (IdentifierNotUnique | InsufficientResources | ServiceFailure | UnsupportedType | InvalidToken e) {
 			throw new EcoinformaticsDataonePosterException("Runtime error: failed to POST to the dataONE node", e);
 		} catch (InvalidRequest e) {
@@ -74,7 +75,9 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			throw new EcoinformaticsDataonePosterException("Runtime error: couldn't find existing record to update (when performing the operation)", e);
 		} catch (NoExistingRecordFoundException e) {
 			logger.warn("Encountered problem during 'update'. " + e.getMessage() + ". Going to fallback strategy");
-			fallbackStrategy.execute(sysmetaData, objectData, nodeClient);
+			return fallbackStrategy.execute(sysmetaData, objectData, nodeClient);
+		} catch (NoStrategyFoundException e) {
+			throw new EcoinformaticsDataonePosterException("Programmer error: couldn't find a PID strategy.", e);
 		}
 	}
 
@@ -96,8 +99,9 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	 * @return		newest version, if one exists, otherwise an explosion
 	 * @throws EcoinformaticsDataonePosterException	when we cannot find an existing version
 	 * @throws NoExistingRecordFoundException		when no version of this record exists 
+	 * @throws NoStrategyFoundException				when we don't have a strategy to handle the PID
 	 */
-	Identifier findNewestExistingPid(Identifier pid) throws EcoinformaticsDataonePosterException, NoExistingRecordFoundException {
+	Identifier findNewestExistingPid(Identifier pid) throws EcoinformaticsDataonePosterException, NoExistingRecordFoundException, NoStrategyFoundException {
 		String newPidWithoutVersion = getStrategyFor(pid.getValue()).trimVersionFromPid(pid.getValue());
 		if (serverHasVersionOf(newPidWithoutVersion)) {
 			return knownIdentifiersOnServer.get(newPidWithoutVersion);
@@ -110,6 +114,15 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 		private static final long serialVersionUID = 1L;
 
 		public NoExistingRecordFoundException(String message) {
+			super(message);
+		}
+	}
+	
+	static class NoStrategyFoundException extends Exception {
+
+		private static final long serialVersionUID = 1L;
+
+		public NoStrategyFoundException(String message) {
 			super(message);
 		}
 	}
@@ -149,7 +162,13 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			for (ObjectInfo currObject : allObjs.getObjectInfoList()) {
 				Identifier currExistingPid = currObject.getIdentifier();
 				String currExistingPidValue = currExistingPid.getValue();
-				PidProcessingStrategy pidStrategy = getStrategyFor(currExistingPidValue);
+				PidProcessingStrategy pidStrategy;
+				try {
+					pidStrategy = getStrategyFor(currExistingPidValue);
+				} catch (NoStrategyFoundException e) {
+					logger.warn("Potential programmer error: no strategy to handle PID '" + currExistingPidValue + "'.");
+					continue;
+				}
 				String currPidWithoutVersion = pidStrategy.trimVersionFromPid(currExistingPidValue);
 				boolean dontNeedToUpdateMapping = serverHasVersionOf(currPidWithoutVersion) && currentKnownVersionOfPidIsNewerThan(currExistingPid);
 				if (dontNeedToUpdateMapping) {
@@ -164,7 +183,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 				knownIdentifiersOnServer.put(currPidWithoutVersion, currExistingPid);
 			}
 			logger.info(String.format("Processed %s known identifiers", knownIdentifiersOnServer.size()));
-		} catch (ServiceFailure | InvalidToken | InvalidRequest | NotAuthorized | NotImplemented e) {
+		} catch (ServiceFailure | InvalidToken | InvalidRequest | NotAuthorized | NotImplemented | NoStrategyFoundException e) {
 			throw new EcoinformaticsDataonePosterException("Runtime error: failed to retrieve the list of all existing objects", e);
 		}
 	}
@@ -176,8 +195,9 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 	 * 
 	 * @param pid	PID to compare
 	 * @return		<code>true</code> if the supplied PID is older, <code>false</code> otherwise
+	 * @throws NoStrategyFoundException		when we don't have a strategy to handle the PID
 	 */
-	boolean currentKnownVersionOfPidIsNewerThan(Identifier pid) {
+	boolean currentKnownVersionOfPidIsNewerThan(Identifier pid) throws NoStrategyFoundException {
 		PidProcessingStrategy pidStrategy = getStrategyFor(pid.getValue());
 		String pidWithoutVersion = pidStrategy.trimVersionFromPid(pid.getValue());
 		Identifier currentKnownPid = knownIdentifiersOnServer.get(pidWithoutVersion);
@@ -186,7 +206,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 		return versionOfCurrentNewestPid > versionOfSuppliedPid;
 	}
 
-	PidProcessingStrategy getStrategyFor(String pid) {
+	PidProcessingStrategy getStrategyFor(String pid) throws NoStrategyFoundException {
 		for (PidProcessingStrategy currStrategy : pidProcessingStrategies) {
 			if (!currStrategy.canHandle(pid)) {
 				continue;
@@ -194,7 +214,7 @@ public class UpdateDataonePosterStrategy implements DataonePosterStrategy {
 			return currStrategy;
 		}
 		// TODO handle more gracefully so we can continue
-		throw new IllegalStateException("Programmer error: couldn't find a strategy to handle the supplied ID '" + pid + "'.");
+		throw new NoStrategyFoundException("Programmer error: couldn't find a strategy to handle the supplied ID '" + pid + "'.");
 	}
 
 	public void setFallbackStrategy(DataonePosterStrategy fallbackStrategy) {

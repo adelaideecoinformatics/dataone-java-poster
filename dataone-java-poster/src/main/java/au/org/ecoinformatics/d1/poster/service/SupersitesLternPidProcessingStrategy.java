@@ -15,7 +15,12 @@ public class SupersitesLternPidProcessingStrategy implements PidProcessingStrate
 		if (pid.length() < MIN_LENGTH_OF_PID_VERSION_SUFFIX) {
 			return false;
 		}
-		String lastSection = pid.substring(pid.lastIndexOf("."));
+		int lastIndexOf = pid.lastIndexOf(".");
+		boolean separatorNotFound = lastIndexOf < 0;
+		if (separatorNotFound) {
+			return false;
+		}
+		String lastSection = pid.substring(lastIndexOf);
 		return lastSection.matches(PID_VERSION_SUFFIX_REGEX);
 	}
 

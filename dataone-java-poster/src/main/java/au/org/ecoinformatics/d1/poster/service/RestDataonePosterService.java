@@ -31,6 +31,7 @@ public class RestDataonePosterService implements DataonePosterService {
 	private String operation;
 	private Map<String, DataonePosterStrategy> operationStrategies;
 	private int filesProcessed = 0;
+	private int errorsEncountered = 0;
 	
 	@Override
 	public void doPostForWholeDirectory(String directoryPath) throws EcoinformaticsDataonePosterException {
@@ -42,8 +43,12 @@ public class RestDataonePosterService implements DataonePosterService {
 			String sysmetaFilePath = calculateSmdFilePath(objectFilePath);
 			// TODO add switch to push past errors and handle exceptions here
 			DataoneRecord record = readRecord(objectFilePath, sysmetaFilePath);
-			postRecord(record);
-			filesProcessed++;
+			boolean success = postRecord(record);
+			if (success) {
+				filesProcessed++;
+				continue;
+			}
+			errorsEncountered++;
 		}
 		writeStats();
 	}
@@ -52,8 +57,12 @@ public class RestDataonePosterService implements DataonePosterService {
 	public void doPostForSingleRecord(String objectFilePath, String sysmetaFilePath) throws EcoinformaticsDataonePosterException {
 		DataoneRecord record = readRecord(objectFilePath, sysmetaFilePath);
 		connectToNode();
-		postRecord(record);
-		filesProcessed++;
+		boolean success = postRecord(record);
+		if (success) {
+			filesProcessed++;
+		} else {
+			errorsEncountered++;
+		}
 		writeStats();
 	}
 	
@@ -82,16 +91,23 @@ public class RestDataonePosterService implements DataonePosterService {
 		}
 	}
 
-	private void postRecord(DataoneRecord record) throws EcoinformaticsDataonePosterException {
+	private boolean postRecord(DataoneRecord record) throws EcoinformaticsDataonePosterException {
 		DataonePosterStrategy selectedStrategy = operationStrategies.get(operation);
 		if (selectedStrategy == null) {
 			logger.warn(String.format("Warning: could NOT find a strategy for operation %s, available operations are: %s", operation, getAvailableOperations()));
+			return false;
 		}
-		selectedStrategy.execute(record.sysmetaData, record.objectData, nodeClient);
 		try {
-			record.objectData.close();
-		} catch (IOException e) {
-			throw new EcoinformaticsDataonePosterException("Runtime error: failed to close Object file: " + record.objectFilePath, e);
+			return selectedStrategy.execute(record.sysmetaData, record.objectData, nodeClient);
+		} catch (EcoinformaticsDataonePosterException e) {
+			logger.error("Failed to post record with ID: " + record.getId(), e);
+			return false;
+		} finally {
+			try {
+				record.objectData.close();
+			} catch (IOException e) {
+				logger.warn("Runtime error: failed to close Object file: " + record.objectFilePath, e);
+			}
 		}
 	}
 	
@@ -119,6 +135,10 @@ public class RestDataonePosterService implements DataonePosterService {
 	
 	private void writeStats() {
 		logger.info(String.format("Processed %s files", filesProcessed));
+		boolean errorsWereEncountered = errorsEncountered > 0;
+		if (errorsWereEncountered) {
+			logger.warn(String.format("WARNING: %s errors were countered, check the log for more details.", errorsEncountered));
+		}
 		logger.info("Finished POSTing metadata");
 	}
 
@@ -149,6 +169,10 @@ public class RestDataonePosterService implements DataonePosterService {
 			this.objectData = objectData;
 			this.objectFilePath = objectFilePath;
 			this.sysmetaData = sysmetaData;
+		}
+		
+		public String getId() {
+			return sysmetaData.getIdentifier().getValue();
 		}
 	}
 }

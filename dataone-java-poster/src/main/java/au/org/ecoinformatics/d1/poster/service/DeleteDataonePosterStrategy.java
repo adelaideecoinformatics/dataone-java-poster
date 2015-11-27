@@ -18,11 +18,12 @@ public class DeleteDataonePosterStrategy implements DataonePosterStrategy {
 	private static final Logger logger = LoggerFactory.getLogger(DeleteDataonePosterStrategy.class);
 	
 	@Override
-	public void execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
+	public boolean execute(SystemMetadata sysmetaData, InputStream objectData, MNode nodeClient) throws EcoinformaticsDataonePosterException {
 		try {
 			Identifier pid = sysmetaData.getIdentifier();
 			logger.info("DataONE Poster: performing a 'delete' operation for pid: " + pid.getValue());
 			nodeClient.delete(pid);
+			return true;
 		} catch (InvalidToken | ServiceFailure e) {
 			throw new EcoinformaticsDataonePosterException("Runtime error: failed to POST to the dataONE node", e);
 		} catch (NotAuthorized e) {
