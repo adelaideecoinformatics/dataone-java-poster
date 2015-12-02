@@ -23,7 +23,7 @@ class errors:
     Provides a simple class to encapsulate a limit on the number of run-time recoverable errors, to log this
     and to the program.
     """
-    def __init__(self, limit, exception = RuntimeError("Error limit exceeded")):
+    def __init__(self, limit, exception = None):
         self._count = 0
         self._limit = limit
         self._exception = exception
@@ -33,13 +33,12 @@ class errors:
             return
         self._count += 1
         if self._count > self._limit:
-            logger.error("Runtime limit of {} errors exceeded".format(self._limit))
-            raise self._exception
+            logger.info("Runtime limit of {} errors exceeded".format(self._limit))
+            if self._exception is not None:
+                raise self._exception
+            else:
+                exit(1)
             
-
-error = None
-
-
 def signal_exit_handler(signum, frame):
     """
     Provide a mechanism to log if the program is terminated via an external signal (ie a kill command).
@@ -150,14 +149,12 @@ class eml_component:
         try:
             e = ElementTree.fromstring(content)
             self._full_package_id = e.attrib['packageId']
-        except (IOError, KeyError) as ex:
+        except KeyError as ex:
             # whilst this is a .xml file, it would not appear to be the right content
-            # or we cannot access it 
-            # just skip the file
             logger.debug("No package id")
             raise ValueError
         except ElementTree.ParseError as ex:
-            # Something bad has happened.  TODO work out the exceptions ElementTree will throw and catch them
+            # Something bad has happened.
             logger.debug("Failure in parsing XML {}".format(ex))
             raise ValueError
         except Exception as ex:
@@ -172,6 +169,7 @@ class eml_component:
             # Assume that the full package id is corrupt
             logger.debug("Bad package id string {}".format(self._full_package_id))
             raise ValueError
+        # some simple sanity checking
         if self._timestamp <= 0:
             logger.debug("Bad timestamp value {}".format(self._timestamp))
             raise ValueError
@@ -457,6 +455,7 @@ def build_logger(args):
     logger = logging.getLogger('eml_pusher')
     logger.addHandler(handler)
 
+    # Turn off source file inclusion in the output unless we are debugging
     if not args.debug:
         logging._srcfile = None
     
@@ -475,8 +474,8 @@ if __name__ == "__main__":
     signal.signal(signal.SIGHUP, signal_exit_handler)    # Provide for a kill notification to go into the log file
 
     logger.info("EML Push starts.")
-    source =      dataone_connector(args.source_url) if args.source_url      is not None else file_connector(args.source_dir)
-    destination = dataone_connector(destination_url) if args.destination_url is not None else file_connector(args.destination_dir)
+    source =      dataone_connector(args.source_url)      if args.source_url is not None      else file_connector(args.source_dir)
+    destination = dataone_connector(args.destination_url) if args.destination_url is not None else file_connector(args.destination_dir)
     
     perform_update(source, destination)
     
