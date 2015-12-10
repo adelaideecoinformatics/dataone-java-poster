@@ -44,8 +44,8 @@ import d1_common.const
 import d1_common.types.generated.dataoneTypes as dataoneTypes
 
 
-# Something of a magic value. Default for this systemn it seems
-hasher_algorithm = u'SHA-1'
+# Something of a magic value. Default for this system it seems
+hasher_algorithm = u'MD5'
 
 
 # Modified from dataone d1_client_cli.impl.system_metadata.py
@@ -57,24 +57,16 @@ class SystemMetadataCreator():
     
     def __init__(self, rights_holder = None, authoritative_mn = None, algorithm = hasher_algorithm, ):
         self._format_id = 'eml://ecoinformatics.org/eml-2.1.1'
-        self._rights_holder = "New South Wales Office of Environment and Heritage"  # TODO fix this - get from where?   ***************
         self._algorithm = algorithm
         self._authoritative_mn = 'urn:node:TERN'
-
         self._replication = {'preferred-nodes' : [],
                              'blocked-nodes' : [],
-                             'replication-allowed' : False,
-                             'number-of-replicas' : 0}
+                             'replication-allowed' : True,
+                             'number-of-replicas' : 1}
 
-
-        self._access_control = access_control.AccessControl()
-        self._access_control.add_allowed_subject('public', 'read')
         
     def set_format_id(self, format):
         self._format_id = format
-
-    def set_rights_holder(self, holder):
-        self.rights_holder = holder
 
     def set_hash_algorithm(self, algo):
         self._algorithm = algo
@@ -82,7 +74,7 @@ class SystemMetadataCreator():
     def set_authoritative_mn(self, mn_name):
         self._authoritative_mn = mn_name
     
-    def create_system_metadata_file(self, science_file, pid, format_id = None):
+    def create_system_metadata_file(self, science_file, pid,  authenticated_user, format_id = None):
         #import pyxb
         #pyxb.RequireValidWhenGenerating(False)
         #    cli_util.assert_file_exists(science-file)
@@ -91,19 +83,35 @@ class SystemMetadataCreator():
         return self._create_pyxb_object(pid, format_id if format_id is not None else self._format_id, file_size, checksum)
 
 
-    def create_system_metadata(self, content, pid, checksum = None, format_id = None):
+    def create_system_metadata(self, content, pid, authenticated_user, identifier_old = None):
         file_size = len(content)
-        if checksum is None:
-            checksum = dataoneTypes.checksum(self._get_string_checksum(content))
-        return self._create_pyxb_object(pid, format_id if format_id is not None else self._format_id, file_size, checksum)
-
-    def create_system_metadata_for_update(self, content, identifier_new, identifier_old, checksum = None, format_id = None):
-        pid_new = identifier-new
+        checksum = dataoneTypes.checksum(self._get_string_checksum(content))
+        access = access_control.AccessControl()
+        access.add_allowed_subject('public', 'read')
+        access.add_allowed_subject(authenticated_user, 'read')
+        access.add_allowed_subject(authenticated_user, 'write')
+        access.add_allowed_subject(authenticated_user, 'changePermission')
+        
+        sysmeta =  self._create_pyxb_object(pid,
+                                            self._format_id,
+                                            file_size,
+                                            checksum,
+                                            authenticated_user,
+                                            access)
+        
+        if identifier_old is not None:
+            sysmeta.obsoletes = identifier_old            
+        return sysmeta
+            
+    def create_system_metadata_for_update(self, content, identifier_new, identifier_old):
+        pid_new = identifier_new
         file_size = len(content)
-        if checksum is None:
-            checksum = dataoneTypes.checksum(self._get_string_checksum(content))
-        sys_meta = self._create_pyxb_object(pid_new, format_id if format_id is not None else self._format_id, file_size, checksum)
-        sys_meta.obsoletes = identifier-old
+        checksum = dataoneTypes.checksum(self._get_string_checksum(content))
+        sys_meta = self._create_pyxb_object(pid_new,
+                                            self._format_id,
+                                            file_size,
+                                            checksum)
+        sys_meta.obsoletes = identifier_old
         return sys_meta
     
     
@@ -111,11 +119,11 @@ class SystemMetadataCreator():
         #import pyxb
         #pyxb.RequireValidWhenGenerating(False)
         #    cli_util.assert_file_exists(science-file)
-        pid_new = identifier-new
+        pid_new = identifier_new
         file_size = self._get_file_size(science-file)
         checksum = dataoneTypes.checksum(self._get_file_checksum(science-file))
         sys_meta = self._create_pyxb_object(operation, pid_new, format_id if format_id is not None else self._format_id, file_size, checksum)
-        sys_meta.obsoletes = identifier-old
+        sys_meta.obsoletes = identifier_old
         return sys_meta
 
 
@@ -137,20 +145,21 @@ class SystemMetadataCreator():
     # Private.
     #
     
-    def _create_pyxb_object(self, pid, format_id, file_size, checksum):
+    def _create_pyxb_object(self, pid, format_id, file_size, checksum, authenticated_user, access):
+        print "create pxyb"
         now = datetime.datetime.utcnow()
         sys_meta = dataoneTypes.systemMetadata()
         sys_meta.serialVersion = 1
         sys_meta.identifier = pid
         sys_meta.formatId = format_id
         sys_meta.size = file_size
-        sys_meta.rightsHolder = self._rights_holder
+        sys_meta.rightsHolder =  authenticated_user
         sys_meta.checksum = checksum
         sys_meta.checksum.algorithm = self._algorithm
         sys_meta.dateUploaded = now
         sys_meta.dateSysMetadataModified = now
         sys_meta.authoritativemn = self._authoritative_mn
-        sys_meta.accessPolicy = self._create_access_policy_pyxb_object()
+        sys_meta.accessPolicy = self._create_access_policy_pyxb_object(access)
         sys_meta.replicationPolicy = self._create_replication_policy_pyxb_object()
         #print sys_meta
         #pyxb.RequireValidWhenGenerating(False)
@@ -158,8 +167,8 @@ class SystemMetadataCreator():
         return sys_meta
     
     
-    def _create_access_policy_pyxb_object(self):
-        acl = self._access_control.get_list()
+    def _create_access_policy_pyxb_object(self, access):
+        acl = access.get_list()
         if not len(acl):
             return None
         access_policy = dataoneTypes.accessPolicy()
@@ -269,7 +278,7 @@ class Connector(object):
     def update_sysmeta(self, content, update):
        pass
 
-def eml_idents(full_id):
+def eml_idents(full_id):    
     try:
         package_id = full_id[0: -9]
         timestamp = int(full_id[-8:])
@@ -309,15 +318,28 @@ class eml_component:
         self._full_package_id = None   # The Pid that DataNone will refere to this with
         self._package_id = None        # The package id without the timestamp
         self._timestamp =  None        # The package's timestamp
+        self._authenticated_user = None  # The user ident found in the content xml file
+
+ #      self._xml_namespace = 'eml://ecoinformatics.org/eml-2.1.1'
+        self._xml_namespace = 'ns0'
         
         if content is not None:
             try:
                 e = ElementTree.fromstring(content)
                 self._full_package_id = e.attrib['packageId']
                 self._package_id,  self._timestamp =  eml_idents(self._full_package_id)
+                dataset = e.findall('dataset')
+                creators = []
+                for x in dataset[0].findall('creator'):
+                    creators.append(x.attrib['id'])
+
+                # Use the first creator - we may wish to chaneg this to do someting like add all creators to the authenticated users
+                if len(creators) >= 1:
+                    self._authenticated_user =  creators[0]
+                
             except KeyError as ex:
                 # whilst this is a .xml file, it would not appear to be the right content
-                logger.debug("No package id")
+                logger.debug("Missing package id or owner id")
                 raise ValueError
             except ElementTree.ParseError as ex:
                 # Something bad has happened.
@@ -358,6 +380,9 @@ class eml_component:
         # Packages are semantically identical
         return self._get_dict() == other._get_dict()
 
+    def set_checksum(self, checksum):
+        self._checksum = checksum.lower()
+    
     def same_checksum(self, other):
         """
         A cheap way of checking for identical components.  If the checksums are the same they are byte for byte identical.
@@ -372,6 +397,9 @@ class eml_component:
     
     def package_id(self):
         return self._package_id
+
+    def full_package_id(self):
+        return self._full_package_id
 
     def timestamp(self):
         return self._timestamp
@@ -417,7 +445,7 @@ class eml_component:
         
         if self._sysmeta is not None and timestamp is None:
             # Use the checksum that came in the sysmeta data
-            self._checksum = self.get_sysmeta().checksum()
+            self._checksum = self.get_sysmeta().checksum().lower()
             return self._checksum
 
         if timestamp is None:
@@ -425,7 +453,7 @@ class eml_component:
             if self._content is not None:
                 content =  self._content
             else:
-                checksum = self._source.get_checksum(self._full_package_id)
+                checksum = self._source.get_checksum(self._full_package_id).lower()
                 return checksum
         else:
             if len(timestamp) != 8:
@@ -435,19 +463,19 @@ class eml_component:
                 
         hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(hasher_algorithm)
         hasher.update(content)
-        return hasher.hexdigest()
+        return hasher.hexdigest().lower()
 
     def _get_checksum(self):
         if self._checksum is None:
             if self._sysmeta is not None:
-                self._checksum = self._sysmeta.checksum()
+                self._checksum = self._sysmeta.checksum().lower()
             else:
                 if self._content is not None:
                     hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(hasher_algorithm)
                     hasher.update(self._content)
-                    self._checksum = hasher.hexdigest()
+                    self._checksum = hasher.hexdigest().lower()
                 else:
-                    self._checksum = self._source.get_checksum(self._full_package_id)
+                    self._checksum = self._source.get_checksum(self._full_package_id).lower()
         return self._checksum
             
     def get_sysmeta(self, obsoletes = None):
@@ -458,16 +486,25 @@ class eml_component:
         if self._sysmeta is None:
             self._sysmeta = self._generate_sysmeta(obsoletes)
         return self._sysmeta
+
+    def get_sysmeta_content(self, obsoletes = None):
+        """
+        Return the sysmeta object that describes this eml content.
+        Lazyily evaluated to avoid the cost of fetching/generating if not needed
+        """        
+        if self._sysmeta_content is None:
+            sys_meta = self._generate_sysmeta(obsoletes)
+            self._sysmeta_content = sys_meta.toxml().encode('utf-8')
+        return self._sysmeta_content
+    
     
     def _generate_sysmeta(self, obsoletes):
         # Use the DataOne library to generate a sysmeta object
-        if self._sysmeta_content is None:
+        if self._sysmeta is None:
             # We have no content - so assume we must generate sysmetadata from the main content
-            if obsoletes is None:
-                self._sysmeta_content = sysmeta_generator.create_system_metadata(self._content, self._pid )
-            else:
-                self._sysmeta_content = sysmeta_generator.create_system_metadata_for_update(self._content, self._pid, obsoletes )
-        return self._sysmeta_content
+            print "Generating sysmeta for {} ".format(self._pid)
+            self._sysmeta = sysmeta_generator.create_system_metadata(self._content, self._pid, self._authenticated_user, obsoletes )
+        return self._sysmeta
  
     def write(self, file_path):
         try:
@@ -556,13 +593,16 @@ class file_connector(Connector):
         self.update(None, package)
         
     def update(self, existing, package):
-        oldPid = existing.get_pid()
+        if existing is not None:
+            oldPid = existing.get_pid()
+        else:
+            oldPid = None
         if args.trial_run:
             return
         if package is None:
             return
         try:
-            filename = urllib.quote(package.package_id(), safe = "" ) + ".xml"
+            filename = urllib.quote(package.full_package_id(), safe = "" ) + ".xml"
         except UnicodeEncodeError as ex:
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
             return
@@ -574,21 +614,22 @@ class file_connector(Connector):
             logger.exception("Failure to create package file {} in {}".format(filename, self._root_dir), exc_info = ex)
             error.error()
             return
-        # We could consider adding the package to the list of packages we have
-        # Little point right now however
+        
+        self._update_sysmeta(package, package.get_sysmeta_content(existing))
+        
 
-    def update_sysmeta(self, sysmeta, update):
+    def _update_sysmeta(self, package, sysmeta):        
         try:
-            filename = urllib.quote(package.package_id(), safe = "" ) + "-sysmeta.xml"
+            filename = urllib.quote(package.full_package_id(), safe = "" ) + "-sysmeta.xml"
         except UnicodeEncodeError as ex:
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
             return
         
         try:
-           with open(os.join(self._root_dir, filename), "w") as the_file:
+           with open(os.path.join(self._root_dir, filename), "w") as the_file:
                the_file.write(sysmeta)
         except Exception as ex:
-            logger.exception("Error during writing of sysmeta {} to {}".format(filename, file_path), exc_info = ex)
+            logger.exception("Error during writing of sysmeta {} to {}".format(filename, self._root_dir), exc_info = ex)
             error.error()
 
     def get_checksum(self, pid):
@@ -659,14 +700,17 @@ class dataone_connector(Connector):
             raise InternalError
 
         # Create the dictionary of content.  
-        for obj in self._mn_list.content():
+        for obj in self._mn_list.orderedContent():
             try:
-                package_id, timestamp =  eml_idents(obj.identifier.value())
+                package_id, timestamp =  eml_idents(obj.value.identifier.value())
             except ValueError:
                 continue
             self._eml_packages[package_id] = eml_component(self)
             # Since we don't download the package for the eml_component we need to explicitly set the pid
-            self._eml_packages[package_id].set_pid(obj.identifier.value())
+            self._eml_packages[package_id].set_pid(obj.value.identifier.value())
+            # We can also add the checksum right away
+            self._eml_packages[package_id].set_checksum(obj.value.checksum.value())
+#            self._eml_packages[package_id].set_????(obj.value.dateSysMetadataModified)
 
         logger.info("Found {} eml objects on MN".format(len(self._eml_packages)))
             
@@ -720,10 +764,7 @@ class dataone_connector(Connector):
             error.error()
             return
 
-    def update_sysmeta(self, package, update):
-        # Use the DataOne client library to post update
-        # Currently we don't need to use this capability
-        pass
+ 
             
     def get_package(self, ident):
         # Lazy evaluation of package - try to avoid the expense of getting the content
@@ -781,7 +822,7 @@ def perform_update(source, destination):
             ident = new_package.package_id()
             if ident in destination.idents():
                 existing = destination.get_package(ident)
-                if new_package.timestamp() >= existing.timestamp():
+                if new_package.timestamp() > existing.timestamp():
                     if not args.force_update:
                         # Note - structured to avoid the same_as check unless we really need to.
                         if existing.same_checksum(new_package):
@@ -805,10 +846,10 @@ def perform_update(source, destination):
 
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt halts processing.\n    {} new files uploaded, {} existing updated, and {} files with identical content.".format(new_content, updated_content, same_content))
-        raise
+        exit(0)
     except Exception as ex:
         logger.exception("Unhandled exception. Exiting.", exc_info = ex)
-        exit()
+        exit(1)
     logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
                 .format(new_content, updated_content, same_content, same_timestamp)  )
 
@@ -856,9 +897,14 @@ def build_logger(args):
     logger = logging.getLogger("eml_pusher")
     logger.addHandler(handler)
 
+
+    pLogger = logging.getLogger('pyxb.binding.basis')
+    pLogger.addHandler(handler)
+
     # Turn off source file inclusion in the output unless we are debugging
     if not args.debug:
         logging._srcfile = None
+
     
     logging.captureWarnings(True)
     logger.setLevel( logging.INFO if args.verbose else logging.WARNING )
@@ -873,7 +919,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logger = build_logger(args)
 
-
+    # Get rid of annoying message 
     sysmeta_generator = SystemMetadataCreator()
     # TODO sort out the parameters the sysmeta generator need to generate useful things - fix ownership
 
