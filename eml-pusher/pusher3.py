@@ -32,7 +32,6 @@ if _platform == "darwin":
 # DataOne libraries
 import d1_common
 import d1_client.mnclient as mnclient
-import d1_client_cli.impl.session as d1_session
 import d1_client_cli.impl.access_control as access_control
 import d1_common.types.exceptions as d1_exception
 import d1_common.checksum
@@ -161,6 +160,10 @@ class SystemMetadataCreator():
             h.update(data)
         return h.hexdigest()
 
+class InternalError:
+    # Provide an exception to allow us to bail out
+    pass
+    
 class errors:
     """
     Provides a simple class to encapsulate a limit on the number of run-time recoverable errors, to log this
@@ -189,11 +192,6 @@ def signal_exit_handler(signum, frame):
     logger.info("Exiting with signal {}".format(signum))
     # Exit instantly
     sys.exit(0)
-
-class InternalError:
-    # Provide an exception to allow us to bail out
-    pass
-
     
 class Connector(object):
     """
@@ -740,36 +738,35 @@ def perform_update(source, destination):
     
     logger.info("EML Update starts.")
 
-    try:
-        for new_package in source:
-            logger.info("Processing source package: {} with time {}".format(new_package.package_id(), new_package.timestamp()))
-            ident = new_package.package_id()
-            if ident in destination.idents():
-                existing = destination.get_package(ident)
-                if new_package.timestamp() > existing.timestamp():
-                    if not args.force_update:
-                        if existing.same_checksum(new_package):
-                            same_content += 1
-                            logger.debug("Record {} :  Identical content already on server. Not updated.".format(ident))
-                        else:
-                            logger.debug("Record {} :  New content for existing record. Updating.".format(ident))
-                            updated_content += 1
-                            destination.update(existing, new_package)
+    for new_package in source:
+        logger.info("Processing source package: {} with time {}".format(new_package.package_id(), new_package.timestamp()))
+        ident = new_package.package_id()
+        if ident in destination.idents():
+            existing = destination.get_package(ident)
+            if new_package.timestamp() > existing.timestamp():
+                if not args.force_update:
+                    if existing.same_checksum(new_package):
+                        same_content += 1
+                        logger.debug("Record {} :  Identical content already on server. Not updated.".format(ident))
                     else:
-                        # Update no matter what - don't trust the checksum test.
-                        logger.debug("Record {} :  Forcing update to exisiting content.".format(ident))
+                        logger.debug("Record {} :  New content for existing record. Updating.".format(ident))
                         updated_content += 1
                         destination.update(existing, new_package)
                 else:
-                    same_timestamp += 1
-                    logger.debug("Record {} : Timestamps same.".format(ident))
+                    # Update no matter what - don't trust the checksum test.
+                    logger.debug("Record {} :  Forcing update to exisiting content.".format(ident))
+                    updated_content += 1
+                    destination.update(existing, new_package)
             else:
-                logger.debug("Record {} :  New content, uploading".format(ident))
-                new_content += 1
-                destination.create(new_package)
+                same_timestamp += 1
+                logger.debug("Record {} : Timestamps same.".format(ident))
+        else:
+            logger.debug("Record {} :  New content, uploading".format(ident))
+            new_content += 1
+            destination.create(new_package)
 
-    logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
-                .format(new_content, updated_content, same_content, same_timestamp)  )
+        logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
+                    .format(new_content, updated_content, same_content, same_timestamp)  )
 
         
 def get_arg_parser():
