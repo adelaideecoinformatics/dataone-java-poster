@@ -63,7 +63,6 @@ class SystemMetadataCreator():
                              'blocked-nodes' : [],
                              'replication-allowed' : True,
                              'number-of-replicas' : 1}
-
         
     def set_format_id(self, format):
         self._format_id = format
@@ -113,12 +112,8 @@ class SystemMetadataCreator():
         sys_meta.authoritativemn = self._authoritative_mn
         sys_meta.accessPolicy = self._create_access_policy_pyxb_object(access)
         sys_meta.replicationPolicy = self._create_replication_policy_pyxb_object()
-        #print sys_meta
-        #pyxb.RequireValidWhenGenerating(False)
-        #print sys_meta.toxml()
         return sys_meta
-    
-    
+        
     def _create_access_policy_pyxb_object(self, access):
         acl = access.get_list()
         if not len(acl):
@@ -146,7 +141,6 @@ class SystemMetadataCreator():
         access_policy.numberReplicas = r['number-of-replicas']
         return access_policy
 
-
     def _get_file_size(self, path):
         return os.path.getsize(os.path.expanduser(path))
 
@@ -155,10 +149,8 @@ class SystemMetadataCreator():
         with open(os.path.expanduser(path), u'r') as f:
             return self._get_flo_checksum(f, algorithm, block_size)
 
-
     def _get_string_checksum(self, string, algorithm = hasher_algorithm, block_size=1024 * 1024):
         return self._get_flo_checksum(StringIO.StringIO(string), algorithm, block_size)
-
 
     def _get_flo_checksum(self, flo, algorithm = hasher_algorithm, block_size=1024 * 1024):
         h = d1_common.checksum.get_checksum_calculator_by_dataone_designator(algorithm)
@@ -169,14 +161,12 @@ class SystemMetadataCreator():
             h.update(data)
         return h.hexdigest()
 
-
-
 class errors:
     """
     Provides a simple class to encapsulate a limit on the number of run-time recoverable errors, to log this
     and to the program.
     """
-    def __init__(self, limit, exception = None):
+    def __init__(self, limit, exception = InternalError):
         self._count = 0
         self._limit = limit
         self._exception = exception
@@ -190,14 +180,15 @@ class errors:
             if self._exception is not None:
                 raise self._exception
             else:
-                exit(1)
+                raise InternalException
             
 def signal_exit_handler(signum, frame):
     """
     Provide a mechanism to log if the program is terminated via an external signal (ie a kill command).
     """
     logger.info("Exiting with signal {}".format(signum))
-    exit(0)
+    # Exit instantly
+    sys.exit(0)
 
 class InternalError:
     # Provide an exception to allow us to bail out
@@ -297,23 +288,18 @@ class eml_component:
             except Exception as ex:
                 logger.exception("Exception in XML parse.", exc_info = ex)
                 raise ValueError            
-
             
-        # If off the server we should have a pid
-        self._pid = self._full_package_id
-
         if content is not None and self._sysmeta is not None:
             self._check_sanity()        
             
     def set_pid(self, pid):
-        if self._pid is not None:
-            raise InternalError("Object {} already has a pid".format(self._pid))
-        self._pid = pid
+        if self._full_package_id is not None:
+            raise InternalError("Object {} already has a pid".format(self._full_package_id))
         self._full_package_id = pid
         self._package_id,  self._timestamp =  eml_idents(pid)
         
     def get_pid(self):
-        return self._pid
+        return self._full_package_id
 
     def _get_dict(self):
         # Do this lazily - it probably won't be needed all that often
@@ -382,7 +368,6 @@ class eml_component:
         except (KeyError, IndexError):
             # We will assume there was never a package id present
             return None
-
         
     def checksum(self, timestamp = None):
         """
@@ -446,26 +431,16 @@ class eml_component:
             sys_meta = self._generate_sysmeta(obsoletes)
             self._sysmeta_content = sys_meta.toxml().encode('utf-8')
         return self._sysmeta_content
-    
-    
+        
     def _generate_sysmeta(self, obsoletes):
         # Use the DataOne library to generate a sysmeta object
         if self._sysmeta is None:
             # We have no content - so assume we must generate sysmetadata from the main content
-            print "Generating sysmeta for {} ".format(self._pid)
-            self._sysmeta = sysmeta_generator.create_system_metadata(self._content, self._pid, self._authenticated_user, self._checksum, obsoletes )
+            self._sysmeta = sysmeta_generator.create_system_metadata(self._content, self._full_package_id, self._authenticated_user, self._checksum, obsoletes )
         return self._sysmeta
  
-    def write(self, file_path):
-        try:
-            with open(os.join(file_path, self._package_id), "w") as the_file:
-                the_file.write(self.content)
-        except Exception as ex:
-            logger.exception("Error during writing of package contents {} to {}".format(self._package_id, file_path), exc_info = ex)
-            error.error()        
-
     def _get_dict(self):
-        # Do this lazily - it probably won't be needed all that often
+        # Do this lazily - it probably won't be needed all that often - if at all
         if self._dict is None:
             self._dict = json.loads(json.dumps((xmltodict.parse(self._content_no_package_id()))))
         return self._dict
@@ -514,7 +489,7 @@ class file_connector(Connector):
                     try:
                         new_component = eml_component(self, content)
                     except ValueError:
-                        logger.info("Skipped bad file {}".format(filename))
+                        logger.debug("Skipped bad file {}".format(filename))
                         continue                    
                         
                     new_base_id = new_component.package_id()
@@ -532,7 +507,7 @@ class file_connector(Connector):
  
         except Exception as ex:
             logger.exception("Exception in file connection {}. Exiting".format(self._root_dir), exc_info = ex)
-            exit()
+            raise InternalError
         logger.info("File connector finds {} eml objects".format(len(self._eml_packages)))
 
 
@@ -555,6 +530,7 @@ class file_connector(Connector):
             filename = urllib.quote(package.full_package_id(), safe = "" ) + ".xml"
         except UnicodeEncodeError as ex:
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
+            error.error()
             return
             
         try:
@@ -573,6 +549,7 @@ class file_connector(Connector):
             filename = urllib.quote(package.full_package_id(), safe = "" ) + "-sysmeta.xml"
         except UnicodeEncodeError as ex:
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
+            error.error()
             return
         
         try:
@@ -661,7 +638,7 @@ class dataone_connector(Connector):
             self._eml_packages[package_id].set_pid(obj.value.identifier.value())
             # We can also add the checksum right away, which can save time later.
             self._eml_packages[package_id].set_checksum(obj.value.checksum.value())
-#            self._eml_packages[package_id].set_????(obj.value.dateSysMetadataModified)  # Might be useful  - not bothering for now.
+#            self._eml_packages[package_id].set_????(obj.value.dateSysMetadataModified.value())  # Might be useful  - not bothering for now.
 
         logger.info("Found {} eml objects on MN".format(len(self._eml_packages)))
             
@@ -741,8 +718,7 @@ class dataone_connector(Connector):
                 error.error()
                 return None
         return self._mn_client_checksums[pid]
-        
-    
+            
     def get_sysmeta(self, ident):
         # Lazy fetch of sysmetadata from the DataOne MN
         package_id, timestamp =  eml_(ident)
@@ -756,7 +732,6 @@ class dataone_connector(Connector):
         return self._eml_sysmeta[package_id]
 
     
-
 def perform_update(source, destination):
     same_content = 0
     updated_content = 0
@@ -793,12 +768,6 @@ def perform_update(source, destination):
                 new_content += 1
                 destination.create(new_package)
 
-    except KeyboardInterrupt:
-        logger.info("Keyboard interrupt halts processing.\n    {} new files uploaded, {} existing updated, and {} files with identical content.".format(new_content, updated_content, same_content))
-        exit(0)
-    except Exception as ex:
-        logger.exception("Unhandled exception. Exiting.", exc_info = ex)
-        exit(1)
     logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
                 .format(new_content, updated_content, same_content, same_timestamp)  )
 
@@ -858,7 +827,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logger = build_logger(args)
     sysmeta_generator = SystemMetadataCreator()
-    error = errors(1 if args.intolerant else 20, InternalError)
+    error = errors(0 if args.intolerant else 20, InternalError)
     
     signal.signal(signal.SIGHUP, signal_exit_handler)    # Provide for a kill notification to go into the log file
     
@@ -870,6 +839,9 @@ if __name__ == "__main__":
         source =      file_connector(args.source_dir)
         destination = dataone_connector() if args.destination_url is not None else file_connector(args.destination_dir)        
         perform_update(source, destination)
+    except KeyboardInterrupt:
+        logger.info("Keyboard interrupt halts processing.")
+        sys.exit(0)
     except InternalError:
         sys.exit(1)
     except Exception as ex:
