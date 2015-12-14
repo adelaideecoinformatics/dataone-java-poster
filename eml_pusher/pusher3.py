@@ -2,18 +2,14 @@
 
 # pylint: disable=broad-except
 
-import requests
 from xml.etree import ElementTree
-import sys, os
+import sys,os
 import stat
-import subprocess
-import traceback
 import json
 import xmltodict
 import argparse
 import logging
 import signal
-from abc import ABCMeta
 from urlparse import urljoin
 import urllib
 import glob
