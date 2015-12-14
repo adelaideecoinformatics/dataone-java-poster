@@ -22,7 +22,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.0',
+    version='1.0.0b1',
 
     description='Program to synchronise local files of EML to a DataOne Member Node',
     long_description=long_description,
@@ -72,7 +72,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['dataone.common','dataone.cli','dataone.client','xmltodict'],
+    install_requires=['dataone.common','dataone.cli','dataone.libclient','xmltodict'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -101,7 +101,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'eml_pusher=pusher3:main',
+            'eml_pusher=eml_pusher:main',
         ],
     },
 )

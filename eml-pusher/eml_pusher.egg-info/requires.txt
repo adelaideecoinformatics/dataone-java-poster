@@ -1,0 +1,4 @@
+dataone.common
+dataone.cli
+dataone.libclient
+xmltodict
