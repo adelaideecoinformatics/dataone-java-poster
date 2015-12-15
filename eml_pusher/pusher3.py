@@ -20,9 +20,11 @@ import datetime
 import StringIO
 
 #  Apalling monkey patch hack to get around SSL certificate verification issue under Python for OSX.
+#  This is actually version specific in strange ways.
 from sys import platform as _platform
 if _platform == "darwin":
-    ssl._create_default_https_context = ssl._create_unverified_context
+    if '_create_unverified_context' in dir(ssl):
+        ssl._create_default_https_context = ssl._create_unverified_context
 
 
 # DataOne libraries
@@ -800,7 +802,7 @@ def build_logger():
     logging destinations. Captures warnings to the log as well.
     """
     if args.config_log_file is not None:
-        handler = logging.FileConfig(args.config_file_handler)
+        handler = logging.FileConfig(args.config_log_file)
     if args.log_file is not None:
         handler = logging.FileHandler(args.log_file, delay = True)
     else:
