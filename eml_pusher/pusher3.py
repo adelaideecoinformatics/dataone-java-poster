@@ -101,7 +101,6 @@ class SystemMetadataCreator():
         return sysmeta            
     
     def _create_pyxb_object(self, pid, format_id, file_size, checksum, authenticated_user, access):
-        print "create pxyb"
         now = datetime.datetime.utcnow()
         sys_meta = dataoneTypes.systemMetadata()
         sys_meta.serialVersion = 1
@@ -465,7 +464,7 @@ class file_connector(Connector):
     def __init__(self, root_dir):
         super(file_connector, self).__init__()
         self._root_dir = root_dir
-        logger.info("Using file connector for {}".format(root_dir))
+        logger.info("Using directory {}".format(root_dir))
         try:
             # for all the local eml files
             for (path, dirs, files) in os.walk(self._root_dir):
@@ -506,7 +505,7 @@ class file_connector(Connector):
                             logger.debug("Skipped file with older timestamp {}".format(filename))
                     else:
                         self._eml_packages[new_base_id] = new_component
-                        logger.info("Using package {}".format(new_base_id))
+                        logger.info("Adding package {}".format(new_base_id))
  
         except Exception as ex:
             logger.exception("Exception in file connection {}. Exiting".format(self._root_dir), exc_info = ex)
@@ -544,7 +543,7 @@ class file_connector(Connector):
             error.error()
             return
         
-        self._update_sysmeta(package, package.get_sysmeta_content(existing))
+        self._update_sysmeta(package, package.get_sysmeta_content(existing.full_package_id()))
         
 
     def _update_sysmeta(self, package, sysmeta):        
@@ -578,7 +577,7 @@ class dataone_connector(Connector):
         
         self._host_url = d1_common.url.makeMNBaseURL(args.destination_url)
 
-        logger.info("Connecting to DataOne MN {}".format(self._host_url))
+        logger.info("Using {} for DataOne MN destination".format(self._host_url))
         if args.cert_file:
             cert_file = glob.glob(os.path.expanduser(os.path.expandvars(args.cert_file)))[0]
 
@@ -770,8 +769,8 @@ def perform_update(source, destination):
             new_content += 1
             destination.create(new_package)
 
-        logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
-                    .format(new_content, updated_content, same_content, same_timestamp)  )
+    logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
+                .format(new_content, updated_content, same_content, same_timestamp)  )
 
         
 def get_arg_parser():
