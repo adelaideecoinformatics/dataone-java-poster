@@ -2,8 +2,10 @@
 
 # pylint: disable=broad-except
 
+
 from xml.etree import ElementTree
-import sys,os
+import sys
+import os
 import stat
 import json
 import xmltodict
@@ -18,6 +20,7 @@ import cStringIO
 import re
 import datetime
 import StringIO
+import string
 
 #  Apalling monkey patch hack to get around SSL certificate verification issue under Python for OSX.
 #  This is actually version specific in strange ways.
@@ -34,6 +37,7 @@ import d1_client_cli.impl.access_control as access_control
 import d1_common.types.exceptions as d1_exception
 import d1_common.checksum
 import d1_common.const
+import d1_client.objectlistiterator as objectlistiterator
 import d1_common.types.generated.dataoneTypes as dataoneTypes
 
 
@@ -47,12 +51,87 @@ logger = None
 sysmeta_generator = None
 error = None
 
-
 # Modified from dataone d1_client_cli.impl.system_metadata.py
 # Replaced use of session values by parameters and local values
 
 # Some of these values might need updating or overriding in the future.
 # Based upon current usage.
+
+class PersistentIdentifier:
+    """
+    Encapsulates the various timestamped PIDs used for content
+
+
+    It seems we can get almost anything back as a PID.
+    Although TERN/ecoinformatics has a restricted set of possibilities
+    there is nothing that says that somehting quite different might be added by some other
+    agency, and thus turn up in our list.  This include UUIDs and hashes.
+    We need to deal with format suffixes, and a general amount of grief.
+    """
+
+    pid_suffixes = ['html']  # Add more as they become apparent
+    minimum_version_length = 2
+    
+    def __init__(self, ident):
+        self._full_id = ident
+        self._base_id, self._timestamp = self._kind = self._parse_ident()
+        
+    def base_id(self):
+        return self._base_id
+
+    def timestamp(self):
+        return self._timestamp
+
+    def kind(self):
+        return self._id_kind
+
+
+    def _eml_idents(full_id):    
+        try:
+            package_id = full_id[0: -9]
+            timestamp = int(full_id[-8:])
+        except ValueError, IndexError:
+            # Assume that there is no timestamp
+            package_id = full_id     # use the entire id
+            timestamp = 0            # start of time
+            
+            # some simple sanity checking, 
+        if timestamp <= 0:
+            package_id = full_id
+            timestamp = 0
+        if len(package_id) == 0:
+            if len(full_id) == 0:
+                logger.debug("Empty package id")
+                raise ValueError
+            package_id = full_id  # Get here if the id is very short
+            timestamp = 0         # start of time
+        return (package_id, timestamp)
+    
+    def _parse_ident(self):
+        # Placeholder - just do the eml ident until we work out how to handle the rest
+        components = self._full_id.split('.')
+
+        try:
+            if len(components) < 1:
+                raise ValueError
+            if len(components) == 1:
+                return (self._full_id, 0)
+            suffix = components[-1].split('/')
+            # Check here for valid kinds after any slash
+#            if len(suffix) > 1:
+#                if suffix[-1] not in self.pid_suffixes:
+#                    raise ValueError
+            last = suffix[0]
+            if len(last) < self.minimum_version_length:
+                raise IndexError
+            timestamp = int(last)
+            base = string.join(components[0:-1], sep = '.')
+        except (IndexError, ValueError):
+            # Last bit isn't a timestamp
+            base = self._full_id
+            timestamp = 0
+        kind = None
+        return (base, timestamp)
 
 class SystemMetadataCreator():
     """
@@ -60,13 +139,21 @@ class SystemMetadataCreator():
     """
     
     def __init__(self):
-        self._format_id = 'eml://ecoinformatics.org/eml-2.1.1'
+        # TODO - eventually migrate these to a config file so that
+        # there is never a temptation to patch the code to tweak policies
+        
+        self._format_id = 'eml://ecoinformatics.org/eml-2.1.1'    # This is specific to eml - eventually may need to expand capability
         self._algorithm = hasher_algorithm
         self._authoritative_mn = 'urn:node:TERN'
         self._replication = {'preferred-nodes' : [],
                              'blocked-nodes' : [],
                              'replication-allowed' : True,
                              'number-of-replicas' : 1}
+
+        self._authenticated_user = 'authenticatedUser'
+        self._verified_user = 'verifiedUser'
+        self._public_user = 'public'
+        self._owner = 'gmn'
         
     def set_format_id(self, format):
         self._format_id = format
@@ -77,37 +164,44 @@ class SystemMetadataCreator():
     def set_authoritative_mn(self, mn_name):
         self._authoritative_mn = mn_name
     
-    def create_system_metadata(self, content, pid, authenticated_user, checksum_string, identifier_old = None):
+    def create_system_metadata(self, content, pid, checksum_string, identifier_old = None):
         file_size = len(content)
         if checksum_string is not None:
             checksum = dataoneTypes.checksum(checksum_string)
         else:
             checksum = dataoneTypes.checksum(self._get_string_checksum(content))
         access = access_control.AccessControl()
-        access.add_allowed_subject('public', 'read')
-        access.add_allowed_subject(authenticated_user, 'read')
-        access.add_allowed_subject(authenticated_user, 'write')
-        access.add_allowed_subject(authenticated_user, 'changePermission')
+        # These policies may need to be the subject of a config file if flexibility is warranted.
+
+        # The next three additions contain a potential issue - never add anything more than 'read' or the d1 code will
+        # perform an interactive verification of intent - which will kill a batch job.  Should never do anything so silly this anyway.
+        access.add_allowed_subject(self._public_user, 'read')
+        access.add_allowed_subject(self._authenticated_user, 'read')
+        access.add_allowed_subject(self._verified_user, 'read')
+
+        access.add_allowed_subject(self._owner, 'write')
+        access.add_allowed_subject(self._owner, 'write')
+        access.add_allowed_subject(self._owner, 'changePermission')
         
         sysmeta =  self._create_pyxb_object(pid,
                                             self._format_id,
                                             file_size,
                                             checksum,
-                                            authenticated_user,
+                                            self._owner,
                                             access)
         
         if identifier_old is not None:
             sysmeta.obsoletes = identifier_old            
         return sysmeta            
     
-    def _create_pyxb_object(self, pid, format_id, file_size, checksum, authenticated_user, access):
+    def _create_pyxb_object(self, pid, format_id, file_size, checksum, rights_holder, access):
         now = datetime.datetime.utcnow()
         sys_meta = dataoneTypes.systemMetadata()
         sys_meta.serialVersion = 1
         sys_meta.identifier = pid
         sys_meta.formatId = format_id
         sys_meta.size = file_size
-        sys_meta.rightsHolder =  authenticated_user
+        sys_meta.rightsHolder =  rights_holder
         sys_meta.checksum = checksum
         sys_meta.checksum.algorithm = self._algorithm
         sys_meta.dateUploaded = now
@@ -257,28 +351,22 @@ class eml_component:
         self._source = source      #  the Connector object that created us - used for lazy creation/obtaining info as a callback
         self._content = content    #  String holding the XML package content
         self._dict = None          #  Cached dictionary used to compare package contents for sematic equivalence - not currently used
-        self._sysmeta = None 
-        self._sysmeta_content = None    #  A DataOne sysmeta object - lazily created if not provided
-        self._checksum = None      #  Holds the checksum for this package as calculated with the timestamp the package holds
+        self._sysmeta = None       #  A DataOne sysmeta object - lazily created if not provided
+        self._sysmeta_content = None   #  sysmeta object as string - lazily created
+        self._checksum = None          #  Holds the checksum for this package as calculated with the timestamp the package holds
         self._full_package_id = None   # The Pid that DataNone will refere to this with
         self._package_id = None        # The package id without the timestamp
         self._timestamp =  None        # The package's timestamp
-        self._authenticated_user = None  # The user ident found in the content xml file
+        self._data_user = None  # The user ident found in the content xml file
 
         if content is not None:
             try:
                 e = ElementTree.fromstring(content)
                 self._full_package_id = e.attrib['packageId']
-                self._package_id,  self._timestamp =  eml_idents(self._full_package_id)
+                parsed_ident = PersistentIdentifier(self._full_package_id)
+                self._package_id = parsed_ident.base_id()
+                self._timestamp =  parsed_ident.timestamp()
                 dataset = e.findall('dataset')
-                creators = []
-                for x in dataset[0].findall('creator'):
-                    creators.append(x.attrib['id'])
-
-                # Use the first creator - we may wish to change this to do something like add all creators to the authenticated users
-                if len(creators) >= 1:
-                    self._authenticated_user =  creators[0]
-                
             except KeyError as ex:
                 # whilst this is a .xml file, it would not appear to be the right content
                 logger.debug("Missing package id or owner id")
@@ -298,7 +386,9 @@ class eml_component:
         if self._full_package_id is not None:
             raise InternalError("Object {} already has a pid".format(self._full_package_id))
         self._full_package_id = pid
-        self._package_id,  self._timestamp =  eml_idents(pid)
+        parsed_ident = PersistentIdentifier(self._full_package_id)
+        self._package_id = parsed_ident.base_id()
+        self._timestamp =  parsed_ident.timestamp()
         
     def get_pid(self):
         return self._full_package_id
@@ -430,15 +520,14 @@ class eml_component:
         Lazyily evaluated to avoid the cost of fetching/generating if not needed
         """        
         if self._sysmeta_content is None:
-            sys_meta = self._generate_sysmeta(obsoletes)
-            self._sysmeta_content = sys_meta.toxml().encode('utf-8')
+            self._generate_sysmeta(obsoletes)
+            self._sysmeta_content = self._sysmeta.toxml().encode('utf-8')
         return self._sysmeta_content
         
     def _generate_sysmeta(self, obsoletes):
-        # Use the DataOne library to generate a sysmeta object
         if self._sysmeta is None:
-            # We have no content - so assume we must generate sysmetadata from the main content
-            self._sysmeta = sysmeta_generator.create_system_metadata(self._content, self._full_package_id, self._authenticated_user, self._checksum, obsoletes )
+            # We have no sysmeta - so assume we must generate sysmetadata from the main content
+            self._sysmeta = sysmeta_generator.create_system_metadata(self._content, self._full_package_id, self._checksum, obsoletes )
         return self._sysmeta
  
     def _get_dict(self):
@@ -520,12 +609,8 @@ class file_connector(Connector):
         self.update(None, package)
         
     def update(self, existing, package):
-        if existing is not None:
-            oldPid = existing.get_pid()
-        else:
-            oldPid = None
-        if args.trial_run:
-            return
+        oldPid = existing.full_package_id() if existing is not None else None
+
         if package is None:
             return
         try:
@@ -534,7 +619,10 @@ class file_connector(Connector):
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
             error.error()
             return
-            
+
+        if args.trial_run:
+            return
+        
         try:
             with open( os.path.join(self._root_dir, filename), "w" ) as the_file:
                 the_file.write(package.content())
@@ -543,7 +631,7 @@ class file_connector(Connector):
             error.error()
             return
         
-        self._update_sysmeta(package, package.get_sysmeta_content(existing.full_package_id()))
+        self._update_sysmeta(package, package.get_sysmeta_content(oldPid))
         
 
     def _update_sysmeta(self, package, sysmeta):        
@@ -574,9 +662,21 @@ class dataone_connector(Connector):
     """
     def __init__(self):
         super(dataone_connector, self).__init__()
-        
+ 
         self._host_url = d1_common.url.makeMNBaseURL(args.destination_url)
 
+        # This might be used to limit the range of action.  Not totally clear the MN will support doing this.
+        #  Current attempts to use it get a 404 - seems we can only traverse the list from the top.
+        if args.path is not None:
+            try:
+                self._base_path_url = self._host_url + "/" +  args.path
+            except Exception as ex:
+                logger.exception("Failure to build valid destination url from {}  and  {}",format(self._host_url, args.path), exc_info = ex)
+                raise InternalError
+            self._sub_path = args.path
+        else:
+            self._base_path_url = self._host_url
+            
         logger.info("Using {} for DataOne MN destination".format(self._host_url))
         if args.cert_file:
             cert_file = glob.glob(os.path.expanduser(os.path.expandvars(args.cert_file)))[0]
@@ -603,46 +703,41 @@ class dataone_connector(Connector):
         else:            
 #            ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             cert_file = None
-            
+        
         try:
             self._mn_client = mnclient.MemberNodeClient( base_url = self._host_url, cert_path = cert_file )
         except Exception as ex:
-            logger.exception("Failure in connecting to member node {}".format(self._url), exc_info = ex)
+            logger.exception("Failure in connecting to member node {}".format(self._host_url), exc_info = ex)
             raise InternalError
 
         # All indexed by package_id (with no timestamp)
-        self._eml_sysmeta = {}           # Cache of sysmeta data
-        self._mn_client_checksums = {}   # chache of checksums
+        self._eml_sysmeta = {}           # cache of sysmeta data
+        self._mn_client_checksums = {}   # cache of checksums
         self._eml_packages = {}          # cache of entire packages
         self._eml_timestamp = {}         # cache of eml timestamps
 
-        # This is probably a limit to scalability - however there is little that can be done.
-        # The user should restrict the base of the search to cull the returned objects
-        try:        
-            self._mn_list = self._mn_client.listObjects(count = 1000000 )
-            # (fromDate=None, toDate=None, objectFormat=None,
-            #           replicaStatus=None, start=0,
-            #           count=d1_common.const.DEFAULT_LISTOBJECTS,
-            #           vendorSpecific=None):
+        try:
+            objListIter = objectlistiterator.ObjectListIterator(self._mn_client)
+            for obj in iter(objListIter):
+                try:
+                    package_id, timestamp =  eml_idents(obj.identifier.value())
+                except ValueError:
+                    continue
+                logger.info("Using package form Dataone: {} at time  {}".format(package_id, timestamp))
+                self._eml_packages[package_id] = eml_component(self)
+                # Since we don't download the package for the eml_component right now (if ever) we need to explicitly set the pid
+                self._eml_packages[package_id].set_pid(obj.identifier.value())
+                # We can also add the checksum right away, which can save time later.
+                self._eml_packages[package_id].set_checksum(obj.checksum.value())
+                #            self._eml_packages[package_id].set_????(obj.value.dateSysMetadataModified.value())  # Might be useful  - not bothering for now.
 
         except Exception as ex:
             logger.exception("Unable to get package list from mnclient", exc_info = ex)
             raise InternalError
 
-        # Create the dictionary of content.  
-        for obj in self._mn_list.orderedContent():
-            try:
-                package_id, timestamp =  eml_idents(obj.value.identifier.value())
-            except ValueError:
-                continue
-            self._eml_packages[package_id] = eml_component(self)
-            # Since we don't download the package for the eml_component we need to explicitly set the pid
-            self._eml_packages[package_id].set_pid(obj.value.identifier.value())
-            # We can also add the checksum right away, which can save time later.
-            self._eml_packages[package_id].set_checksum(obj.value.checksum.value())
-#            self._eml_packages[package_id].set_????(obj.value.dateSysMetadataModified.value())  # Might be useful  - not bothering for now.
-
         logger.info("Found {} eml objects on MN".format(len(self._eml_packages)))
+
+
             
     def _get_content_from_server(self, ident):
         # Not used, could be if we enable the code to slurp data from the MN
@@ -667,10 +762,15 @@ class dataone_connector(Connector):
         try:
 #            self._mn_client.reserveIdentifier(newPid)   # May not really need to do this            
             metadata = package.get_sysmeta()
+            print "Updating:  oldPid {}   new pid {}".format(oldPid, pid)
+
             if not self._mn_client.update(oldPid, package.content_reader(), pid, metadata):
                 logger.error("Failure to queue update for newPid {}".format(pid))
                 error.error()
-                    
+
+        except d1_common.types.exceptions.InvalidRequest as ex:
+            logger.error("Invalid Request for update\n {}".format(ex))
+            error.error()
         except Exception as ex:
             logger.exception("", exc_info = ex)
             error.error()
@@ -723,9 +823,10 @@ class dataone_connector(Connector):
             
     def get_sysmeta(self, ident):
         # Lazy fetch of sysmetadata from the DataOne MN
-        package_id, timestamp =  eml_(ident)
-        if package_id in self._eml_sysmeta.keys():
-            return self._eml_sysmeta[package_id]
+#        package_id, timestamp =  eml_(ident)
+#        if package_id in self._eml_sysmeta.keys():
+#            return self._eml_sysmeta[package_id]
+        return self._mn_client.getSystemMetadata(ident)
         try:
             self._eml_sysmeta.keys[package_id] = self._mn_client.getSystemMetadata(ident)
         except Exception as ex:
@@ -778,6 +879,7 @@ def get_arg_parser():
     parser.add_argument('-t', '--trial_run',  action = 'store_true', help = 'Do not upload to the DataOne server, will describe what needs to be done')
     parser.add_argument('-v', '--verbose',    action = 'store_true', help = 'Enable informational messages')
     parser.add_argument('-V', '--debug',      action = 'store_true', help = 'Enable debugging messages')
+    parser.add_argument('-o', '--dataone_debug', action = 'store_true', help = 'Enable debugging messages for DataOne library')
     parser.add_argument('-q', '--quiet',      action = 'store_true', help = 'Do not output anything to standard output or standard error')
     parser.add_argument('-i', '--intolerant', action = 'store_true', help = 'Do not perform any uploads if any errors at all are found')
     parser.add_argument('-f', '--force_update',  action = 'store_true', help = 'Do not check if the content to be uploaded is identical to what is on the server.  Upload anyway.')
@@ -816,6 +918,19 @@ def build_logger():
     logger = logging.getLogger("eml_pusher")
     logger.addHandler(handler)
     logging._srcfile = None
+
+    if args.dataone_debug:
+        mnlogger = logging.getLogger('MemberNodeClient')
+        mnlogger.addHandler(handler)
+        mnlogger.setLevel( logging.DEBUG )
+        
+        mnlogger = logging.getLogger('DataONEBaseClient')
+        mnlogger.addHandler(handler)
+        mnlogger.setLevel( logging.DEBUG )
+        
+        mnlogger = logging.getLogger('DataONERestClient')
+        mnlogger.addHandler(handler)
+        mnlogger.setLevel( logging.DEBUG )
     
     logging.captureWarnings(True)
     logger.setLevel( logging.INFO if args.verbose else logging.WARNING )
