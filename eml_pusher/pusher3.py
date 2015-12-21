@@ -606,22 +606,22 @@ class file_connector(Connector):
     # to sychronise two directories of files, if that is ever desirable.
         
     def create(self, package):
-        self.update(None, package)
+        return self.update(None, package)
         
     def update(self, existing, package):
         oldPid = existing.full_package_id() if existing is not None else None
 
         if package is None:
-            return
+            return False
         try:
             filename = urllib.quote(package.full_package_id(), safe = "" ) + ".xml"
         except UnicodeEncodeError as ex:
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
             error.error()
-            return
+            return False
 
         if args.trial_run:
-            return
+            return True
         
         try:
             with open( os.path.join(self._root_dir, filename), "w" ) as the_file:
@@ -629,10 +629,9 @@ class file_connector(Connector):
         except Exception as ex:
             logger.exception("Failure to create package file {} in {}".format(filename, self._root_dir), exc_info = ex)
             error.error()
-            return
+            return False
         
-        self._update_sysmeta(package, package.get_sysmeta_content(oldPid))
-        
+        return self._update_sysmeta(package, package.get_sysmeta_content(oldPid))
 
     def _update_sysmeta(self, package, sysmeta):        
         try:
@@ -640,7 +639,7 @@ class file_connector(Connector):
         except UnicodeEncodeError as ex:
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
             error.error()
-            return
+            return False
         
         try:
            with open(os.path.join(self._root_dir, filename), "w") as the_file:
@@ -648,6 +647,8 @@ class file_connector(Connector):
         except Exception as ex:
             logger.exception("Error during writing of sysmeta {} to {}".format(filename, self._root_dir), exc_info = ex)
             error.error()
+            return False
+        return True
 
     def get_checksum(self, pid):
         # For completness - since a file connector has read the xml content for the eml_content object
@@ -723,7 +724,7 @@ class dataone_connector(Connector):
                     package_id, timestamp =  eml_idents(obj.identifier.value())
                 except ValueError:
                     continue
-                logger.info("Using package form Dataone: {} at time  {}".format(package_id, timestamp))
+                logger.debug("Using package from Dataone: {} at time  {}".format(package_id, timestamp))
                 self._eml_packages[package_id] = eml_component(self)
                 # Since we don't download the package for the eml_component right now (if ever) we need to explicitly set the pid
                 self._eml_packages[package_id].set_pid(obj.identifier.value())
@@ -758,23 +759,25 @@ class dataone_connector(Connector):
         oldPid = existing.get_pid()
         logger.info("Updating {} to {}".format(oldPid, pid))
         if args.trial_run:
-            return
+            return True
         try:
 #            self._mn_client.reserveIdentifier(newPid)   # May not really need to do this            
             metadata = package.get_sysmeta()
-            print "Updating:  oldPid {}   new pid {}".format(oldPid, pid)
-
             if not self._mn_client.update(oldPid, package.content_reader(), pid, metadata):
                 logger.error("Failure to queue update for newPid {}".format(pid))
                 error.error()
+                return False
 
         except d1_common.types.exceptions.InvalidRequest as ex:
             logger.error("Invalid Request for update\n {}".format(ex))
             error.error()
+            return False
         except Exception as ex:
             logger.exception("", exc_info = ex)
             error.error()
-
+            return False
+        return True
+        
     def create(self, package):
         """
         Create a new package on the MN
@@ -782,7 +785,7 @@ class dataone_connector(Connector):
         newPid = package.get_pid()
         logger.info("Creating new with Pid {}".format(newPid))
         if args.trial_run:
-            return
+            return True
         ##        We could loop and try to ensure a unique id, but we are assuming uniqueness
         ##        has been guarenteed by the timestamp appended.  So there is no value currently.
         #        if not self._mn_client.reserveIdentifier(newPid):
@@ -794,7 +797,8 @@ class dataone_connector(Connector):
         except d1_exception.IdentifierNotUnique:
             logger.error("Identifier {} not unique".format(newPid))
             error.error()
-            return
+            return False
+        return True
             
     def get_package(self, ident):
         # Lazy evaluation of package - try to avoid the expense of getting the content
@@ -855,20 +859,21 @@ def perform_update(source, destination):
                         logger.debug("Record {} :  Identical content already on server. Not updated.".format(ident))
                     else:
                         logger.debug("Record {} :  New content for existing record. Updating.".format(ident))
-                        updated_content += 1
-                        destination.update(existing, new_package)
+                        if destination.update(existing, new_package):
+                            updated_content += 1
                 else:
                     # Update no matter what - don't trust the checksum test.
                     logger.debug("Record {} :  Forcing update to exisiting content.".format(ident))
-                    updated_content += 1
-                    destination.update(existing, new_package)
+                    if destination.update(existing, new_package):
+                        updated_content += 1
             else:
                 same_timestamp += 1
                 logger.debug("Record {} : Timestamps same.".format(ident))
         else:
             logger.debug("Record {} :  New content, uploading".format(ident))
-            new_content += 1
-            destination.create(new_package)
+            if destination.create(new_package):
+                new_content += 1
+
 
     logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
                 .format(new_content, updated_content, same_content, same_timestamp)  )
@@ -919,6 +924,11 @@ def build_logger():
     logger.addHandler(handler)
     logging._srcfile = None
 
+    # This is added because errors inside the DataOne libraries will cause a console message if the logger does not exist
+    pyxb_logger = logging.getLogger("pyxb.binding.basis")
+    pyxb_logger.addHandler(handler)
+    pyxb_logger.setLevel( logging.DEBUG )
+    
     if args.dataone_debug:
         mnlogger = logging.getLogger('MemberNodeClient')
         mnlogger.addHandler(handler)
