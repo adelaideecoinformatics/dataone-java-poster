@@ -213,7 +213,7 @@ class SystemMetadataCreator():
         
     def _create_access_policy_pyxb_object(self, access):
         acl = access.get_list()
-        if not len(acl):
+        if len(acl) == 0:
             return None
         access_policy = dataoneTypes.accessPolicy()
         for s, p in acl:
@@ -221,7 +221,7 @@ class SystemMetadataCreator():
             access_rule.subject.append(s)
             permission = dataoneTypes.Permission(p)
             access_rule.permission.append(permission)
-        access_policy.append(access_rule)
+            access_policy.append(access_rule)
         return access_policy
         
 
@@ -868,25 +868,25 @@ def perform_update(source, destination):
                         updated_content += 1
             else:
                 same_timestamp += 1
-                logger.debug("Record {} : Timestamps same.".format(ident))
+                logger.debug("Record not newer for {} --  exiting {} vs new {}.".format(ident, existing.timestamp(), new_package.timestamp()))
         else:
             logger.debug("Record {} :  New content, uploading".format(ident))
             if destination.create(new_package):
                 new_content += 1
 
 
-    logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same timestamp ignored."
+    logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same or earlier timestamp ignored."
                 .format(new_content, updated_content, same_content, same_timestamp)  )
 
         
 def get_arg_parser():
     parser = argparse.ArgumentParser("eml_pusher", description='Create list of EML files that must be uploaded to a DataOne server')
-    parser.add_argument('-t', '--trial_run',  action = 'store_true', help = 'Do not upload to the DataOne server, will describe what needs to be done')
+    parser.add_argument('-t', '--trial_run',  action = 'store_true', help = 'Do not upload to the DataOne server, can be used to describe what needs to be done')
     parser.add_argument('-v', '--verbose',    action = 'store_true', help = 'Enable informational messages')
-    parser.add_argument('-V', '--debug',      action = 'store_true', help = 'Enable debugging messages')
-    parser.add_argument('-o', '--dataone_debug', action = 'store_true', help = 'Enable debugging messages for DataOne library')
-    parser.add_argument('-q', '--quiet',      action = 'store_true', help = 'Do not output anything to standard output or standard error')
-    parser.add_argument('-i', '--intolerant', action = 'store_true', help = 'Do not perform any uploads if any errors at all are found')
+    parser.add_argument('-V', '--debug',      action = 'store_true', help = 'Enable debugging level messages')
+    parser.add_argument('-o', '--dataone_debug', action = 'store_true', help = 'Enable debugging messages for DataOne library. Produces lots of output.')
+    parser.add_argument('-q', '--quiet',      action = 'store_true', help = 'Only log critical messages, turns off warning and error logging - usually means no log output')
+    parser.add_argument('-i', '--intolerant', action = 'store_true', help = 'Terminate upload if any errors at all are found, tool is tolerant to 20 errors by default')
     parser.add_argument('-f', '--force_update',  action = 'store_true', help = 'Do not check if the content to be uploaded is identical to what is on the server.  Upload anyway.')
     parser.add_argument('-l', '--log_file',                         help = 'Log file. If not specified output goes to standard output')
     parser.add_argument('-c', '--config_log_file',                  help = 'Logging configuration file. Python logger format.')
@@ -924,27 +924,36 @@ def build_logger():
     logger.addHandler(handler)
     logging._srcfile = None
 
+    logging_level = logging.WARNING
+    if args.quiet:
+        logging_level = logging.CRITICAL
+    else if args.verbose:
+        logging_level = logging.INFO
+    else if args.debug:
+        logging_level = logging.DEBUG
+        
+
+    logger.setLevel(logging_level)
+    
     # This is added because errors inside the DataOne libraries will cause a console message if the logger does not exist
     pyxb_logger = logging.getLogger("pyxb.binding.basis")
     pyxb_logger.addHandler(handler)
-    pyxb_logger.setLevel( logging.DEBUG )
+    pyxb_logger.setLevel( logging_level )
     
     if args.dataone_debug:
         mnlogger = logging.getLogger('MemberNodeClient')
         mnlogger.addHandler(handler)
-        mnlogger.setLevel( logging.DEBUG )
+        mnlogger.setLevel( logging_level )
         
         mnlogger = logging.getLogger('DataONEBaseClient')
         mnlogger.addHandler(handler)
-        mnlogger.setLevel( logging.DEBUG )
+        mnlogger.setLevel( logging_level )
         
         mnlogger = logging.getLogger('DataONERestClient')
         mnlogger.addHandler(handler)
-        mnlogger.setLevel( logging.DEBUG )
+        mnlogger.setLevel( logging_level )
     
     logging.captureWarnings(True)
-    logger.setLevel( logging.INFO if args.verbose else logging.WARNING )
-    logger.setLevel( logging.DEBUG if args.debug else logger.getEffectiveLevel() )
     return logger
     
 
