@@ -153,7 +153,7 @@ class SystemMetadataCreator():
         self._authenticated_user = 'authenticatedUser'
         self._verified_user = 'verifiedUser'
         self._public_user = 'public'
-        self._owner = 'gmn'
+        self._rights_holder = 'authenticatedUser'     # This is ridiculous. We need a much better scheme for this inside the DataOne setup. CN from the cert might be good.
         
     def set_format_id(self, format):
         self._format_id = format
@@ -173,21 +173,21 @@ class SystemMetadataCreator():
         access = access_control.AccessControl()
         # These policies may need to be the subject of a config file if flexibility is warranted.
 
-        # The next three additions contain a potential issue - never add anything more than 'read' or the d1 code will
+        # The next three additions contain an odd issue - never add anything other then read, write, changePermission, or the d1 code will
         # perform an interactive verification of intent - which will kill a batch job.  Should never do anything so silly this anyway.
         access.add_allowed_subject(self._public_user, 'read')
         access.add_allowed_subject(self._authenticated_user, 'read')
+
+        # These also cause an interactive question and answer -
+#        access.add_allowed_subject(self._authenticated_user, 'write')
+#        access.add_allowed_subject(self._authenticated_user, 'changePermission')
         access.add_allowed_subject(self._verified_user, 'read')
 
-        access.add_allowed_subject(self._owner, 'write')
-        access.add_allowed_subject(self._owner, 'write')
-        access.add_allowed_subject(self._owner, 'changePermission')
-        
         sysmeta =  self._create_pyxb_object(pid,
                                             self._format_id,
                                             file_size,
                                             checksum,
-                                            self._owner,
+                                            self._rights_holder,
                                             access)
         
         if identifier_old is not None:
@@ -282,6 +282,9 @@ class errors:
                 raise self._exception
             else:
                 raise InternalException
+            
+    def error_count(self):
+        return self._count
             
 def signal_exit_handler(signum, frame):
     """
@@ -570,7 +573,7 @@ class file_connector(Connector):
                             content = the_file.read()
                     except IOError:
                         # Empty or unable to read
-                        logger.info("Skipped unreadable file {}".format(filename))
+                        logger.debug("Skipped unreadable file {}".format(filename))
                         continue
                     except Exception as ex:
                         logger.exception("Exception in XML file read for {}".format(filename), exc_info = ex)
@@ -594,7 +597,7 @@ class file_connector(Connector):
                             logger.debug("Skipped file with older timestamp {}".format(filename))
                     else:
                         self._eml_packages[new_base_id] = new_component
-                        logger.info("Adding package {}".format(new_base_id))
+                        logger.debug("Adding package {}".format(new_base_id))
  
         except Exception as ex:
             logger.exception("Exception in file connection {}. Exiting".format(self._root_dir), exc_info = ex)
@@ -768,12 +771,12 @@ class dataone_connector(Connector):
                 error.error()
                 return False
 
-        except d1_common.types.exceptions.InvalidRequest as ex:
-            logger.error("Invalid Request for update\n {}".format(ex))
+        except (d1_common.types.exceptions.NotAuthorized, d1_common.types.exceptions.InvalidRequest) as ex:
+            logger.error("Update for {} Fails\n{}".format(pid, ex))
             error.error()
             return False
         except Exception as ex:
-            logger.exception("", exc_info = ex)
+            logger.exception("Exception in update for {}".format(pid), exc_info = ex)
             error.error()
             return False
         return True
@@ -809,7 +812,7 @@ class dataone_connector(Connector):
             package = eml_content(content)
             self._eml_packages[ident] = package
             if ident != package.package_id():
-                logger.info("Packageid: {} does not match ident: {}".format(package_id, ident))
+                logger.debug("Packageid: {} does not match ident: {}".format(package_id, ident))
                 # We may want to provide for some option to not proceed if this does not match
                 # This is a "should not happen"
                     
@@ -848,7 +851,7 @@ def perform_update(source, destination):
     logger.info("EML Update starts.")
 
     for new_package in source:
-        logger.info("Processing source package: {} with time {}".format(new_package.package_id(), new_package.timestamp()))
+        logger.debug("Processing source package: {} with time {}".format(new_package.package_id(), new_package.timestamp()))
         ident = new_package.package_id()
         if ident in destination.idents():
             existing = destination.get_package(ident)
@@ -874,9 +877,9 @@ def perform_update(source, destination):
             if destination.create(new_package):
                 new_content += 1
 
-
-    logger.info("EML Update completes.  {} new files uploaded, {} existing updated.  {} files with identical content and {} with same or earlier timestamp ignored."
-                .format(new_content, updated_content, same_content, same_timestamp)  )
+    # Logs at warning level - but this our defualt - so unless --quiet is specified we always generate this message
+    logger.warning("EML Update completes. {} errors, {} new files uploaded, {} existing updated.  {} files with identical content and {} with same or earlier timestamp ignored."
+                .format(error.error_count(), new_content, updated_content, same_content, same_timestamp)  )
 
         
 def get_arg_parser():
@@ -927,9 +930,9 @@ def build_logger():
     logging_level = logging.WARNING
     if args.quiet:
         logging_level = logging.CRITICAL
-    else if args.verbose:
+    elif args.verbose:
         logging_level = logging.INFO
-    else if args.debug:
+    elif args.debug:
         logging_level = logging.DEBUG
         
 
