@@ -69,13 +69,16 @@ class PersistentIdentifier:
     We need to deal with format suffixes, and a general amount of grief.
     """
 
-    pid_suffixes = ['html']  # Add more as they become apparent
-    minimum_version_length = 2
+    _pid_suffixes = ['html','xml']  # Add more as they become apparent
+    _minimum_version_length = 1
     
     def __init__(self, ident):
         self._full_id = ident
-        self._base_id, self._timestamp = self._kind = self._parse_ident()
-        
+        self._base_id, self._timestamp, self._kind = self._parse_ident()
+
+    def full_id(self):
+        return self._full_id
+    
     def base_id(self):
         return self._base_id
 
@@ -85,53 +88,42 @@ class PersistentIdentifier:
     def kind(self):
         return self._id_kind
 
-
-    def _eml_idents(full_id):    
-        try:
-            package_id = full_id[0: -9]
-            timestamp = int(full_id[-8:])
-        except ValueError, IndexError:
-            # Assume that there is no timestamp
-            package_id = full_id     # use the entire id
-            timestamp = 0            # start of time
-            
-            # some simple sanity checking, 
-        if timestamp <= 0:
-            package_id = full_id
-            timestamp = 0
-        if len(package_id) == 0:
-            if len(full_id) == 0:
-                logger.debug("Empty package id")
-                raise ValueError
-            package_id = full_id  # Get here if the id is very short
-            timestamp = 0         # start of time
-        return (package_id, timestamp)
-    
     def _parse_ident(self):
-        # Placeholder - just do the eml ident until we work out how to handle the rest
-        components = self._full_id.split('.')
+        # Note - if we decide the ident is invalid, throw a ValueError
+        # Currently not a lot of ways to get a bad ident.
+        
+        if len(self._full_id) == 0:
+            raise ValueError
 
-        try:
-            if len(components) < 1:
-                raise ValueError
-            if len(components) == 1:
-                return (self._full_id, 0)
-            suffix = components[-1].split('/')
-            # Check here for valid kinds after any slash
-#            if len(suffix) > 1:
-#                if suffix[-1] not in self.pid_suffixes:
-#                    raise ValueError
-            last = suffix[0]
-            if len(last) < self.minimum_version_length:
-                raise IndexError
-            timestamp = int(last)
-            base = string.join(components[0:-1], sep = '.')
-        except (IndexError, ValueError):
-            # Last bit isn't a timestamp
-            base = self._full_id
-            timestamp = 0
         kind = None
-        return (base, timestamp)
+        full_name = self._full_id
+
+        # First - look for a type
+        # If there is one split it off.
+        elements = self._full_id.split('/')
+        if len(elements) >= 2:
+            if elements[-1] in self._pid_suffixes:
+                kind = elements[-1]
+                full_name = string.join(elements[:-1],'/')
+
+        components = full_name.split('.')        # Now go looking for a version
+        try:
+            if len(components) <= 1:                  # Nothing can be usefully done - no timestamp separator
+                return(full_name, 0, kind)
+
+            last = components[-1]
+            if len(last) < self._minimum_version_length:   # It isn't a valid version number - assume it is part of the name.
+                return(full_name,  0, kind)
+
+            timestamp = int(last)
+            base_name = string.join(components[:-1], sep = '.')   # Name without timestamp
+        except (IndexError, ValueError):   # Last bit isn't a valid number
+            return (full_name, 0, kind)
+        
+        if timestamp < 0:        #  Negative numbers might sneak through (we could allow this, but probably a bad idea.)
+            return(full_name, 0, kind)
+        
+        return (base_name, timestamp, kind)
 
 class SystemMetadataCreator():
     """
@@ -320,26 +312,6 @@ class Connector(object):
     def update_sysmeta(self, content, update):
        pass
 
-def eml_idents(full_id):    
-    try:
-        package_id = full_id[0: -9]
-        timestamp = int(full_id[-8:])
-    except ValueError, IndexError:
-        # Assume that there is no timestamp
-        package_id = full_id     # use the entire id
-        timestamp = 0            # start of time
-
-    # some simple sanity checking, 
-    if timestamp <= 0:
-        package_id = full_id
-        timestamp = 0
-    if len(package_id) == 0:
-        if len(full_id) == 0:
-            logger.debug("Empty package id")
-            raise ValueError
-        package_id = full_id  # Get here if the id is very short
-        timestamp = 0         # start of time
-    return (package_id, timestamp)
 
 class eml_component:
     """
@@ -360,15 +332,16 @@ class eml_component:
         self._full_package_id = None   # The Pid that DataNone will refere to this with
         self._package_id = None        # The package id without the timestamp
         self._timestamp =  None        # The package's timestamp
-        self._data_user = None  # The user ident found in the content xml file
+        self._data_user = None         # The user ident found in the content xml file
+        self._pid = None
 
         if content is not None:
             try:
                 e = ElementTree.fromstring(content)
                 self._full_package_id = e.attrib['packageId']
-                parsed_ident = PersistentIdentifier(self._full_package_id)
-                self._package_id = parsed_ident.base_id()
-                self._timestamp =  parsed_ident.timestamp()
+                self._pid = PersistentIdentifier(self._full_package_id)
+                self._package_id = self._pid.base_id()
+                self._timestamp = self._pid.timestamp()
                 dataset = e.findall('dataset')
             except KeyError as ex:
                 # whilst this is a .xml file, it would not appear to be the right content
@@ -386,12 +359,11 @@ class eml_component:
             self._check_sanity()        
             
     def set_pid(self, pid):
-        if self._full_package_id is not None:
+        if self._pid is not None:
             raise InternalError("Object {} already has a pid".format(self._full_package_id))
-        self._full_package_id = pid
-        parsed_ident = PersistentIdentifier(self._full_package_id)
-        self._package_id = parsed_ident.base_id()
-        self._timestamp =  parsed_ident.timestamp()
+        self._full_package_id = pid.full_id()
+        self._package_id = pid.base_id()
+        self._timestamp =  pid.timestamp()
         
     def get_pid(self):
         return self._full_package_id
@@ -724,13 +696,14 @@ class dataone_connector(Connector):
             objListIter = objectlistiterator.ObjectListIterator(self._mn_client)
             for obj in iter(objListIter):
                 try:
-                    package_id, timestamp =  eml_idents(obj.identifier.value())
+                    pid = PersistentIdentifier(obj.identifier.value())
                 except ValueError:
                     continue
-                logger.debug("Using package from Dataone: {} at time  {}".format(package_id, timestamp))
+                logger.debug("Using package from Dataone: {} at time  {}".format(pid.base_id(), pid.timestamp()))
+                package_id = pid.base_id()
                 self._eml_packages[package_id] = eml_component(self)
                 # Since we don't download the package for the eml_component right now (if ever) we need to explicitly set the pid
-                self._eml_packages[package_id].set_pid(obj.identifier.value())
+                self._eml_packages[package_id].set_pid(pid)
                 # We can also add the checksum right away, which can save time later.
                 self._eml_packages[package_id].set_checksum(obj.checksum.value())
                 #            self._eml_packages[package_id].set_????(obj.value.dateSysMetadataModified.value())  # Might be useful  - not bothering for now.
