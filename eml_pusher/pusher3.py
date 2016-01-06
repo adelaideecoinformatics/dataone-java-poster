@@ -29,7 +29,6 @@ if _platform == "darwin":
     if '_create_unverified_context' in dir(ssl):
         ssl._create_default_https_context = ssl._create_unverified_context
 
-
 # DataOne libraries
 import d1_common
 import d1_client.mnclient as mnclient
@@ -39,10 +38,10 @@ import d1_common.checksum
 import d1_common.const
 import d1_client.objectlistiterator as objectlistiterator
 import d1_common.types.generated.dataoneTypes as dataoneTypes
-
+import d1_client
 
 # Something of a magic value. Default for EML system it seems
-hasher_algorithm = u'MD5'
+hasher_algorithm = 'MD5'
 
 # Globals
 
@@ -50,6 +49,7 @@ args = None
 logger = None
 sysmeta_generator = None
 error = None
+config = None
 
 # Modified from dataone d1_client_cli.impl.system_metadata.py
 # Replaced use of session values by parameters and local values
@@ -61,37 +61,56 @@ class PersistentIdentifier:
     """
     Encapsulates the various timestamped PIDs used for content
 
-
     It seems we can get almost anything back as a PID.
     Although TERN/ecoinformatics has a restricted set of possibilities
-    there is nothing that says that somehting quite different might be added by some other
+    there is nothing that says that something quite different might be added by some other
     agency, and thus turn up in our list.  This include UUIDs and hashes.
     We need to deal with format suffixes, and a general amount of grief.
+
+    It would be good if there was a decidable grammar for PIDs and timestamps, but 
+    it is probably way too late to create one.  Some simple heiristics is about all we can do.
     """
 
     _pid_suffixes = ['html','xml']  # Add more as they become apparent
-    _minimum_version_length = 1
+    _minimum_version_length = 1     # This should be more to avoid problems, but we have some items already with only 1 digit
     
     def __init__(self, ident):
         self._full_id = ident
         self._base_id, self._timestamp, self._kind = self._parse_ident()
 
     def full_id(self):
+        """
+        Return a string that represents the PID, including timestamp
+        """
         return self._full_id
     
     def base_id(self):
+        """
+        Return a string that represents the PID with any timestamp (and separator) removed
+        """
         return self._base_id
 
     def timestamp(self):
+        """
+        Return the integer value of the timestamp
+        """
         return self._timestamp
 
     def kind(self):
+        """
+        Return a string that represents the kind of entity the URL provided references
+        if it can be deduced from the URL
+        """
         return self._id_kind
 
     def _parse_ident(self):
-        # Note - if we decide the ident is invalid, throw a ValueError
-        # Currently not a lot of ways to get a bad ident.
-        
+        """
+        Parse as best we can the provided URL.  
+        Returns a triplet: base name, timestamp, kind
+
+        Note - if we decide the ident is invalid, throw a ValueError
+        Currently there are not a lot of ways to get a bad ident.
+        """
         if len(self._full_id) == 0:
             raise ValueError
 
@@ -125,6 +144,68 @@ class PersistentIdentifier:
         
         return (base_name, timestamp, kind)
 
+
+class PusherConfiguration:
+    """
+    Configuration object encapsulates the configuration of the pusher.
+    Configuration defaults are set in __init__
+    Any public object may be overridden by a value in the config file
+    The types must match
+    """
+    def __init__(self, config_file_name):
+        """
+        These are the default values
+        They are overriden by any values in the config file
+        """
+        self.format_id = 'eml://ecoinformatics.org/eml-2.1.1'    # This is specific to eml - eventually may need to expand capability
+        self.hasher_algorithm = hasher_algorithm
+        self.authoritative_mn = 'urn:node:TERN'
+        self.replication = {'preferred-nodes' : [],
+                             'blocked-nodes' : [],
+                             'replication-allowed' : True,
+                             'number-of-replicas' : 1}
+
+        self.rights_holder = 'authenticatedUser'     # This is ridiculous. We need a much better scheme for this inside the DataOne setup. CN from the cert might be good.
+
+        if config_file_name is not None:
+            self._parse_yaml(config_file_name)
+        
+    def _parse_yaml(self, config_file_name):
+        """
+        Loads a yaml config file.  
+        The file may only contain valid config options, as only itmes already and the types must match 
+        those of the options.  Default values are overridden.
+        """
+        from yaml import safe_load
+        try:
+            with open(config_file_name) as config_file:
+                configuration = safe_load(config_file)
+        except IOError as ex:
+            logger.exception("Failure in reading config file", exc_info = ex)
+            raise InternalError
+
+        for key in configuration.iterkeys():
+            if key in self.__dict__:
+                if key[:2] == "_":
+                    continue   # Don't let some smart alec override private values.
+                if type(configuration[key]) is dict:
+                    self.__dict__[key] = configuration[key]
+                else:
+                    try:
+                        self.__dict__[key] = configuration[key]
+                    except TypeError as ex:
+                        logger.exception("Error in config file - type mismatch for {} : {}".format(key, configuration[key]), exc_info = ex)
+                        raise InternalError
+            else:
+                logger.error("Unknown option in configuration file: {}".format(key))
+                raise InternalError
+            
+    def __str__(self):
+        from yaml import dump as dump
+        return dump(self)
+        
+
+                
 class SystemMetadataCreator():
     """
     Create a system metadata object from scratch
@@ -134,18 +215,17 @@ class SystemMetadataCreator():
         # TODO - eventually migrate these to a config file so that
         # there is never a temptation to patch the code to tweak policies
         
-        self._format_id = 'eml://ecoinformatics.org/eml-2.1.1'    # This is specific to eml - eventually may need to expand capability
-        self._algorithm = hasher_algorithm
-        self._authoritative_mn = 'urn:node:TERN'
-        self._replication = {'preferred-nodes' : [],
-                             'blocked-nodes' : [],
-                             'replication-allowed' : True,
-                             'number-of-replicas' : 1}
+        self._format_id = config.format_id
+        self._algorithm = config.hasher_algorithm
+        self._authoritative_mn = config.authoritative_mn
+        self._replication = config.replication
+        self._rights_holder = config.rights_holder
 
+        # Some string constants  # TODO Maybe grab these strings from the DataOne library if they are visible
         self._authenticated_user = 'authenticatedUser'
         self._verified_user = 'verifiedUser'
         self._public_user = 'public'
-        self._rights_holder = 'authenticatedUser'     # This is ridiculous. We need a much better scheme for this inside the DataOne setup. CN from the cert might be good.
+        
         
     def set_format_id(self, format):
         self._format_id = format
@@ -251,7 +331,7 @@ class SystemMetadataCreator():
         return h.hexdigest()
 
 class InternalError:
-    # Provide an exception to allow us to bail out
+    # Provide an exception to allow us to bail out cleanly
     pass
     
 class errors:
@@ -323,16 +403,16 @@ class eml_component:
     
     def __init__(self, source, content = None, sysmeta = None):
 
-        self._source = source      #  the Connector object that created us - used for lazy creation/obtaining info as a callback
-        self._content = content    #  String holding the XML package content
-        self._dict = None          #  Cached dictionary used to compare package contents for sematic equivalence - not currently used
-        self._sysmeta = None       #  A DataOne sysmeta object - lazily created if not provided
+        self._source = source          #  Connector object that created us - used for lazy creation/obtaining info as a callback
+        self._content = content        #  String holding the XML package content
+        self._dict = None              #  Cached dictionary used to compare package contents for sematic equivalence - not currently used
+        self._sysmeta = None           #  A DataOne sysmeta object - lazily created if not provided
         self._sysmeta_content = None   #  sysmeta object as string - lazily created
         self._checksum = None          #  Holds the checksum for this package as calculated with the timestamp the package holds
-        self._full_package_id = None   # The Pid that DataNone will refere to this with
-        self._package_id = None        # The package id without the timestamp
-        self._timestamp =  None        # The package's timestamp
-        self._data_user = None         # The user ident found in the content xml file
+        self._full_package_id = None   #  Pid that DataNone will refere to this with
+        self._package_id = None        #  Package id without the timestamp
+        self._timestamp =  None        #  Package's timestamp
+        self._data_user = None         #  User ident found in the content xml file
         self._pid = None
 
         if content is not None:
@@ -491,7 +571,7 @@ class eml_component:
 
     def get_sysmeta_content(self, obsoletes = None):
         """
-        Return the sysmeta object that describes this eml content.
+        Return the system metadata, as an xml encoded string, that describes this eml content.
         Lazyily evaluated to avoid the cost of fetching/generating if not needed
         """        
         if self._sysmeta_content is None:
@@ -501,7 +581,6 @@ class eml_component:
         
     def _generate_sysmeta(self, obsoletes):
         if self._sysmeta is None:
-            # We have no sysmeta - so assume we must generate sysmetadata from the main content
             self._sysmeta = sysmeta_generator.create_system_metadata(self._content, self._full_package_id, self._checksum, obsoletes )
         return self._sysmeta
  
@@ -673,11 +752,13 @@ class dataone_connector(Connector):
 
 #  For preference we should be able to use these functions rather than the cert file directly.
 #  The DataOne implementation is too old it seems
-#            ssl_context = ssl.SSLContext(ssl.PROTOCOL_SSLv3)
+#            ssl_context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+#            ssl_context.options |= ssl.OP_NO_SSLv2
+#            ssl_context.options |= ssl.OP_NO_SSLv3
 #            ssl_context.load_cert_chain(cert_file)
 
         else:            
-#            ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+#            ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
             cert_file = None
         
         try:
@@ -692,6 +773,9 @@ class dataone_connector(Connector):
         self._eml_packages = {}          # cache of entire packages
         self._eml_timestamp = {}         # cache of eml timestamps
 
+
+        self._connection = self._mn_client.connection
+        
         try:
             objListIter = objectlistiterator.ObjectListIterator(self._mn_client)
             for obj in iter(objListIter):
@@ -713,8 +797,7 @@ class dataone_connector(Connector):
             raise InternalError
 
         logger.info("Found {} eml objects on MN".format(len(self._eml_packages)))
-
-
+        
             
     def _get_content_from_server(self, ident):
         # Not used, could be if we enable the code to slurp data from the MN
@@ -728,8 +811,8 @@ class dataone_connector(Connector):
 
     def update(self, existing, package):
         """
-        existing is the package we are replacing
-        package is the new package to be uploaded
+        existing: package we are replacing
+        package:  new package to be uploaded
         """
         pid = package.get_pid()
         oldPid = existing.get_pid()
@@ -868,7 +951,9 @@ def get_arg_parser():
     parser.add_argument('-c', '--config_log_file',                  help = 'Logging configuration file. Python logger format.')
     parser.add_argument('-C', '--cert_file',        help = 'Path to certificate file for access to DataOne node.')
     parser.add_argument('-p', '--path',        help = 'Path to base of tree on MN of packages to synchronise. Not used.')
-
+    parser.add_argument('-y', '--yaml_config',        help = 'Path to YAML format configuration file. Contents override internal defaults.')
+    parser.add_argument('-Y', '--dump_yaml',    action = 'store_true', help = 'Dump full program configuration in YAML format to std_out. Useful start for writing a config file.')
+    
     dest_group = parser.add_mutually_exclusive_group(required = True)
     dest_group.add_argument('-D', '--destination_url',                  help = 'Hostname or IP number for destination DataOne server')
     dest_group.add_argument('-d', '--destination_dir',                  help = 'Path of destination directory tree for EML')    
@@ -934,10 +1019,15 @@ def build_logger():
     
 
 def eml_pusher():
-    global args, logger, sysmeta_generator, error
+    global args, logger, sysmeta_generator, error, config
     
     parser = get_arg_parser()
     args = parser.parse_args()
+
+    config = PusherConfiguration(args.yaml_config)
+    if args.dump_yaml:
+        print config
+    
     logger = build_logger()
     sysmeta_generator = SystemMetadataCreator()
     error = errors(0 if args.intolerant else 20, InternalError)
