@@ -173,7 +173,7 @@ class PusherConfiguration:
     def _parse_yaml(self, config_file_name):
         """
         Loads a yaml config file.  
-        The file may only contain valid config options, as only itmes already and the types must match 
+        The file may only contain valid config options, as only items already and the types must match 
         those of the options.  Default values are overridden.
         """
         from yaml import safe_load
@@ -202,9 +202,9 @@ class PusherConfiguration:
             
     def __str__(self):
         from yaml import dump as dump
-        return dump(self)
-        
-
+        cont = dump(self).split("\n")
+        content = string.join(cont[1:],"\n")    # chop off the object header
+        return content
                 
 class SystemMetadataCreator():
     """
