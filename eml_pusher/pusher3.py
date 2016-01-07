@@ -189,6 +189,7 @@ class PusherConfiguration:
                 if key[:2] == "_":
                     continue   # Don't let some smart alec override private values.
                 if type(configuration[key]) is dict:
+                    # TODO - make this a proper recursive traverse
                     self.__dict__[key] = configuration[key]
                 else:
                     try:
@@ -950,7 +951,7 @@ def get_arg_parser():
     parser.add_argument('-l', '--log_file',                         help = 'Log file. If not specified output goes to standard output')
     parser.add_argument('-c', '--config_log_file',                  help = 'Logging configuration file. Python logger format.')
     parser.add_argument('-C', '--cert_file',        help = 'Path to certificate file for access to DataOne node.')
-    parser.add_argument('-p', '--path',        help = 'Path to base of tree on MN of packages to synchronise. Not used.')
+#    parser.add_argument('-p', '--path',        help = 'Path to base of tree on MN of packages to synchronise. Not used.')    # DataOne does not provide for such a capability ATM
     parser.add_argument('-y', '--yaml_config',        help = 'Path to YAML format configuration file. Contents override internal defaults.')
     parser.add_argument('-Y', '--dump_yaml',    action = 'store_true', help = 'Dump full program configuration in YAML format to std_out. Useful start for writing a config file.')
     
