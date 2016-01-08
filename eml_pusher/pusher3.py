@@ -169,8 +169,6 @@ class PusherConfiguration:
         if config_file_name is not None:
             self._parse_yaml(config_file_name)
 
-        print self
-
     def _assign_config(self, fields, configuration):
         """
         Recursively traverse the configuration in tandem with the config object and assign
@@ -738,15 +736,15 @@ class dataone_connector(Connector):
 
         # This might be used to limit the range of action.  Not totally clear the MN will support doing this.
         #  Current attempts to use it get a 404 - seems we can only traverse the list from the top.
-        if args.path is not None:
-            try:
-                self._base_path_url = self._host_url + "/" +  args.path
-            except Exception as ex:
-                logger.exception("Failure to build valid destination url from {}  and  {}",format(self._host_url, args.path), exc_info = ex)
-                raise InternalError
-            self._sub_path = args.path
-        else:
-            self._base_path_url = self._host_url
+#        if args.path is not None:
+#            try:
+#                self._base_path_url = self._host_url + "/" +  args.path
+#            except Exception as ex:
+#                logger.exception("Failure to build valid destination url from {}  and  {}",format(self._host_url, args.path), exc_info = ex)
+#                raise InternalError
+#            self._sub_path = args.path
+#        else:
+        self._base_path_url = self._host_url
             
         logger.info("Using {} for DataOne MN destination".format(self._host_url))
         if args.cert_file:
