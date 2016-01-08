@@ -40,8 +40,6 @@ import d1_client.objectlistiterator as objectlistiterator
 import d1_common.types.generated.dataoneTypes as dataoneTypes
 import d1_client
 
-# Something of a magic value. Default for EML system it seems
-hasher_algorithm = 'MD5'
 
 # Globals
 
@@ -149,8 +147,9 @@ class PusherConfiguration:
     """
     Configuration object encapsulates the configuration of the pusher.
     Configuration defaults are set in __init__
-    Any public object may be overridden by a value in the config file
-    The types must match
+    Any public component may be overridden by a value in the config file
+    Only public components can be set from the config file, it is not possible to create new values.
+    The types must match 
     """
     def __init__(self, config_file_name):
         """
@@ -158,7 +157,7 @@ class PusherConfiguration:
         They are overriden by any values in the config file
         """
         self.format_id = 'eml://ecoinformatics.org/eml-2.1.1'    # This is specific to eml - eventually may need to expand capability
-        self.hasher_algorithm = hasher_algorithm
+        self.hasher_algorithm = 'MD5'                            # Default for EML system it seems
         self.authoritative_mn = 'urn:node:TERN'
         self.replication = {'preferred-nodes' : [],
                              'blocked-nodes' : [],
@@ -169,7 +168,39 @@ class PusherConfiguration:
 
         if config_file_name is not None:
             self._parse_yaml(config_file_name)
+
+        print self
+
+    def _assign_config(self, fields, configuration):
+        """
+        Recursively traverse the configuration in tandem with the config object and assign
+        values as found in the configuration.  Python type checking will avoid the most simple
+        of type mismatches, and will catch unknow/incorrect configuration option names.        
+        """
+        for key in configuration.iterkeys():
+            if type(fields) is not dict and key in fields.__dict__:
+                if key[:2] == "_":
+                    continue   # Don't let some smart alec override private values.
+                if type(configuration[key]) is dict:
+                    try:
+                        self._assign_config(fields.__dict__[key], configuration[key])
+                    except (ValueError, AttributeError) as ex:
+                        logger.exception("Error in config file - no such configuration field: {}".format(key), exc_info = ex)
+                        raise InternalError
+                else:
+                    try:
+                        fields.__dict__[key] = configuration[key]
+                    except TypeError as ex:
+                        logger.exception("Error in config file - type mismatch for {} : {}".format(key, configuration[key]), exc_info = ex)
+                        raise InternalError
+            else:
+                try:
+                    fields[key] = configuration[key]
+                except AttributeError as ex:
+                    logger.error("Unknown option in configuration file: {}".format(key))
+                    raise InternalError
         
+            
     def _parse_yaml(self, config_file_name):
         """
         Loads a yaml config file.  
@@ -183,24 +214,8 @@ class PusherConfiguration:
         except IOError as ex:
             logger.exception("Failure in reading config file", exc_info = ex)
             raise InternalError
-
-        for key in configuration.iterkeys():
-            if key in self.__dict__:
-                if key[:2] == "_":
-                    continue   # Don't let some smart alec override private values.
-                if type(configuration[key]) is dict:
-                    # TODO - make this a proper recursive traverse
-                    self.__dict__[key] = configuration[key]
-                else:
-                    try:
-                        self.__dict__[key] = configuration[key]
-                    except TypeError as ex:
-                        logger.exception("Error in config file - type mismatch for {} : {}".format(key, configuration[key]), exc_info = ex)
-                        raise InternalError
-            else:
-                logger.error("Unknown option in configuration file: {}".format(key))
-                raise InternalError
-            
+        self._assign_config(self, configuration)
+             
     def __str__(self):
         from yaml import dump as dump
         cont = dump(self).split("\n")
@@ -315,15 +330,15 @@ class SystemMetadataCreator():
         return os.path.getsize(os.path.expanduser(path))
 
 
-    def _get_file_checksum(self, path, algorithm = hasher_algorithm, block_size=1024 * 1024):
+    def _get_file_checksum(self, path, block_size=1024 * 1024):
         with open(os.path.expanduser(path), u'r') as f:
-            return self._get_flo_checksum(f, algorithm, block_size)
+            return self._get_flo_checksum(f, block_size)
 
-    def _get_string_checksum(self, string, algorithm = hasher_algorithm, block_size=1024 * 1024):
-        return self._get_flo_checksum(StringIO.StringIO(string), algorithm, block_size)
+    def _get_string_checksum(self, string, block_size=1024 * 1024):
+        return self._get_flo_checksum(StringIO.StringIO(string), block_size)
 
-    def _get_flo_checksum(self, flo, algorithm = hasher_algorithm, block_size=1024 * 1024):
-        h = d1_common.checksum.get_checksum_calculator_by_dataone_designator(algorithm)
+    def _get_flo_checksum(self, flo, block_size=1024 * 1024):
+        h = d1_common.checksum.get_checksum_calculator_by_dataone_designator(self._algorithm)
         while True:
             data = flo.read(block_size)
             if not data:
@@ -544,7 +559,7 @@ class eml_component:
             packageId = self._package_id + "." + timestamp
             content = self._insert_packageid(timestamp)
                 
-        hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(hasher_algorithm)
+        hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(config.hasher_algorithm)
         hasher.update(content)
         return hasher.hexdigest().lower()
 
@@ -554,7 +569,7 @@ class eml_component:
                 self._checksum = self._sysmeta.checksum().lower()
             else:
                 if self._content is not None:
-                    hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(hasher_algorithm)
+                    hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(config.hasher_algorithm)
                     hasher.update(self._content)
                     self._checksum = hasher.hexdigest().lower()
                 else:
@@ -1021,25 +1036,26 @@ def build_logger():
 
 def eml_pusher():
     global args, logger, sysmeta_generator, error, config
-    
-    parser = get_arg_parser()
-    args = parser.parse_args()
 
-    config = PusherConfiguration(args.yaml_config)
-    if args.dump_yaml:
-        print config
-    
-    logger = build_logger()
-    sysmeta_generator = SystemMetadataCreator()
-    error = errors(0 if args.intolerant else 20, InternalError)
-    
-    signal.signal(signal.SIGHUP, signal_exit_handler)    # Provide for a kill notification to go into the log file
-    
-    logger.info("EML Push starts.")
-    if args.trial_run:
-        logger.info("Trial run. No content will actually upload.")
-        
     try:
+        parser = get_arg_parser()
+        args = parser.parse_args()
+        logger = build_logger()
+
+        config = PusherConfiguration(args.yaml_config)
+        if args.dump_yaml:
+            print config
+    
+        sysmeta_generator = SystemMetadataCreator()
+        error = errors(0 if args.intolerant else 20, InternalError)
+        
+        signal.signal(signal.SIGHUP, signal_exit_handler)    # Provide for a kill notification to go into the log file
+    
+        logger.info("EML Push starts.")
+        if args.trial_run:
+            logger.info("Trial run. No content will actually upload.")
+        
+
         source =      file_connector(args.source_dir)
         destination = dataone_connector() if args.destination_url is not None else file_connector(args.destination_dir)        
         perform_update(source, destination)
