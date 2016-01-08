@@ -183,13 +183,13 @@ class PusherConfiguration:
                     try:
                         self._assign_config(fields.__dict__[key], configuration[key])
                     except (ValueError, AttributeError) as ex:
-                        logger.exception("Error in config file - no such configuration field: {}".format(key), exc_info = ex)
+                        logger.error("Error in config file - no such configuration field: {}".format(key))
                         raise InternalError
                 else:
                     try:
                         fields.__dict__[key] = configuration[key]
                     except TypeError as ex:
-                        logger.exception("Error in config file - type mismatch for {} : {}".format(key, configuration[key]), exc_info = ex)
+                        logger.error("Error in config file - type mismatch for {} : {}".format(key, configuration))
                         raise InternalError
             else:
                 try:
