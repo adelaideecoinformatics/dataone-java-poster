@@ -24,3 +24,39 @@ Adding ``--debug`` will add debug information to the log, which may be useful to
 The tool attempts to avoid unnecessary uploads in a simple manner. If content on the DataOne node and the local content are identical in all respects except for the datestamp, no upload will occur.  This requires that the files are byte for byte identical except for the timestamp.  This is determined by comparing the checksums calculated for the content. If it is desired to force an update (which will cause the new timestamp to appear in the DataOne node) the ``--force_update`` flag will force the tool to not perform the checksum comparison.
 
 Access and replication configuration may be configured with a YAML format configuration file specified with ``--yaml_config``. By default the rights holder (which by default then allows ``read``, ``write``, ``changePermission``) is set to ``authenticatedUser`` which is a special authentication token used by DataOne, and read access is allowed to ``public``.  This configuration is only useful if there is only one user authenticated, as it allows any user full rights to any data.  Long term, a better solution will be to use the name of the individual user, perhaps as found in the authentication certificate. The configuration file format can be found by dumping the default configuration with the ``--dump_yaml`` flag.  This will print the configuration in use to standard output in YAML format. This output can be used as the starting point for a customised configuration file.
+
+Fixing VersionConflict
+----------------------
+If you get an error that talks about the version of dataone.libclient being wrong like the following:
+
+.. code:: bash
+
+  $ eml_pusher
+  Traceback (most recent call last):
+    File "/var/local/dataone/gmn/bin/eml_pusher", line 5, in <module>
+      from pkg_resources import load_entry_point
+    File "/var/local/dataone/gmn/local/lib/python2.7/site-packages/pkg_resources.py", line 2829, in <module>
+      working_set = WorkingSet._build_master()
+    File "/var/local/dataone/gmn/local/lib/python2.7/site-packages/pkg_resources.py", line 451, in _build_master
+      return cls._build_from_requirements(__requires__)
+    File "/var/local/dataone/gmn/local/lib/python2.7/site-packages/pkg_resources.py", line 464, in _build_from_requirements
+      dists = ws.resolve(reqs, Environment())
+    File "/var/local/dataone/gmn/local/lib/python2.7/site-packages/pkg_resources.py", line 643, in resolve
+      raise VersionConflict(dist, req) # XXX put more info here
+  pkg_resources.VersionConflict: (dataone.libclient 1.2.21 (/var/local/dataone/gmn/lib/python2.7/site-packages), Requirement.parse('dataone.libclient==1.2.6'))
+
+... the fix is to edit the requires.txt file for dataone.cli to set it to the correct version. This is a bug with the dataone code as it still has an old requirement even though it's been updated.
+
+.. code:: bash
+
+  $ pip show dataone.cli # find the site-packages dir
+  ---
+  Name: dataone.cli
+  Version: 1.2.5
+  Location: /var/local/dataone/gmn/lib/python2.7/site-packages
+  Requires: dataone.libclient
+
+  $ cd /var/local/dataone/gmn/lib/python2.7/site-packages/dataone.cli*
+  $ vim requires.txt # change the contents to be: dataone.libclient == 1.2.21
+
+Now you should be able to run the eml_pusher without error.
