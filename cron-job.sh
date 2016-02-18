@@ -1,6 +1,6 @@
 #!/bin/bash
 # Calls the eml_pusher and emails the log.
-# This is a template and you should rename it to represent the project it loads
+# TODO This is a template and you should rename it to represent the project it loads
 # as the log files are named after the script.
 cd `dirname $0`
 CURR_DIR=`pwd`
@@ -14,6 +14,8 @@ SOURCE_DIR=/data/harvested-data/REPLACE_ME # TODO point to EML files directory
 CERT_FILE=$CURR_DIR/authorizeduser-cert.pem # TODO change to suit where cert lives
 DEST_URL=https://dataone-dev.ecoinformatics.org.au/mn # TODO change to prod if required
 LOG_FILE=$LOGS_DIR/$UNIQUE_ID.log
+
+type eml_pusher &> /dev/null || { echo >&2 "eml_pusher is required but it's not install. Aborting."; exit 1; }
 
 eml_pusher \
   --verbose \
