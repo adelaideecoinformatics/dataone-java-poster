@@ -15,7 +15,10 @@ CERT_FILE=$CURR_DIR/authorizeduser-cert.pem # TODO change to suit where cert liv
 DEST_URL=https://dataone-dev.ecoinformatics.org.au/mn # TODO change to prod if required
 LOG_FILE=$LOGS_DIR/$UNIQUE_ID.log
 
-type eml_pusher &> /dev/null || { echo >&2 "eml_pusher is required but it's not install. Aborting."; exit 1; }
+type eml_pusher &> /dev/null || { 
+  echo >&2 "eml_pusher is required but it's not installed. Aborting.";
+  echo >&2 "You can install it with 'pip install --upgrade git+git://github.com/adelaideecoinformatics/ecoinf-dataone'";
+  exit 1; }
 
 eml_pusher \
   --verbose \
