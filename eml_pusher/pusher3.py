@@ -552,7 +552,7 @@ class eml_component:
                 checksum = self._source.get_checksum(self._full_package_id).lower()
                 return checksum
         else:
-            if len(timestamp) != 8:
+            if len(timestamp) < 1:   
                 raise ValueError("Bad timestamp")
             packageId = self._package_id + "." + timestamp
             content = self._insert_packageid(timestamp)
