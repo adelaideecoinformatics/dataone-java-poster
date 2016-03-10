@@ -766,6 +766,7 @@ class gmd_component(Component):
 
     def checksum(self, timestamp = None):
         if timestamp is not None:
+            return '0'  # Should never match
             raise InternalError
         return super(gmd_component, self).checksum(None)
     
