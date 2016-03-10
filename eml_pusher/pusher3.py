@@ -47,15 +47,11 @@ import d1_client
 
 args = None
 logger = None
-sysmeta_generator = None
 error = None
 config = None
 
-# Modified from dataone d1_client_cli.impl.system_metadata.py
-# Replaced use of session values by parameters and local values
 
-# Some of these values might need updating or overriding in the future.
-# Based upon current usage.
+
 
 class PersistentIdentifier:
     """Encapsulates the various timestamped PIDs used for content
@@ -249,14 +245,16 @@ class PusherConfiguration:
         return content
                 
 class SystemMetadataCreator():
-    """
-    Create a system metadata object from scratch
+    """Create a system metadata object from scratch
+
+    Some parts modified from dataone d1_client_cli.impl.system_metadata.py
+    Replaced use of session values by parameters and local values
+
+    Some of these values might need updating or overriding in the future.
+    Based upon current usage.
     """
     
     def __init__(self, data_format):
-        # TODO - eventually migrate these to a config file so that
-        # there is never a temptation to patch the code to tweak policies
-        
         self._format_id = data_format.format_id
         self._algorithm = config.hasher_algorithm
         self._authoritative_mn = config.authoritative_mn
@@ -267,8 +265,7 @@ class SystemMetadataCreator():
         self._authenticated_user = 'authenticatedUser'
         self._verified_user = 'verifiedUser'
         self._public_user = 'public'
-        
-        
+                
     def set_format_id(self, format):
         self._format_id = format
 
@@ -285,16 +282,15 @@ class SystemMetadataCreator():
         else:
             checksum = dataoneTypes.checksum(self._get_string_checksum(content))
         access = access_control.AccessControl()
-        # These policies may need to be the subject of a config file if flexibility is warranted.
-
+        # These policies may need to be the subject of the config file if further flexibility is warranted.
+        
         # The next three additions contain an odd issue - never add anything other then read, write, changePermission, or the d1 code will
-        # perform an interactive verification of intent - which will kill a batch job.  Should never do anything so silly as this anyway.
+        # perform an interactive verification of intent - which will kill a batch job.
+        # Similarly adding write or change permission to 'authenticated_user' should not be tried.
+        # Should never do anything so silly as this anyway.
+        
         access.add_allowed_subject(self._public_user, 'read')
         access.add_allowed_subject(self._authenticated_user, 'read')
-
-        # These also cause an interactive question and answer -
-#        access.add_allowed_subject(self._authenticated_user, 'write')
-#        access.add_allowed_subject(self._authenticated_user, 'changePermission')
         access.add_allowed_subject(self._verified_user, 'read')
 
         sysmeta =  self._create_pyxb_object(pid,
@@ -405,7 +401,7 @@ class errors:
             if self._exception is not None:
                 raise self._exception
             else:
-                raise InternalError
+                raise InternalError 
             
     def error_count(self):
         """ Return the current count of errors
@@ -454,9 +450,8 @@ class Connector(object):
        pass
 
 
-class Component:
+class Component(object):
     """Class encapulates the data being processed and provides a few utility functions to help with processing.
-
 
     As much as possible we avoid calculating anything unless we need it - especially if this involves
     talking to a DataOne node
@@ -464,8 +459,13 @@ class Component:
     Needs sub-classing to allow it to work with specific formats of data.
     """
 
+    class WrongFormat(Exception):
+        """Conveys attempt to parse a file of the wrong format"""
+        pass
 
+    # The id the system metadata will use when metadata for this component is created.
     format_id = None
+    _sysmeta_generator = None
     
     def __init__(self, source, content = None, sysmeta = None):
 
@@ -477,10 +477,14 @@ class Component:
         self._checksum = None          #  Holds the checksum for this package as calculated with the timestamp the package holds
         self._full_package_id = None   #  Pid that DataNone will refere to this with
         self._package_id = None        #  Package id without the timestamp
-        self._timestamp =  None        #  Package's timestamp
+        self._timestamp =  0           #  Package's timestamp
         self._data_user = None         #  User ident found in the content xml file
         self._pid = None
 
+        if self._sysmeta_generator is None:
+            self._sysmeta_generator = SystemMetadataCreator(self)
+
+        
     def set_pid(self, pid):
         if self._pid is not None:
             raise InternalError("Object {} already has a pid".format(self._full_package_id))
@@ -540,7 +544,7 @@ class Component:
         The intent is to allow semantic comparison without worrying about fields specifically designed to make the
         content unique.
 
-        This isn't curently used.
+        This isn't currently used.
 
         :rtype string:
 
@@ -555,8 +559,7 @@ class Component:
         :type id: string
         :rtype: string
         Format specific and must be overriden in sub-classes
-        """
-        
+        """        
         return None
 
     @staticmethod
@@ -582,7 +585,6 @@ class Component:
         if not self._valid_timestamp(timestamp):   
             raise ValueError("Bad timestamp")
 
-        packageId = self._package_id + "." + timestamp  #   ?????
         content = self._insert_packageid(timestamp)
                 
         hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(config.hasher_algorithm)
@@ -628,7 +630,7 @@ class Component:
         
     def _generate_sysmeta(self, obsoletes):
         if self._sysmeta is None:
-            self._sysmeta = sysmeta_generator.create_system_metadata(self._content, self._full_package_id, self._checksum, obsoletes )
+            self._sysmeta = self._sysmeta_generator.create_system_metadata(self._content, self._full_package_id, self._checksum, obsoletes )
         return self._sysmeta
  
     def _get_dict(self):
@@ -653,20 +655,25 @@ class eml_component(Component):
 
     format_id = 'eml://ecoinformatics.org/eml-2.1.1'    
 
-    def __init__(self, source, content = None, sysmeta = None)::
+    def __init__(self, source, content = None, sysmeta = None):
         super(eml_component, self).__init__(source, content, sysmeta)
         
         if content is not None:
             try:
                 e = ElementTree.fromstring(content)
+                # Is it an EML file?
+                if e.tag != '{eml://ecoinformatics.org/eml-2.1.1}eml':
+                    raise Component.WrongFormat
                 self._full_package_id = e.attrib['packageId']
                 self._pid = PersistentIdentifier(self._full_package_id)
                 self._package_id = self._pid.base_id()
                 self._timestamp = self._pid.timestamp()
-                dataset = e.findall('dataset')
+                #                dataset = e.findall('dataset')
+            except Component.WrongFormat:
+                raise
             except KeyError as ex:
-                # whilst this is an .xml file, it would not appear to be the right content
-                logger.debug("Missing package id or owner id")
+                # whilst this is an EML .xml file, it would not appear to be the right content
+                logger.debug("EML file Missing package id or owner id")
                 raise ValueError
             except ElementTree.ParseError as ex:
                 # Something bad has happened.
@@ -714,34 +721,36 @@ class gmd_component(Component):
     """Class encapulates GMD data formats needed
     """
 
-    format_id = "gmd"
+    format_id = "http://www.isotc211.org/2005/gmd"
     
-    def __init__(self, source, content = None, sysmeta = None)::
+    def __init__(self, source, content = None, sysmeta = None):
         super(gmd_component, self).__init__(source, content, sysmeta)
 
-
-        # /MD_Metadata/fileIdentifier/CharacterString
-        # /MD_Metadata/contact/CI_ResponsibleParty/organisationName/CharacterString
-        
         if content is not None:
             try:
                 e = ElementTree.fromstring(content)
-                self._full_package_id = e.attrib['MD_Metadata']['fileIdentifier']['CharacterString']
+                if e.tag != '{http://www.isotc211.org/2005/gmd}MD_Metadata':
+                    raise Component.WrongFormat
+                
+                self._full_package_id = e.findall('{http://www.isotc211.org/2005/gmd}fileIdentifier/{http://www.isotc211.org/2005/gco}CharacterString')[0].text
+                self._pid = PersistentIdentifier(self._full_package_id)
+                self._package_id = self._pid.base_id()
+                
                 self._pid = PersistentIdentifier(self._full_package_id)
                 self._package_id = self._pid.base_id()
 
-                timestamp = e.attrib['MD_Metadata']['dateStamp']['DateTime']
-                # Time is of form: 2014-10-21T16:39:53  ISO 8601
+                timestamp = e.findall('{http://www.isotc211.org/2005/gmd}dateStamp/{http://www.isotc211.org/2005/gco}DateTime')[0].text
                 numeric_time = dateutil.parser.parse(timestamp)
                 self._timestamp =  numeric_time
-                dataset = e.findall('dataset')
+            except Component.WrongFormat:
+                raise
             except KeyError as ex:
-                # whilst this is a .xml file, it would not appear to be the right content
-                logger.debug("Missing needed MD_Metadata fields")
+                # whilst this is a GMD .xml file, it would not appear to be the right content
+                logger.error("GMD file Missing needed MD_Metadata fields")
                 raise ValueError
             except ElementTree.ParseError as ex:
                 # Something bad has happened.
-                logger.debug("Failure in parsing XML {}".format(ex))
+                logger.error("Failure in parsing XML {}".format(ex))
                 raise ValueError
             except Exception as ex:
                 logger.exception("Exception in XML parse.", exc_info = ex)
@@ -750,7 +759,7 @@ class gmd_component(Component):
         if content is not None and self._sysmeta is not None:
             self._check_sanity()        
 
-
+            
     def same_checksum(self, other):
         return other == self
 
@@ -761,16 +770,30 @@ class gmd_component(Component):
         return super(gmd_component, self).checksum(None)
     
     def _content_no_package_id(self):
+        """Removes both package id and timestamp.
+
+        Allows direct comparison of semantic content via tree generated from XML
+        """        
         try:
-            return None
+            first_char = self._content.index("<gmd:fileIdentifier>")
+            last_char  = self._content.index("</gmd:fileIdentifier>", first_char)
+            new_content = self._content[0 : first_char] + self._content[last_char + 18:]
+            first_char = new_content.index("<gmd:dateStamp>")
+            last_char  = new_content.index("</gmd:dateStamp>", first_char)
+            return new_content[0 : first_char] + self._content[last_char + 16:]
         except (KeyError, IndexError):
             return self._content 
 
     def _insert_packageid(self, **kwargs):
+        """Overwrite the timestamp to allow direct comparison of content via hash of content
+
+        :param :
+        :type : 
+        """
         try:
             if self._content is None:
                 return None
-            return self._content
+            return self._content # Noop for now
         except (KeyError, IndexError):
             # We will assume there was never a package id present
             return self._content
@@ -783,6 +806,26 @@ class gmd_component(Component):
         except Exception:
             return False
 
+
+class universal_component(object):
+    """Encapsulates the creation of any of the specialised Component classes by context
+
+    Use the ability of the Component constructors to throw a WrongFormat exception to
+    determine the right format, and thus parse any supported format file with no prior knowledge
+    of its format.
+    """
+    
+    def __new__(self, source, content = None, sysmeta = None):
+        try:
+            return eml_component(source, content, sysmeta)
+        except Component.WrongFormat:
+            pass        
+        try:
+            return gmd_component(source, content, sysmeta)
+        except Component.WrongFormat:
+            pass
+        # Cascade additional formats here
+        raise ValueError
     
 class file_connector(Connector):
     """Class provides for sources and sinks of data in a local file system"""
@@ -796,7 +839,7 @@ class file_connector(Connector):
             # for all the local files
             for (path, dirs, files) in os.walk(self._root_dir):
                 for instance in files:
-                    if not instance.endswith('.xml'):
+                    if not instance.endswith('.xml') or instance.startswith('.'):
                         continue
                     filename = os.path.join(path, instance)
 
@@ -905,8 +948,8 @@ class dataone_connector(Connector):
         self._data_component = data_format
         self._host_url = d1_common.url.makeMNBaseURL(args.destination_url)
 
-        # This might be used to limit the range of action.  Not totally clear the MN will support doing this.
-        #  Current attempts to use it get a 404 - seems we can only traverse the list from the top.
+        # This might be used to limit the range of action.  Not totally clear if the MN will ever support doing this.
+        #  Currently attempts to use it get a 404 - seems we can only traverse the list from the top.
 #        if args.path is not None:
 #            try:
 #                self._base_path_url = self._host_url + "/" +  args.path
@@ -936,7 +979,7 @@ class dataone_connector(Connector):
                 raise InternalError
 
 #  For preference we should be able to use these functions rather than the cert file directly.
-#  The DataOne implementation is too old it seems
+#  The DataOne implementation is too old it seems - we really don't want old SSL versions in use.
 #            ssl_context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 #            ssl_context.options |= ssl.OP_NO_SSLv2
 #            ssl_context.options |= ssl.OP_NO_SSLv3
@@ -1111,7 +1154,7 @@ def perform_update(source, destination):
                         updated_content += 1
             else:
                 same_timestamp += 1
-                logger.debug("Record not newer for {} --  exiting {} vs new {}.".format(ident, existing.timestamp(), new_package.timestamp()))
+                logger.debug("Record not newer for {} --  existing {} vs new {}.".format(ident, existing.timestamp(), new_package.timestamp()))
         else:
             logger.debug("Record {} :  New content, uploading".format(ident))
             if destination.create(new_package):
@@ -1134,11 +1177,11 @@ def get_arg_parser():
     parser.add_argument('-l', '--log_file',                         help = 'Log file. If not specified output goes to standard output')
     parser.add_argument('-c', '--config_log_file',                  help = 'Logging configuration file. Python logger format.')
     parser.add_argument('-C', '--cert_file',        help = 'Path to certificate file for access to DataOne node.')
-#    parser.add_argument('-p', '--path',        help = 'Path to base of tree on MN of packages to synchronise. Not used.')    # DataOne does not provide for such a capability ATM
+#    parser.add_argument('-p', '--path',        help = 'Path to base of tree of MN of packages to synchronise. Not used.')    # DataOne does not provide for such a capability ATM
     parser.add_argument('-y', '--yaml_config',        help = 'Path to YAML format configuration file. Contents override internal defaults.')
     parser.add_argument('-Y', '--dump_yaml',    action = 'store_true', help = 'Dump full program configuration in YAML format to std_out. Useful start for writing a config file.')
 
-    parser.add_argument('-F', '--format', default = 'eml', choices = ['eml', 'gmd'],   help = 'Format of files to be uploaded')
+    parser.add_argument('-F', '--format', default = 'any', choices = ['any', 'eml', 'gmd'],   help = 'Format of files to be uploaded. \'any\' will attempt to guess the format file by file.')
     
     dest_group = parser.add_mutually_exclusive_group(required = True)
     dest_group.add_argument('-D', '--destination_url',                  help = 'Hostname or IP number for destination DataOne server')
@@ -1205,7 +1248,7 @@ def build_logger():
     
 
 def dataone_pusher():
-    global args, logger, sysmeta_generator, error, config
+    global args, logger, error, config
 
     try:
         parser = get_arg_parser()
@@ -1228,8 +1271,9 @@ def dataone_pusher():
             data_format = eml_component
         elif args.format == 'gmd':
             data_format = gmd_component
+        else:
+            data_format = universal_component
 
-        sysmeta_generator = SystemMetadataCreator(data_format)
         source =      file_connector(args.source_dir, data_format)
         destination = dataone_connector(data_format) if args.destination_url is not None else file_connector(args.destination_dir, data_format)        
         perform_update(source, destination)

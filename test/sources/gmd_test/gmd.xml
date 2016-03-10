@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gmd:MD_Metadata xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:geonet="http://www.fao.org/geonetwork" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gml="http://www.opengis.net/gml" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://www.isotc211.org/2005/gmd/gmd.xsd http://www.isotc211.org/2005/srv http://schemas.opengis.net/iso/19139/20060504/srv/srv.xsd">
+    <gmd:fileIdentifier>
+        <gco:CharacterString>1876ed37-3503-434e-82c3-0f81fa4eb64f</gco:CharacterString>
+    </gmd:fileIdentifier>
+    <gmd:language>
+        <gco:CharacterString>eng</gco:CharacterString>
+    </gmd:language>
+    <gmd:characterSet>
+        <gmd:MD_CharacterSetCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8"/>
+    </gmd:characterSet>
+    <gmd:contact>
+        <gmd:CI_ResponsibleParty>
+            <gmd:individualName>
+                <gco:CharacterString>Chris Moeseneder</gco:CharacterString>
+            </gmd:individualName>
+            <gmd:organisationName>
+                <gco:CharacterString>CSIRO CMAR</gco:CharacterString>
+            </gmd:organisationName>
+            <gmd:positionName>
+                <gco:CharacterString>Data Manager</gco:CharacterString>
+            </gmd:positionName>
+            <gmd:contactInfo>
+                <gmd:CI_Contact>
+                    <gmd:phone>
+                        <gmd:CI_Telephone>
+                            <gmd:voice>
+                                <gco:CharacterString>+61-7-3383 5946</gco:CharacterString>
+                            </gmd:voice>
+                            <gmd:facsimile gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:facsimile>
+                        </gmd:CI_Telephone>
+                    </gmd:phone>
+                    <gmd:address>
+                        <gmd:CI_Address>
+                            <gmd:deliveryPoint gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:deliveryPoint>
+                            <gmd:city>
+                                <gco:CharacterString>Dutton Park</gco:CharacterString>
+                            </gmd:city>
+                            <gmd:administrativeArea gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:administrativeArea>
+                            <gmd:postalCode>
+                                <gco:CharacterString>4102</gco:CharacterString>
+                            </gmd:postalCode>
+                            <gmd:country>
+                                <gco:CharacterString>Australia</gco:CharacterString>
+                            </gmd:country>
+                            <gmd:electronicMailAddress>
+                                <gco:CharacterString>chris.moeseneder@csiro.au</gco:CharacterString>
+                            </gmd:electronicMailAddress>
+                        </gmd:CI_Address>
+                    </gmd:address>
+                </gmd:CI_Contact>
+            </gmd:contactInfo>
+            <gmd:role>
+                <gmd:CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact"/>
+            </gmd:role>
+        </gmd:CI_ResponsibleParty>
+    </gmd:contact>
+    <gmd:dateStamp>
+        <gco:DateTime>2014-10-21T16:39:53</gco:DateTime>
+    </gmd:dateStamp>
+    <gmd:metadataStandardName>
+        <gco:CharacterString>ISO 19115:2003/19139</gco:CharacterString>
+    </gmd:metadataStandardName>
+    <gmd:metadataStandardVersion>
+        <gco:CharacterString>1.0</gco:CharacterString>
+    </gmd:metadataStandardVersion>
+    <gmd:referenceSystemInfo>
+        <gmd:MD_ReferenceSystem>
+            <gmd:referenceSystemIdentifier>
+                <gmd:RS_Identifier>
+                    <gmd:code>
+                        <gco:CharacterString>WGS 1984</gco:CharacterString>
+                    </gmd:code>
+                </gmd:RS_Identifier>
+            </gmd:referenceSystemIdentifier>
+        </gmd:MD_ReferenceSystem>
+    </gmd:referenceSystemInfo>
+    <gmd:identificationInfo>
+        <gmd:MD_DataIdentification>
+            <gmd:citation>
+                <gmd:CI_Citation>
+                    <gmd:title>
+                        <gco:CharacterString>Ecosystem Health Monitoring Program (EHMP) Queensland</gco:CharacterString>
+                    </gmd:title>
+                    <gmd:date>
+                        <gmd:CI_Date>
+                            <gmd:date>
+                                <gco:DateTime>2014-01-10T12:00:00</gco:DateTime>
+                            </gmd:date>
+                            <gmd:dateType>
+                                <gmd:CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication"/>
+                            </gmd:dateType>
+                        </gmd:CI_Date>
+                    </gmd:date>
+                    <gmd:edition gco:nilReason="missing">
+                        <gco:CharacterString/>
+                    </gmd:edition>
+                    <gmd:citedResponsibleParty>
+                        <gmd:CI_ResponsibleParty>
+                            <gmd:individualName gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:individualName>
+                            <gmd:organisationName>
+                                <gco:CharacterString>State of Queensland</gco:CharacterString>
+                            </gmd:organisationName>
+                            <gmd:positionName gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:positionName>
+                            <gmd:role>
+                                <gmd:CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="originator"/>
+                            </gmd:role>
+                        </gmd:CI_ResponsibleParty>
+                    </gmd:citedResponsibleParty>
+                    <gmd:presentationForm>
+                        <gmd:CI_PresentationFormCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#CI_PresentationFormCode" codeListValue="tableDigital"/>
+                    </gmd:presentationForm>
+                </gmd:CI_Citation>
+            </gmd:citation>
+            <gmd:abstract>
+                <gco:CharacterString>All available ambient data from water quality monitoring in drainage basins by the Queensland Department of Science Information Technology Innovation and the Arts.</gco:CharacterString>
+            </gmd:abstract>
+            <gmd:purpose gco:nilReason="missing">
+                <gco:CharacterString/>
+            </gmd:purpose>
+            <gmd:status>
+                <gmd:MD_ProgressCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_ProgressCode" codeListValue="completed"/>
+            </gmd:status>
+            <gmd:pointOfContact>
+                <gmd:CI_ResponsibleParty>
+                    <gmd:individualName gco:nilReason="missing">
+                        <gco:CharacterString/>
+                    </gmd:individualName>
+                    <gmd:organisationName>
+                        <gco:CharacterString>State of Queensland</gco:CharacterString>
+                    </gmd:organisationName>
+                    <gmd:positionName gco:nilReason="missing">
+                        <gco:CharacterString/>
+                    </gmd:positionName>
+                    <gmd:contactInfo>
+                        <gmd:CI_Contact>
+                            <gmd:phone>
+                                <gmd:CI_Telephone>
+                                    <gmd:voice gco:nilReason="missing">
+                                        <gco:CharacterString/>
+                                    </gmd:voice>
+                                    <gmd:facsimile gco:nilReason="missing">
+                                        <gco:CharacterString/>
+                                    </gmd:facsimile>
+                                </gmd:CI_Telephone>
+                            </gmd:phone>
+                            <gmd:address>
+                                <gmd:CI_Address>
+                                    <gmd:deliveryPoint gco:nilReason="missing">
+                                        <gco:CharacterString/>
+                                    </gmd:deliveryPoint>
+                                    <gmd:city gco:nilReason="missing">
+                                        <gco:CharacterString/>
+                                    </gmd:city>
+                                    <gmd:administrativeArea gco:nilReason="missing">
+                                        <gco:CharacterString/>
+                                    </gmd:administrativeArea>
+                                    <gmd:postalCode gco:nilReason="missing">
+                                        <gco:CharacterString/>
+                                    </gmd:postalCode>
+                                    <gmd:country gco:nilReason="missing">
+                                        <gco:CharacterString/>
+                                    </gmd:country>
+                                    <gmd:electronicMailAddress>
+                                        <gco:CharacterString>water.data@qld.gov.au</gco:CharacterString>
+                                    </gmd:electronicMailAddress>
+                                </gmd:CI_Address>
+                            </gmd:address>
+                        </gmd:CI_Contact>
+                    </gmd:contactInfo>
+                    <gmd:role>
+                        <gmd:CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="custodian"/>
+                    </gmd:role>
+                </gmd:CI_ResponsibleParty>
+            </gmd:pointOfContact>
+            <gmd:resourceMaintenance>
+                <gmd:MD_MaintenanceInformation>
+                    <gmd:maintenanceAndUpdateFrequency>
+                        <gmd:MD_MaintenanceFrequencyCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_MaintenanceFrequencyCode" codeListValue="asNeeded"/>
+                    </gmd:maintenanceAndUpdateFrequency>
+                </gmd:MD_MaintenanceInformation>
+            </gmd:resourceMaintenance>
+            <gmd:graphicOverview>
+                <gmd:MD_BrowseGraphic>
+                    <gmd:fileName gco:nilReason="missing">
+                        <gco:CharacterString/>
+                    </gmd:fileName>
+                    <gmd:fileDescription>
+                        <gco:CharacterString>thumbnail</gco:CharacterString>
+                    </gmd:fileDescription>
+                </gmd:MD_BrowseGraphic>
+            </gmd:graphicOverview>
+            <gmd:graphicOverview>
+                <gmd:MD_BrowseGraphic>
+                    <gmd:fileName gco:nilReason="missing">
+                        <gco:CharacterString/>
+                    </gmd:fileName>
+                    <gmd:fileDescription>
+                        <gco:CharacterString>large_thumbnail</gco:CharacterString>
+                    </gmd:fileDescription>
+                </gmd:MD_BrowseGraphic>
+            </gmd:graphicOverview>
+            <gmd:descriptiveKeywords>
+                <gmd:MD_Keywords>
+                    <gmd:keyword>
+                        <gco:CharacterString>ENVIRONMENTAL Education</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>ENVIRONMENTAL Indicators</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>ENVIRONMENTAL Impact</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>ENVIRONMENTAL Protection</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>ENVIRONMENTAL Research</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>ECOSYSTEM Analysis</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>ECOSYSTEM Research</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>HUMAN ENVIRONMENT Liveability Monitoring</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>MARINE Ecosystems Indicators</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>MARINE Ecosystems Monitoring</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>MARINE Ecosystems Research</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>MARINE Estuaries Indicators</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>MARINE Estuaries Monitoring</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>MARINE Estuaries Research</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>POLLUTION Water</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>WATER Quality</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>WATER Quality Analysis</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>WATER Quality Indicators</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>WATER Quality Monitoring</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>WATER Quality Networks</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>WATER Quality Research</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:keyword>
+                        <gco:CharacterString>WATER Surface Monitoring</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:type>
+                        <gmd:MD_KeywordTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme"/>
+                    </gmd:type>
+                </gmd:MD_Keywords>
+            </gmd:descriptiveKeywords>
+            <gmd:descriptiveKeywords>
+                <gmd:MD_Keywords>
+                    <gmd:keyword>
+                        <gco:CharacterString>Southeast Queensland</gco:CharacterString>
+                    </gmd:keyword>
+                    <gmd:type>
+                        <gmd:MD_KeywordTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="place"/>
+                    </gmd:type>
+                </gmd:MD_Keywords>
+            </gmd:descriptiveKeywords>
+            <gmd:resourceConstraints>
+                <gmd:MD_LegalConstraints>
+                    <gmd:useLimitation>
+                        <gco:CharacterString>The data are subject to the Queensland Department of Science, Information Technology, Innovation and the Arts’ data use single supply licence. Please contact water.data@qld.gov.au to access data.</gco:CharacterString>
+                    </gmd:useLimitation>
+                    <gmd:accessConstraints>
+                        <gmd:MD_RestrictionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_RestrictionCode" codeListValue="restricted"/>
+                    </gmd:accessConstraints>
+                    <gmd:useConstraints>
+                        <gmd:MD_RestrictionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_RestrictionCode" codeListValue="restricted"/>
+                    </gmd:useConstraints>
+                    <gmd:otherConstraints>
+                        <gco:CharacterString>The data are subject to the Queensland Department of Science, Information Technology, Innovation and the Arts’ data use single supply licence. Please contact water.data@qld.gov.au to access data.</gco:CharacterString>
+                    </gmd:otherConstraints>
+                </gmd:MD_LegalConstraints>
+            </gmd:resourceConstraints>
+            <gmd:spatialRepresentationType>
+                <gmd:MD_SpatialRepresentationTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="textTable"/>
+            </gmd:spatialRepresentationType>
+            <gmd:spatialResolution>
+                <gmd:MD_Resolution>
+                    <gmd:equivalentScale>
+                        <gmd:MD_RepresentativeFraction>
+                            <gmd:denominator>
+                                <gco:Integer/>
+                            </gmd:denominator>
+                        </gmd:MD_RepresentativeFraction>
+                    </gmd:equivalentScale>
+                </gmd:MD_Resolution>
+            </gmd:spatialResolution>
+            <gmd:language>
+                <gco:CharacterString>eng</gco:CharacterString>
+            </gmd:language>
+            <gmd:characterSet>
+                <gmd:MD_CharacterSetCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8"/>
+            </gmd:characterSet>
+            <gmd:topicCategory>
+                <gmd:MD_TopicCategoryCode>boundaries</gmd:MD_TopicCategoryCode>
+            </gmd:topicCategory>
+            <gmd:extent>
+                <gmd:EX_Extent>
+                    <gmd:temporalElement>
+                        <gmd:EX_TemporalExtent>
+                            <gmd:extent>
+                                <gml:TimePeriod gml:id="d181447e435a1052958">
+                                    <gml:beginPosition>23/08/1972</gml:beginPosition>
+                                    <gml:endPosition>24/05/2013</gml:endPosition>
+                                </gml:TimePeriod>
+                            </gmd:extent>
+                        </gmd:EX_TemporalExtent>
+                    </gmd:temporalElement>
+                </gmd:EX_Extent>
+            </gmd:extent>
+            <gmd:extent>
+                <gmd:EX_Extent>
+                    <gmd:geographicElement>
+                        <gmd:EX_GeographicBoundingBox>
+                            <gmd:westBoundLongitude>
+                                <gco:Decimal>152.7567</gco:Decimal>
+                            </gmd:westBoundLongitude>
+                            <gmd:eastBoundLongitude>
+                                <gco:Decimal>153.483</gco:Decimal>
+                            </gmd:eastBoundLongitude>
+                            <gmd:southBoundLatitude>
+                                <gco:Decimal>-28.1879</gco:Decimal>
+                            </gmd:southBoundLatitude>
+                            <gmd:northBoundLatitude>
+                                <gco:Decimal>-25.811</gco:Decimal>
+                            </gmd:northBoundLatitude>
+                        </gmd:EX_GeographicBoundingBox>
+                    </gmd:geographicElement>
+                </gmd:EX_Extent>
+            </gmd:extent>
+            <gmd:supplementalInformation>
+                <gco:CharacterString>Geographical coordinates using the Geocentric Datum of Australia 1994 (GDA94)</gco:CharacterString>
+            </gmd:supplementalInformation>
+        </gmd:MD_DataIdentification>
+    </gmd:identificationInfo>
+    <gmd:distributionInfo>
+        <gmd:MD_Distribution>
+            <gmd:transferOptions>
+                <gmd:MD_DigitalTransferOptions>
+                    <gmd:onLine>
+                        <gmd:CI_OnlineResource>
+                            <gmd:linkage>
+                                <gmd:URL/>
+                            </gmd:linkage>
+                            <gmd:protocol>
+                                <gco:CharacterString>WWW:LINK-1.0-http--link</gco:CharacterString>
+                            </gmd:protocol>
+                            <gmd:name gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:name>
+                            <gmd:description gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:description>
+                        </gmd:CI_OnlineResource>
+                    </gmd:onLine>
+                    <gmd:onLine>
+                        <gmd:CI_OnlineResource>
+                            <gmd:linkage>
+                                <gmd:URL>http://acef.tern.org.au/geonetwork/srv/en/resources.get?uuid=1876ed37-3503-434e-82c3-0f81fa4eb64f&amp;fname=&amp;access=private</gmd:URL>
+                            </gmd:linkage>
+                            <gmd:protocol>
+                                <gco:CharacterString>WWW:DOWNLOAD-1.0-http--download</gco:CharacterString>
+                            </gmd:protocol>
+                            <gmd:name>
+                                <gmx:MimeFileType type="" xmlns:gmx="http://www.isotc211.org/2005/gmx"/>
+                            </gmd:name>
+                            <gmd:description>
+                                <gco:CharacterString/>
+                            </gmd:description>
+                        </gmd:CI_OnlineResource>
+                    </gmd:onLine>
+                    <gmd:onLine>
+                        <gmd:CI_OnlineResource>
+                            <gmd:linkage>
+                                <gmd:URL/>
+                            </gmd:linkage>
+                            <gmd:protocol>
+                                <gco:CharacterString>OGC:WMS-1.1.1-http-get-map</gco:CharacterString>
+                            </gmd:protocol>
+                            <gmd:name gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:name>
+                            <gmd:description gco:nilReason="missing">
+                                <gco:CharacterString/>
+                            </gmd:description>
+                        </gmd:CI_OnlineResource>
+                    </gmd:onLine>
+                </gmd:MD_DigitalTransferOptions>
+            </gmd:transferOptions>
+        </gmd:MD_Distribution>
+    </gmd:distributionInfo>
+    <gmd:dataQualityInfo>
+        <gmd:DQ_DataQuality>
+            <gmd:scope>
+                <gmd:DQ_Scope>
+                    <gmd:level>
+                        <gmd:MD_ScopeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/codelist/ML_gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset"/>
+                    </gmd:level>
+                </gmd:DQ_Scope>
+            </gmd:scope>
+            <gmd:report>
+                <gmd:DQ_AbsoluteExternalPositionalAccuracy>
+                    <gmd:nameOfMeasure>
+                        <gco:CharacterString>Positional accuracy</gco:CharacterString>
+                    </gmd:nameOfMeasure>
+                    <gmd:measureDescription>
+                        <gco:CharacterString>200metres (note: At many locations water quality monitoring is conducted from a drifting boat.)</gco:CharacterString>
+                    </gmd:measureDescription>
+                </gmd:DQ_AbsoluteExternalPositionalAccuracy>
+            </gmd:report>
+            <gmd:report>
+                <gmd:DQ_QuantitativeAttributeAccuracy>
+                    <gmd:nameOfMeasure>
+                        <gco:CharacterString>Attribute accuracy</gco:CharacterString>
+                    </gmd:nameOfMeasure>
+                    <gmd:measureDescription>
+                        <gco:CharacterString>Data validated according to internal quality assurance procedures at the time of collection. Where the attribute result is below the lower reporting limit, then the result is expressed as less that the lower reporting limit. Precision defines the agreement between or among independent measurements of the same parameter at the same location. Accuracy is the degree of agreement of a measurement with a known or true value. It applies primarily to chemical measurements. Staff of the Environmental Monitoring and Assessment Sciences Unit within the Queensland Department of Science Information Technology Innovation and the Arts as part of the Estuarine and Marine component of the Moreton Bay Ecosystem Health Monitoring Program (EHMP) report the following attribute precision and reporting limit values for their current water quality monitoring program.</gco:CharacterString>
+                    </gmd:measureDescription>
+                </gmd:DQ_QuantitativeAttributeAccuracy>
+            </gmd:report>
+            <gmd:report>
+                <gmd:DQ_ConceptualConsistency>
+                    <gmd:nameOfMeasure>
+                        <gco:CharacterString>Logical consistency</gco:CharacterString>
+                    </gmd:nameOfMeasure>
+                    <gmd:measureDescription>
+                        <gco:CharacterString>Field water quality sampling and monitoring locations are generally midstream for enclosed waterways or as close to midstream as practical when monitoring from one side of the waterway. Data validated according to internal quality assurance procedures. The monitoring program is designed to be conducted each month under a consistent tidal condition described as a half tide and falling, however, practical conditions may cause a variation from the designed program time. Light penetration (Secchi depth) (metres) is measured vertically and hence this depth measurement will have a value that will be either less than the water column depth or where the bottom may be clearly visible, will have a value expressed as greater than the measured water column depth. In Queensland, Temperature (deg C) would normally be expected to be greater than zero. The normal monthly program involves all measurements and samples occurring within a few minutes and not on another day, such as the next day. Lat_GDA94 the approximate site latitude in decimal degrees to the horizontal datum GDA94 and having negative values at these Queensland Australia sites Long_GDA94 the approximate site longitude in decimal degrees to the horizontal datum GDA94 and having positive values at these Queensland Australia sites GDA94 stands for Geocentric Datum of Australia 1994 (GDA94), which has the Geographical coordinate set (latitude and longitude) and is referenced to IERS Terrestrial Reference Frame 1992 (ITRF92) and which is recommended by the International Association of Geodesy and for all practical purposes is equivalent to the WGS84 system used by GPS defined as having Epoch of 1994.0, Ellipsoid of GRS80 (which is the ellipsoid recommended by the International Association of Geodesy and is effectively identical to WGS84 ellipsoid), Semi-major axis (a) of 6,378,137.0 metres and an Inverse flattening (1/f) of 298.257222101</gco:CharacterString>
+                    </gmd:measureDescription>
+                </gmd:DQ_ConceptualConsistency>
+            </gmd:report>
+            <gmd:report>
+                <gmd:DQ_CompletenessCommission>
+                    <gmd:nameOfMeasure>
+                        <gco:CharacterString>Completeness</gco:CharacterString>
+                    </gmd:nameOfMeasure>
+                    <gmd:measureDescription>
+                        <gco:CharacterString>Completeness is checked through systematic comparison against relevant source material such as the monitoring survey program design. The monthly sampling program is rarely cancelled; however, adverse weather or unavailability of field officers may result in the loss of a complete set of results for a month. Failure of individual equipment items such as meters, probes, boat motors or sample storage such as refrigeration are rare, however may lead to the loss of results. Generally backup arrangements are available; however some data loss does occur against the planned monitoring program design.</gco:CharacterString>
+                    </gmd:measureDescription>
+                </gmd:DQ_CompletenessCommission>
+            </gmd:report>
+            <gmd:lineage>
+                <gmd:LI_Lineage>
+                    <gmd:statement>
+                        <gco:CharacterString>Lineage: The current data are derived from fieldwork conducted by staff of the Environmental Monitoring and Assessment Sciences Unit within the Queensland Department of Science Information Technology Innovation and the Arts for SEQ as part of the Estuarine and Marine component of the Moreton Bay Ecosystem Health Monitoring Program (EHMP) and in Central Queensland as part of the Central Queensland Ambient (CQA) Program. EHMP is an ongoing ambient monitoring program established in 1999 by the Moreton Bay Waterways and Catchments Partnership (the Partnership) as a recommendation of the task Design and Implementation of Baseline Monitoring (DIBM) with the role of independently assessing the management actions undertaken within the South East Queensland Regional Water Quality Management Strategy (SEQRWQMS) which was initiated in 1993 as the Brisbane River and Moreton Bay Wastewater Management Study (BR&amp;MBWMS) and consistent with the National Water Quality Management Strategy (NWQMS). The NWQMS is jointly administered by the Agriculture and Resource Management Council of Australia and New Zealand (ARMCANZ) and the Australian and New Zealand Environment and Conservation Council (ANZECC). The National Health and Medical Research Council (NHMRC) is involved on health matters. The NWQMS recognises that on-going management and protection of water resources is essential for the continuing viability of most sections of our society. The NWQMS is based on the principles of the National Strategy for Ecologically Sustainable Development. The EHMP sites in SEQ generally follow on from the Queensland Statewide Ambient Water Quality Monitoring Program sites designed, approved and funded by the Queensland Department of Science Information Technology Innovation and the Arts and underway from 1992. The core EHMP was functioning from February 2000 with the second phase or expansion of EHMP from October 2002.  Field maps for the water quality monitoring program were used as guides to digitise each water quality monitoring location. Attributes such as date, time, depth below the water surface, pH, specific conductance, dissolved oxygen, turbidity and temperature are both recorded manually by the field staff and captured by data logger. A range of internal quality assurance procedures cover sample collection, sample preservation, sample storage through to laboratory analysis with electronic transmission of laboratory results to the Queensland Waterways Database with manual validation checks of the data. The majority of laboratory analyses are conducted by the Queensland Health Scientific Services, with the laboratory analysis of chlorophyll-a being conducted in-house</gco:CharacterString>
+                    </gmd:statement>
+                </gmd:LI_Lineage>
+            </gmd:lineage>
+        </gmd:DQ_DataQuality>
+    </gmd:dataQualityInfo>
+</gmd:MD_Metadata>
