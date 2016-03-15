@@ -538,37 +538,41 @@ class Component(object):
     def content_reader(self):
         return cStringIO.StringIO(self._content)
     
+    @staticmethod
+    def _valid_timestamp(cls, timestamp):
+        """Perform simple validation that a timestamp is valid
+
+        :param timestamp: the timestamp to check
+        :type timestamp: varies
+        :rtype: boolean
+        """
+        return True
+
+    def _insert_timestamp(self, timestamp):
+        """Insert a timestamp 
+
+        :param timestamp:
+        :type timestamp: varies
+        :rtype: string
+
+        Required for the base class checksum function.
+        """
+        return self._content
+
     def _content_no_package_id(self):
         """Returns the entire package except that any unique id component that identifies the package is removed.
 
         The intent is to allow semantic comparison without worrying about fields specifically designed to make the
-        content unique.
+        content unique. It should remove the ID, any file specific timestamp, and anything else that changes but is
+        not part of the actual file contents semantics.
 
-        This isn't currently used.
+        This isn't currently used, as we don't perform xml tree comparisons.
 
         :rtype string:
 
         Format specific and must be overriden in sub-classes
         """
         return None
-
-    def _insert_packageid(self, id):
-        """Return a copy of the package with the exisiting package name/id information overwritten with a new id.
-
-        :param id: identifying name or id.
-        :type id: string
-        :rtype: string
-        Format specific and must be overriden in sub-classes
-        """        
-        return None
-
-    @staticmethod
-    def _valid_timestamp(cls, timestamp):
-        """Perform simple validation that a timestamp is valid
-
-        :rtype: boolean
-        """
-        return True
     
     def checksum(self, timestamp = None):
         """Find the hash of the package contents.  Optionally calculate the checksum as if the package had a different timestamp.
@@ -577,16 +581,14 @@ class Component(object):
         :type timestamp: string
         :rtype: string
         """
-        checksum = None
-
         if timestamp is None:
             return self._get_checksum()
         
         if not self._valid_timestamp(timestamp):   
             raise ValueError("Bad timestamp")
 
-        content = self._insert_packageid(timestamp)
-                
+        content = self._insert_timestamp(timestamp)
+
         hasher = d1_common.checksum.get_checksum_calculator_by_dataone_designator(config.hasher_algorithm)
         hasher.update(content)
         return hasher.hexdigest().lower()
@@ -698,7 +700,7 @@ class eml_component(Component):
             # We will assume there was never a package id present
             return self._content 
 
-    def _insert_packageid(self, id):
+    def _insert_timestamp(self, timestamp):
         if self._content is None:
             return None
         try:
@@ -707,10 +709,10 @@ class eml_component(Component):
             
             existing_id_length =  8 + 1  # Plus one to account for closing quote            
 
-            return self._content[0 : last_char - existing_id_length] + id + self._content[last_char - 1:]
+            return self._content[0 : last_char - existing_id_length] + timestamp + self._content[last_char - 1:]
         except (KeyError, IndexError):
             # We will assume there was never a package id present
-            return None
+            return self._content
 
     @staticmethod
     def _valid_timestamp(timestamp):
@@ -785,16 +787,19 @@ class gmd_component(Component):
         except (KeyError, IndexError):
             return self._content 
 
-    def _insert_packageid(self, **kwargs):
+    def _insert_timestamp(self, timestamp):
         """Overwrite the timestamp to allow direct comparison of content via hash of content
 
-        :param :
-        :type : 
+        :param timestamp: The timestamp for the file
+        :type timestamp: string
         """
         try:
             if self._content is None:
                 return None
-            return self._content # Noop for now
+
+            first_char = new_content.index("<gmd:dateStamp>")
+            last_char  = new_content.index("</gmd:dateStamp>", first_char)
+            return new_content[0 : first_char] + timestamp + self._content[last_char + 16:]
         except (KeyError, IndexError):
             # We will assume there was never a package id present
             return self._content
