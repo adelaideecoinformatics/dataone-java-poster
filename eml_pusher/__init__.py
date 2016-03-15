@@ -1,4 +1,4 @@
 import pusher3
 
 def main():
-    pusher3.eml_pusher()
+    pusher3.dataone_pusher()
