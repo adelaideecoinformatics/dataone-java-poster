@@ -1,3 +1,0 @@
-[console_scripts]
-eml_pusher = eml_pusher:main
-
