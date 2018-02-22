@@ -33,13 +33,13 @@ if _platform == "darwin":
 
 # DataOne libraries
 import d1_common
-import d1_client.mnclient as mnclient
-import d1_client_cli.impl.access_control as access_control
+import d1_client.mnclient_1_2 as mnclient
+import d1_cli.impl.access_control as access_control
 import d1_common.types.exceptions as d1_exception
 import d1_common.checksum
 import d1_common.const
-import d1_client.objectlistiterator as objectlistiterator
-import d1_common.types.generated.dataoneTypes as dataoneTypes
+import d1_client.iter.objectlist as objectlistiterator
+import d1_common.types.generated.dataoneTypes_v1 as dataoneTypes
 import d1_client
 
 
@@ -942,8 +942,28 @@ class file_connector(Connector):
         # this function should not be called
         raise InternalError("get_checksum for file connector called")
         return "should have one"
-            
-                
+
+
+def validate_file(file_path, file_type_name):
+    """ validates the the file at the supplied path is usable and secure """
+    if not file_path:
+        return None
+    result = glob.glob(os.path.expanduser(os.path.expandvars(file_path)))[0]
+    if os.path.isfile(result):
+        mode = os.stat(result).st_mode
+        if stat.S_IRUSR & mode :
+            if mode & (stat.S_IRWXG | stat.S_IRWXO) :
+                logger.error("{} file {} has insecure permissions".format(file_type_name, result))
+                raise InternalError
+        else:
+            logger.error("{} file {} is not readable".format(file_type_name, result))
+            raise InternalError
+    else:
+        logger.error("{} file is not a plain file".format(file_type_name))
+        raise InternalError
+    return result
+
+
 class dataone_connector(Connector):
     """
     Class provides for sources and sinks of data that are provided by a DataOne repository
@@ -967,36 +987,11 @@ class dataone_connector(Connector):
         self._base_path_url = self._host_url
             
         logger.info("Using {} for DataOne MN destination".format(self._host_url))
-        if args.cert_file:
-            cert_file = glob.glob(os.path.expanduser(os.path.expandvars(args.cert_file)))[0]
-
-            if os.path.isfile(cert_file):
-            
-                mode = os.stat(cert_file).st_mode
-                if stat.S_IRUSR & mode :
-                    if mode & (stat.S_IRWXG | stat.S_IRWXO) :
-                        logger.error("Cert file {} has insecure permissions".format(cert_file))
-                        raise InternalError
-                else:
-                    logger.error("Cert file {} is not readable".format(cert_file))
-                    raise InternalError
-            else:
-                logger.error("Cert file is not a plain file")
-                raise InternalError
-
-#  For preference we should be able to use these functions rather than the cert file directly.
-#  The DataOne implementation is too old it seems - we really don't want old SSL versions in use.
-#            ssl_context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-#            ssl_context.options |= ssl.OP_NO_SSLv2
-#            ssl_context.options |= ssl.OP_NO_SSLv3
-#            ssl_context.load_cert_chain(cert_file)
-
-        else:            
-#            ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-            cert_file = None
+        cert_path = validate_file(args.cert_file, 'Cert')
+        cert_key_path = validate_file(args.cert_key_file, 'Cert key')
         
         try:
-            self._mn_client = mnclient.MemberNodeClient( base_url = self._host_url, cert_path = cert_file )
+            self._mn_client = mnclient.MemberNodeClient_1_2( base_url = self._host_url, cert_pem_path = cert_path, cert_key_path = cert_key_path )
         except Exception as ex:
             logger.exception("Failure in connecting to member node {}".format(self._host_url), exc_info = ex)
             raise InternalError
@@ -1007,9 +1002,6 @@ class dataone_connector(Connector):
         self._packages = {}          # cache of entire packages
         self._timestamp = {}         # cache of timestamps
 
-
-        self._connection = self._mn_client.connection
-        
         try:
             objListIter = objectlistiterator.ObjectListIterator(self._mn_client)
             for obj in iter(objListIter):
@@ -1183,6 +1175,7 @@ def get_arg_parser():
     parser.add_argument('-l', '--log_file',                         help = 'Log file. If not specified output goes to standard output')
     parser.add_argument('-c', '--config_log_file',                  help = 'Logging configuration file. Python logger format.')
     parser.add_argument('-C', '--cert_file',        help = 'Path to certificate file for access to DataOne node.')
+    parser.add_argument('-k', '--cert_key_file',    help = 'Path to private key file for the certificate, file should not be password protected.')
 #    parser.add_argument('-p', '--path',        help = 'Path to base of tree of MN of packages to synchronise. Not used.')    # DataOne does not provide for such a capability ATM
     parser.add_argument('-y', '--yaml_config',        help = 'Path to YAML format configuration file. Contents override internal defaults.')
     parser.add_argument('-Y', '--dump_yaml',    action = 'store_true', help = 'Dump full program configuration in YAML format to std_out. Useful start for writing a config file.')
