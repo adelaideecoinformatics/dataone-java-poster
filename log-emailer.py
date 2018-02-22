@@ -5,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 SENDER_EMAIL_ADDRESS = 'REPLACE.ME@example.com' # TODO replace me
-EMAIL_SUBJECT = 'Log output from eml_pusher'
+EMAIL_SUBJECT = '[dev] Log output from eml_pusher' # TODO update env tag
 EMAIL_SERVER_PASSWORD = 'REPLACE.ME' # TODO replace me
 EMAIL_SERVER_HOSTNAME = 'smtp.gmail.com'
 EMAIL_SERVER_PORT = '587'

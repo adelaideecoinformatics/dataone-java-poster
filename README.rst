@@ -1,8 +1,29 @@
 ===========
 eml_pusher
 ===========
-A simple tool to allow upload and update of EML files held in a DataOne repository.
+
+Quick start
 -----------
+.. code-block:: bash
+
+  mkdir pusher_venv
+  cd pusher_venv
+  virtualenv .
+  . bin/activate
+  pip install --upgrade https://github.com/adelaideecoinformatics/ecoinf-dataone/archive/master.zip
+  cp /path/to/certificate.pem cert.pem
+  cp /path/to/certificate-key.pem cert-key.pem
+  eml_pusher \
+    --verbose \
+    --source_dir /path/to/dir/with/records \
+    --cert_file cert.pem \
+    --cert_key_file cert-key.pem \
+    --destination_url https://dataone-dev.tern.org.au/mn \
+    --log_file output.log
+
+
+A simple tool to allow upload and update of EML files held in a DataOne repository.
+-----------------------------------------------------------------------------------
 
 It can traverse a directory tree of files, and will select those files with a ``.xml`` suffix, that contain valid (parsable) XML, and that have a valid *packageId* attribute.
 
