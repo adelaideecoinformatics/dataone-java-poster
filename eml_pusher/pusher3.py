@@ -1009,14 +1009,25 @@ class dataone_connector(Connector):
                     pid = PersistentIdentifier(obj.identifier.value())
                 except ValueError:
                     continue
-                logger.debug("Using package from Dataone: {} at time  {}".format(pid.base_id(), pid.timestamp()))
                 package_id = pid.base_id()
+                curr_package_version = pid.timestamp()
+                def is_a_version_seen_yet():
+                    try:
+                        self._packages[package_id]
+                        return True
+                    except KeyError:
+                        return False
+                def is_not_latest_version_seen():
+                    return curr_package_version < self._packages[package_id].timestamp()
+                if is_a_version_seen_yet() and is_not_latest_version_seen():
+                    logger.debug("Ignoring version from Dataone: {} for {} as it's not the latest".format(curr_package_version, package_id))
+                    continue
+                logger.debug("Using package from Dataone: {} at time  {}".format(package_id, curr_package_version))
                 self._packages[package_id] = self._data_component(self)
                 # Since we don't download the package for the component right now (if ever) we need to explicitly set the pid
                 self._packages[package_id].set_pid(pid)
                 # We can also add the checksum right away, which can save time later.
                 self._packages[package_id].set_checksum(obj.checksum.value())
-                #            self._packages[package_id].set_????(obj.value.dateSysMetadataModified.value())  # Might be useful  - not bothering for now.
 
         except Exception as ex:
             logger.exception("Unable to get package list from mnclient", exc_info = ex)
