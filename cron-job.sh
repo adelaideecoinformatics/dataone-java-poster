@@ -41,4 +41,4 @@ eml_pusher \
   --destination_url $DEST_URL \
   --log_file $LOG_FILE
 
-./log-emailer.py $LOG_FILE
+./log-emailer.py $LOG_FILE # TODO don't forget to copy this file over too

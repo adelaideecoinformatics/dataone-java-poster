@@ -20,6 +20,7 @@ Quick start
     --cert_key_file cert-key.pem \
     --destination_url https://dataone-dev.tern.org.au/mn \
     --log_file output.log
+  # check out cron-job.sh in this repo for a automation template
 
 
 A simple tool to allow upload and update of EML files held in a DataOne repository.
