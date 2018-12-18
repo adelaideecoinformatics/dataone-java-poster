@@ -10,7 +10,7 @@ Quick start
   cd pusher_venv
   virtualenv .
   . bin/activate
-  pip install --upgrade https://github.com/adelaideecoinformatics/ecoinf-dataone/archive/master.zip
+  pip install --upgrade https://github.com/ternaustralia/ecoinf-dataone/archive/master.zip
   cp /path/to/certificate.pem cert.pem
   cp /path/to/certificate-key.pem cert-key.pem
   eml_pusher \
