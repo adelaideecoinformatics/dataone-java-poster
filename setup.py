@@ -28,7 +28,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/https://github.com/adelaideecoinformatics/ecoinf-dataone/eml_pusher',
+    url='https://github.com/https://github.com/ternaustralia/ecoinf-dataone/eml_pusher',
 
     # Author details
     author='Francis Vaughan',
@@ -74,10 +74,11 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'dataone.cli==2.4.2',
-        'dateparser',
-        'PyYAML',
-        'requests[security]',
-        'xmltodict'
+        'dateparser==0.7.0',
+        'PyYAML==3.12',
+        'requests==2.18.4',
+        'requests[security]==2.18.4',
+        'xmltodict==0.11.0'
     ],
 
     # List additional groups of dependencies here (e.g. development

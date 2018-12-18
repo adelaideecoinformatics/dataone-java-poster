@@ -1,0 +1,6 @@
+.vscode/
+Dockerfile
+test/
+test*
+.git/
+eml_pusher.egg-info
