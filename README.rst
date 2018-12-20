@@ -2,7 +2,46 @@
 eml_pusher
 ===========
 
-Quick start
+Note: the naming is a bit dated as this tool also pushes iso19139 too.
+
+Quick start running with Docker
+-----------
+
+Optionally, you can build the docker container locally with: ``./docker/docker-build.sh``
+
+To run the container, use:
+.. code-block:: bash
+
+  docker run \
+    --detach \
+    --name eml_pusher \
+    --env CERT_BASE64=`sh -c 'cat /path/to/cert.pem | base64'` \
+    --env CERT_KEY_BASE64=`sh -c 'cat /path/to/key.pem | base64'` \
+    --env RECORDS_DIR_PATH=/data/dir-you-configured-in-joai \
+    --env MN_URL=https://dataone-dev.tern.org.au/mn \
+    --env CRON_SCHEDULE='* * * * *' \
+    ternaustralia/ecoinf-dataone:1
+
+   # let's have a look at what the container is doing
+   docker logs -f eml_pusher
+
+Quick start with docker-compose
+-----------
+
+1. clone this repo
+1. change to the docker dir: ``cd docker/``
+1. optionally, build the container for this repo by running: ``./docker-build.sh``, otherwise it'll be pulled from docker hub
+1. copy the runner script: ``cp start-or-restart.sh.example start-or-restart.sh``
+1. edit ``start-or-restart.sh`` and update all the values with a TODO comment
+1. make the runner script executable: ``chmod +x start-or-restart.sh``
+1. launch the stack by running ``./start-or-restart.sh``
+1. populate the jOAI instance with config: ``./configure-joai.sh``
+
+Now the various eml_pusher containers will sync records to the DataONE MN node on the cron schedule you specified. Note that the jOAI instance also has a schedule for harvesting so if you want to kick start things, go into the jOAI dashboard and manually trigger the harvests.
+
+Warning: the jOAI instance has no security/auth so don't expose it to the internet. Or if you do, add some security. I nice way to connect to the jOAI dashboard on a VM without opening the firewall is to use SSH local port forwarding (https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding#Local_Port_Forwarding).
+
+Quick start installing direct from GitHub (without cloning)
 -----------
 .. code-block:: bash
 
@@ -11,6 +50,7 @@ Quick start
   virtualenv .
   . bin/activate
   pip install --upgrade https://github.com/ternaustralia/ecoinf-dataone/archive/master.zip
+  # get this certificate and key from the DataONE MN server
   cp /path/to/certificate.pem cert.pem
   cp /path/to/certificate-key.pem cert-key.pem
   eml_pusher \
@@ -35,7 +75,7 @@ Timestamps are found with a simple (and not especially robust) heuristic. Any tr
 
 The tool can also be used to synchronise two directories of eml files - which is useful for testing. Rather than specify a ``--destination_url`` specify a ``--destination_path``.
 
-Since write access is required to the DataOne server an approriate credentials file must be provided via ``--cert_file``. 
+Since write access is required to the DataOne server an approriate credentials file must be provided via ``--cert_file``. The DataONE MN server runs its own local Certificate Authority (CA) and issues certificates to clients (like us) that can be used for auth when we try to make HTTP API calls.
 
 The tool can also be run in trial mode, where it simply works out the files that would need to be uploaded.  Since no write occurs, this can be run without credentials.  If ``--trial_run`` is used, adding ``--verbose`` will list the files to be uloaded.
 

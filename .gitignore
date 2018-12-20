@@ -8,3 +8,5 @@ logs/
 .vscode
 *.egg-info
 *.pyc
+start-or-restart.sh
+*.pem

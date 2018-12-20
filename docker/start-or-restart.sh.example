@@ -1,0 +1,24 @@
+#!/bin/bash
+# starts, or restarts, the stack
+set -e
+cd `dirname "$0"`
+
+# get the cert and key as issued from the MN local ca
+pathToCert=/path/to/cert # TODO change me
+pathToKey=/path/to/key # TODO change me
+
+export MN_URL=https://dataone-dev.tern.org.au/mn # TODO change me to prod if needed
+export CERT_BASE64=`sh -c "cat $pathToCert | base64"`
+export CERT_KEY_BASE64=`sh -c "cat $pathToKey | base64"`
+export CRON_SCHEDULE_AEKOS='1 1 * * *'
+export CRON_SCHEDULE_TERNACEF='2 2 * * *'
+export CRON_SCHEDULE_TERNAUSCOVER='3 3 * * *'
+export CRON_SCHEDULE_TERNLTERN='4 4 * * *'
+export CRON_SCHEDULE_TERNSUPERSITES='5 5 * * *'
+
+# you can disable any cron job with:
+#export CRON_SCHEDULE_SOMETHING='0 0 31 2 *' # feb 31, i.e. never, thanks https://stackoverflow.com/a/13938099/1410035
+
+docker-compose up -d $@
+echo '[INFO] stack started'
+

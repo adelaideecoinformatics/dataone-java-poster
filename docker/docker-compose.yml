@@ -1,0 +1,75 @@
+version: '3.4'
+services:
+  joai:
+    image: ternaustralia/joai-docker:3.2-2 # https://github.com/ternaustralia/joai-docker
+    restart: unless-stopped
+    volumes:
+      - joai_config:/joai_conifg
+      - joai_data:/data
+    ports:
+      - 38080:8080
+
+  emlpusher_aekos:
+    image: ternaustralia/ecoinf-dataone:1
+    environment:
+      - CERT_BASE64 # override in shell at deploy time
+      - CERT_KEY_BASE64 # override in shell at deploy time
+      - RECORDS_DIR_PATH=/data/aekos
+      - MN_URL
+      - CRON_SCHEDULE=${CRON_SCHEDULE_AEKOS}
+    restart: unless-stopped
+    volumes:
+      - joai_data:/data:ro
+
+  emlpusher_ternacef:
+    image: ternaustralia/ecoinf-dataone:1
+    environment:
+      - CERT_BASE64 # override in shell at deploy time
+      - CERT_KEY_BASE64 # override in shell at deploy time
+      - RECORDS_DIR_PATH=/data/tern-acef
+      - MN_URL
+      - CRON_SCHEDULE=${CRON_SCHEDULE_TERNACEF}
+    restart: unless-stopped
+    volumes:
+      - joai_data:/data:ro
+
+  emlpusher_ternauscover:
+    image: ternaustralia/ecoinf-dataone:1
+    environment:
+      - CERT_BASE64 # override in shell at deploy time
+      - CERT_KEY_BASE64 # override in shell at deploy time
+      - RECORDS_DIR_PATH=/data/tern-auscover
+      - MN_URL
+      - CRON_SCHEDULE=${CRON_SCHEDULE_TERNAUSCOVER}
+    restart: unless-stopped
+    volumes:
+      - joai_data:/data:ro
+
+  emlpusher_ternltern:
+    image: ternaustralia/ecoinf-dataone:1
+    environment:
+      - CERT_BASE64 # override in shell at deploy time
+      - CERT_KEY_BASE64 # override in shell at deploy time
+      - RECORDS_DIR_PATH=/data/tern-ltern
+      - MN_URL=${MN_URL}
+      - CRON_SCHEDULE=${CRON_SCHEDULE_TERNLTERN}
+    restart: unless-stopped
+    volumes:
+      - joai_data:/data:ro
+
+  emlpusher_ternsupersites:
+    image: ternaustralia/ecoinf-dataone:1
+    environment:
+      - CERT_BASE64 # override in shell at deploy time
+      - CERT_KEY_BASE64 # override in shell at deploy time
+      - RECORDS_DIR_PATH=/data/tern-supersites
+      - MN_URL=${MN_URL}
+      - CRON_SCHEDULE=${CRON_SCHEDULE_TERNSUPERSITES}
+    restart: unless-stopped
+    volumes:
+      - joai_data:/data:ro
+
+volumes:
+  joai_config:
+  joai_data:
+

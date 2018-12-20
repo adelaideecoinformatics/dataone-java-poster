@@ -14,3 +14,6 @@ RUN \
   pip install -r ./docker/requirements.txt && \
   python setup.py install && \
   apk del .build_deps
+
+ENTRYPOINT ["sh", "/app/docker/entrypoint.sh"]
+CMD [""]
