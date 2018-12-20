@@ -20,7 +20,7 @@ To run the container, use:
     --env RECORDS_DIR_PATH=/data/dir-you-configured-in-joai \
     --env MN_URL=https://dataone-dev.tern.org.au/mn \
     --env CRON_SCHEDULE='* * * * *' \
-    ternaustralia/ecoinf-dataone:1
+    ternaustralia/ecoinf-dataone:1.0.4
 
    # let's have a look at what the container is doing
    docker logs -f eml_pusher

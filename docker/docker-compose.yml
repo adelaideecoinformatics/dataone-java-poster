@@ -10,7 +10,7 @@ services:
       - 38080:8080
 
   emlpusher_aekos:
-    image: ternaustralia/ecoinf-dataone:1
+    image: ternaustralia/ecoinf-dataone:1.0.4
     environment:
       - CERT_BASE64 # override in shell at deploy time
       - CERT_KEY_BASE64 # override in shell at deploy time
@@ -22,7 +22,7 @@ services:
       - joai_data:/data:ro
 
   emlpusher_ternacef:
-    image: ternaustralia/ecoinf-dataone:1
+    image: ternaustralia/ecoinf-dataone:1.0.4
     environment:
       - CERT_BASE64 # override in shell at deploy time
       - CERT_KEY_BASE64 # override in shell at deploy time
@@ -34,7 +34,7 @@ services:
       - joai_data:/data:ro
 
   emlpusher_ternauscover:
-    image: ternaustralia/ecoinf-dataone:1
+    image: ternaustralia/ecoinf-dataone:1.0.4
     environment:
       - CERT_BASE64 # override in shell at deploy time
       - CERT_KEY_BASE64 # override in shell at deploy time
@@ -46,7 +46,7 @@ services:
       - joai_data:/data:ro
 
   emlpusher_ternltern:
-    image: ternaustralia/ecoinf-dataone:1
+    image: ternaustralia/ecoinf-dataone:1.0.4
     environment:
       - CERT_BASE64 # override in shell at deploy time
       - CERT_KEY_BASE64 # override in shell at deploy time
@@ -58,7 +58,7 @@ services:
       - joai_data:/data:ro
 
   emlpusher_ternsupersites:
-    image: ternaustralia/ecoinf-dataone:1
+    image: ternaustralia/ecoinf-dataone:1.0.4
     environment:
       - CERT_BASE64 # override in shell at deploy time
       - CERT_KEY_BASE64 # override in shell at deploy time
