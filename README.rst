@@ -29,17 +29,30 @@ Quick start with docker-compose
 -----------
 
 1. clone this repo
-1. change to the docker dir: ``cd docker/``
-1. optionally, build the container for this repo by running: ``./docker-build.sh``, otherwise it'll be pulled from docker hub
-1. copy the runner script: ``cp start-or-restart.sh.example start-or-restart.sh``
-1. edit ``start-or-restart.sh`` and update all the values with a TODO comment
-1. make the runner script executable: ``chmod +x start-or-restart.sh``
-1. launch the stack by running ``./start-or-restart.sh``
-1. populate the jOAI instance with config: ``./configure-joai.sh``
+2. change to the docker dir::
+
+    cd docker/
+3. optionally, build the container for this repo otherwise it'll be pulled from docker hub. Build by running::
+
+    ./docker-build.sh
+4. copy the runner script::
+
+    cp start-or-restart.sh.example start-or-restart.sh
+5. get a client certificate and private key from the local CA on the DataONE server. For how to generate these, see: https://dataone-python.readthedocs.io/en/latest/gmn/setup/ubuntu/gmn/authn-ca.html?highlight=certificate#generate-a-client-side-certificate
+6. edit ``start-or-restart.sh`` and update all the values with a ``TODO`` comment
+7. make the runner script executable::
+
+    chmod +x start-or-restart.sh
+8. launch the stack by running::
+
+    ./start-or-restart.sh
+9. populate the jOAI instance with config (so you don't need to do it by hand in the UI)::
+
+    ./configure-joai.sh
 
 Now the various eml_pusher containers will sync records to the DataONE MN node on the cron schedule you specified. Note that the jOAI instance also has a schedule for harvesting so if you want to kick start things, go into the jOAI dashboard and manually trigger the harvests.
 
-Warning: the jOAI instance has no security/auth so don't expose it to the internet. Or if you do, add some security. I nice way to connect to the jOAI dashboard on a VM without opening the firewall is to use SSH local port forwarding (https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding#Local_Port_Forwarding).
+Warning: the jOAI instance has no security/auth so don't expose it to the internet. Or if you do, add some security. A nice way to connect to the jOAI dashboard on a VM without opening the firewall is to use SSH local port forwarding (https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding#Local_Port_Forwarding).
 
 Quick start installing direct from GitHub (without cloning)
 -----------

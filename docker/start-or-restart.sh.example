@@ -4,6 +4,7 @@ set -e
 cd `dirname "$0"`
 
 # get the cert and key as issued from the MN local ca
+# to generate a cert and key, see: https://dataone-python.readthedocs.io/en/latest/gmn/setup/ubuntu/gmn/authn-ca.html?highlight=certificate#generate-a-client-side-certificate
 pathToCert=/path/to/cert # TODO change me
 pathToKey=/path/to/key # TODO change me
 
