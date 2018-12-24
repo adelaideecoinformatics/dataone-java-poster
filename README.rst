@@ -10,6 +10,7 @@ Quick start running with Docker
 Optionally, you can build the docker container locally with: ``./docker/docker-build.sh``
 
 To run the container, use:
+
 .. code-block:: bash
 
   docker run \
@@ -22,8 +23,8 @@ To run the container, use:
     --env CRON_SCHEDULE='* * * * *' \
     ternaustralia/ecoinf-dataone:1.0.4
 
-   # let's have a look at what the container is doing
-   docker logs -f eml_pusher
+ # let's have a look at what the container is doing
+ docker logs -f eml_pusher
 
 Quick start with docker-compose
 -----------
