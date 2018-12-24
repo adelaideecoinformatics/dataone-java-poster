@@ -136,3 +136,30 @@ If you get an error that talks about the version of dataone.libclient being wron
   $ vim requires.txt # change the contents to be: dataone.libclient == 1.2.21
 
 Now you should be able to run the eml_pusher without error.
+
+A note on SSL/TLS certs
+-----------------------
+
+At the time of writing, our GMN server is using a TLS/SSL certificate that is signed by the ``QuoVadis Root CA 2`` root certificate.
+QuoVadis seem to be a provider or free certificates to a number of universities, so the certificates are somewhat common. This root
+certificate is in the python certifi bundle *and* in my system CA bundle (``/etc/ssl/certs/ca-certificates.crt``) but for some reason
+python requests still can't validate. I'm not sure why and I've spent enough time on it.
+
+Our fix is to allow a CA bundle to be specified with an environment variable that is used by our script. The DataONE code has its
+own default logic (that looks at the system certs) so we are effectively just exposing the ``REQUESTS_CA_BUNDLE`` override like
+requests does. We have the CA bundle included in this repo: ``docker/ca-bundle.crt``.
+
+Beware, this bundle *WILL EXPIRE*. One day this app will stop working and the logs will same something like:
+
+.. code:: bash
+
+  requests.exceptions.SSLError: HTTPSConnectionPool(host='dataone-dev.tern.org.au', port=443): Max retries exceeded with url: /mn/v1/object?count=500&start=0 (Caused by SSLError(SSLError("bad handshake: Error([('SSL routines', 'tls_process_server_certificate', 'certificate verify failed')],)",),))
+
+Or something similar. When that happens, do the following to generate a new CA bundle:
+
+1. open the site (e.g: dataone-dev.tern.org.au) in your browser (Chrome, Firefox, etc)
+2. view the SSL cert for the site
+3. export all part of the chain: root, intermediate(s) and whatever the lowest level cert is called (the one for our site)
+4. if they aren't already one file, ``cat`` them all together. Not sure if the order matters. If it does, put the root first
+5. overwrite the existing bundle in this repo and rebuild the docker container
+6. re-deploy the docker containers

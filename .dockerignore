@@ -9,6 +9,7 @@ docker/*
 !docker/entrypoint.sh
 !docker/run.sh
 !docker/requirements.txt
+!docker/ca-bundle.crt
 eml_pusher/*.pyc
 eml_pusher/.pydevproject
 *.pem

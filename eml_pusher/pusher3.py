@@ -62,13 +62,13 @@ class PersistentIdentifier:
     agency, and thus turn up in our list.  This include UUIDs and hashes.
     We need to deal with format suffixes, and a general amount of grief.
 
-    It would be good if there was a decidable grammar for PIDs and timestamps, but 
+    It would be good if there was a decidable grammar for PIDs and timestamps, but
     it is probably way too late to create one.  Some simple heiristics is about all we can do.
     """
 
     _pid_suffixes = ['html','xml']  # Add more as they become apparent
     _minimum_version_length = 1     # This should be more to avoid problems, but we have some items already with only 1 digit
-    
+
     def __init__(self, ident):
         self._full_id = ident
         self._base_id, self._timestamp, self._kind = self._parse_ident()
@@ -79,7 +79,7 @@ class PersistentIdentifier:
         :rtype: string
         """
         return self._full_id
-    
+
     def base_id(self):
         """Return a string that represents the PID with any timestamp (and separator) removed
 
@@ -102,7 +102,7 @@ class PersistentIdentifier:
         return self._id_kind
 
     def _parse_ident(self):
-        """Parse as best we can the provided URL.  
+        """Parse as best we can the provided URL.
 
         Returns a triplet: base name, timestamp, kind
 
@@ -140,10 +140,10 @@ class PersistentIdentifier:
             base_name = string.join(components[:-1], sep = '.')   # Name without timestamp
         except (IndexError, ValueError):   # Last bit isn't a valid number - assume it is all one identifier
             return (full_name, 0, kind)
-        
+
         if timestamp < 0:        #  Negative numbers might sneak through (we could allow this, but probably a bad idea.)
             return(full_name, 0, kind)
-        
+
         return (base_name, timestamp, kind)
 
 
@@ -153,7 +153,7 @@ class PusherConfiguration:
     Configuration defaults are set in __init__
     Any public component may be overridden by a value in the config file
     Only public components can be set from the config file, it is not possible to create new values.
-    The types must match 
+    The types must match
     """
     def __init__(self, config_file_name):
         """Construct an initial configuration
@@ -172,7 +172,7 @@ class PusherConfiguration:
                              'number-of-replicas' : 1}
 
         self.rights_holder = 'authenticatedUser'     # This is ridiculous.
-        # We need a much better scheme for this inside the DataOne setup. 
+        # We need a much better scheme for this inside the DataOne setup.
 
         if config_file_name is not None:
             self._parse_yaml(config_file_name)
@@ -187,7 +187,7 @@ class PusherConfiguration:
         :raises: InternalError
 
         Python type checking will avoid the most simple
-        of type mismatches, and will catch unknow/incorrect configuration option names.        
+        of type mismatches, and will catch unknow/incorrect configuration option names.
         """
         for key in configuration.iterkeys():
             if type(fields) is not dict and key in fields.__dict__:
@@ -211,16 +211,16 @@ class PusherConfiguration:
                 except AttributeError as ex:
                     logger.error("Unknown option in configuration file: {}".format(key))
                     raise InternalError
-        
-            
+
+
     def _parse_yaml(self, config_file_name):
-        """Loads and parses a yaml config file.  
+        """Loads and parses a yaml config file.
 
         :param config_file_name: Path of configuration file containing yaml config
         :type config_file_name: string
         :raises: InternalError
 
-        The file may only contain valid config options, as only items already and the types must match 
+        The file may only contain valid config options, as only items already and the types must match
         those of the options.  Default values are overridden.
         """
         from yaml import safe_load
@@ -231,7 +231,7 @@ class PusherConfiguration:
             logger.exception("Failure in reading config file", exc_info = ex)
             raise InternalError
         self._assign_config(self, configuration)
-             
+
     def __str__(self):
         """Dump the object as yaml
 
@@ -243,7 +243,7 @@ class PusherConfiguration:
         cont = dump(self).split("\n")
         content = string.join(cont[1:],"\n")    # chop off the object header
         return content
-                
+
 class SystemMetadataCreator():
     """Create a system metadata object from scratch
 
@@ -253,7 +253,7 @@ class SystemMetadataCreator():
     Some of these values might need updating or overriding in the future.
     Based upon current usage.
     """
-    
+
     def __init__(self, data_format):
         self._format_id = data_format.format_id
         self._algorithm = config.hasher_algorithm
@@ -265,7 +265,7 @@ class SystemMetadataCreator():
         self._authenticated_user = 'authenticatedUser'
         self._verified_user = 'verifiedUser'
         self._public_user = 'public'
-                
+
     def set_format_id(self, format):
         self._format_id = format
 
@@ -274,7 +274,7 @@ class SystemMetadataCreator():
 
     def set_authoritative_mn(self, mn_name):
         self._authoritative_mn = mn_name
-    
+
     def create_system_metadata(self, content, pid, checksum_string, identifier_old = None):
         file_size = len(content)
         if checksum_string is not None:
@@ -283,12 +283,12 @@ class SystemMetadataCreator():
             checksum = dataoneTypes.checksum(self._get_string_checksum(content))
         access = access_control.AccessControl()
         # These policies may need to be the subject of the config file if further flexibility is warranted.
-        
+
         # The next three additions contain an odd issue - never add anything other then read, write, changePermission, or the d1 code will
         # perform an interactive verification of intent - which will kill a batch job.
         # Similarly adding write or change permission to 'authenticated_user' should not be tried.
         # Should never do anything so silly as this anyway.
-        
+
         access.add_allowed_subject(self._public_user, 'read')
         access.add_allowed_subject(self._authenticated_user, 'read')
         access.add_allowed_subject(self._verified_user, 'read')
@@ -299,11 +299,11 @@ class SystemMetadataCreator():
                                             checksum,
                                             self._rights_holder,
                                             access)
-        
+
         if identifier_old is not None:
-            sysmeta.obsoletes = identifier_old            
-        return sysmeta            
-    
+            sysmeta.obsoletes = identifier_old
+        return sysmeta
+
     def _create_pyxb_object(self, pid, format_id, file_size, checksum, rights_holder, access):
         now = datetime.datetime.utcnow()
         sys_meta = dataoneTypes.systemMetadata()
@@ -320,7 +320,7 @@ class SystemMetadataCreator():
         sys_meta.accessPolicy = self._create_access_policy_pyxb_object(access)
         sys_meta.replicationPolicy = self._create_replication_policy_pyxb_object()
         return sys_meta
-        
+
     def _create_access_policy_pyxb_object(self, access):
         acl = access.get_list()
         if len(acl) == 0:
@@ -333,7 +333,7 @@ class SystemMetadataCreator():
             access_rule.permission.append(permission)
             access_policy.append(access_rule)
         return access_policy
-        
+
 
     def _create_replication_policy_pyxb_object(self):
         r = self._replication
@@ -371,7 +371,7 @@ class SystemMetadataCreator():
 class InternalError(Exception):
     # Provide an exception to allow us to bail out cleanly
     pass
-    
+
 class errors:
     """Provides a simple class to encapsulate a limit on the number of run-time recoverable errors, and to log this.
     """
@@ -383,16 +383,16 @@ class errors:
         :param excpetion: Optional exception to raise when the limit is reached.  Default is InternalError
         :type exception: Exception or derived class
         """
-        
+
         self._count = 0
         self._limit = limit
         self._exception = exception
-        
+
     def error(self):
         """Log that an error occured
 
         :rasies: InternalError or other Exception
-        """     
+        """
         if self._limit == -1:
             return
         self._count += 1
@@ -401,8 +401,8 @@ class errors:
             if self._exception is not None:
                 raise self._exception
             else:
-                raise InternalError 
-            
+                raise InternalError
+
     def error_count(self):
         """ Return the current count of errors
 
@@ -410,7 +410,7 @@ class errors:
         """
         return self._count
 
-    
+
 def signal_exit_handler(signum, frame):
     """Provide a mechanism to log if the program is terminated via an external signal (ie a kill command).
 
@@ -418,31 +418,31 @@ def signal_exit_handler(signum, frame):
     :type signum: integer
     :param frame: reference to the frame where the signal was caught
     :type frame: frame
-    """    
+    """
     logger.info("Exiting with signal {}".format(signum))
     # Exit instantly
     sys.exit(0)
 
-    
+
 class Connector(object):
     """Abstract class base for classes that talk to sources and sinks of data"""
-    
+
     def __init__(self):
         self._packages = {}
-    
+
     def get_iterator(self):
         return self.__iter__()
-    
+
     def idents(self):
         return self._packages.keys()
 
     def get_package(self, ident):
         return self._packages[ident]
-    
+
     def __iter__(self):
         for id in self._packages.keys():
             yield self._packages[id]
-            
+
     def update(self, package, update):
         pass
 
@@ -466,7 +466,7 @@ class Component(object):
     # The id the system metadata will use when metadata for this component is created.
     format_id = None
     _sysmeta_generator = None
-    
+
     def __init__(self, source, content = None, sysmeta = None):
 
         self._source = source          #  Connector object that created us - used for lazy creation/obtaining info as a callback
@@ -484,14 +484,14 @@ class Component(object):
         if self._sysmeta_generator is None:
             self._sysmeta_generator = SystemMetadataCreator(self)
 
-        
+
     def set_pid(self, pid):
         if self._pid is not None:
             raise InternalError("Object {} already has a pid".format(self._full_package_id))
         self._full_package_id = pid.full_id()
         self._package_id = pid.base_id()
         self._timestamp =  pid.timestamp()
-        
+
     def get_pid(self):
         return self._full_package_id
 
@@ -504,25 +504,25 @@ class Component(object):
     def _check_sanity(self):
         if self._full_package_id != self._sysmeta.package():
             raise ValueError("Mismatch in package id {}  {}".format(self._full_package_id, self._sysmeta.package()))
-    
+
     def same_as(self, other):
         # Packages are semantically identical
         return self._get_dict() == other._get_dict()
 
     def set_checksum(self, checksum):
         self._checksum = checksum.lower()
-    
+
     def same_checksum(self, other):
         """A cheap way of checking for identical components.  If the checksums are the same they are byte for byte identical.
         This does not cover semantically identical components. We use the same_as() method for that.
 
         By slamming the other package with our timestamp we can see if they would be identical if only the timestamps were the same.
-        """        
+        """
         if self._checksum is None:
             self._checksum = self.checksum()
         other_checksum = other.checksum(str(self._timestamp))
         return self._checksum == other_checksum
-    
+
     def package_id(self):
         return self._package_id
 
@@ -531,13 +531,13 @@ class Component(object):
 
     def timestamp(self):
         return self._timestamp
-    
+
     def content(self):
         return self._content
 
     def content_reader(self):
         return cStringIO.StringIO(self._content)
-    
+
     @staticmethod
     def _valid_timestamp(cls, timestamp):
         """Perform simple validation that a timestamp is valid
@@ -549,7 +549,7 @@ class Component(object):
         return True
 
     def _insert_timestamp(self, timestamp):
-        """Insert a timestamp 
+        """Insert a timestamp
 
         :param timestamp:
         :type timestamp: varies
@@ -573,7 +573,7 @@ class Component(object):
         Format specific and must be overriden in sub-classes
         """
         return None
-    
+
     def checksum(self, timestamp = None):
         """Find the hash of the package contents.  Optionally calculate the checksum as if the package had a different timestamp.
 
@@ -583,8 +583,8 @@ class Component(object):
         """
         if timestamp is None:
             return self._get_checksum()
-        
-        if not self._valid_timestamp(timestamp):   
+
+        if not self._valid_timestamp(timestamp):
             raise ValueError("Bad timestamp")
 
         content = self._insert_timestamp(timestamp)
@@ -606,14 +606,14 @@ class Component(object):
                 else:
                     self._checksum = self._source.get_checksum(self._full_package_id).lower()
         return self._checksum
-            
+
     def get_sysmeta(self, obsoletes = None):
         """Return the sysmeta object that describes this content.
 
         :param obsoletes: If this object will obsolete an existing object, passes the obsolete object
         :type obsoletes: Component
         :rtype: string
-        
+
         Lazyily evaluated to avoid the cost of fetching/generating if not needed
         """
         if self._sysmeta is None:
@@ -624,17 +624,17 @@ class Component(object):
         """
         Return the system metadata, as an xml encoded string, that describes this content.
         Lazyily evaluated to avoid the cost of fetching/generating if not needed
-        """        
+        """
         if self._sysmeta_content is None:
             self._generate_sysmeta(obsoletes)
             self._sysmeta_content = self._sysmeta.toxml().encode('utf-8')
         return self._sysmeta_content
-        
+
     def _generate_sysmeta(self, obsoletes):
         if self._sysmeta is None:
             self._sysmeta = self._sysmeta_generator.create_system_metadata(self._content, self._full_package_id, self._checksum, obsoletes )
         return self._sysmeta
- 
+
     def _get_dict(self):
         # Do this lazily - it probably won't be needed all that often - if at all
         if self._dict is None:
@@ -646,20 +646,20 @@ class Component(object):
 
     def timestamp(self):
         return self._timestamp
-    
+
     def content(self):
         return self._content
-            
+
 
 class eml_component(Component):
     """Class encapulates EML formats needed
     """
 
-    format_id = 'eml://ecoinformatics.org/eml-2.1.1'    
+    format_id = 'eml://ecoinformatics.org/eml-2.1.1'
 
     def __init__(self, source, content = None, sysmeta = None):
         super(eml_component, self).__init__(source, content, sysmeta)
-        
+
         if content is not None:
             try:
                 e = ElementTree.fromstring(content)
@@ -683,10 +683,10 @@ class eml_component(Component):
                 raise ValueError
             except Exception as ex:
                 logger.exception("Exception in XML parse.", exc_info = ex)
-                raise ValueError            
-            
+                raise ValueError
+
         if content is not None and self._sysmeta is not None:
-            self._check_sanity()        
+            self._check_sanity()
 
 
     def _content_no_package_id(self):
@@ -698,7 +698,7 @@ class eml_component(Component):
             return self._content[0 : first_char] + self._content[last_char:]
         except (KeyError, IndexError):
             # We will assume there was never a package id present
-            return self._content 
+            return self._content
 
     def _insert_timestamp(self, timestamp):
         if self._content is None:
@@ -706,8 +706,8 @@ class eml_component(Component):
         try:
             first_char = self._content.index("packageId")
             last_char  = self._content.index(" ", first_char)
-            
-            existing_id_length =  8 + 1  # Plus one to account for closing quote            
+
+            existing_id_length =  8 + 1  # Plus one to account for closing quote
 
             return self._content[0 : last_char - existing_id_length] + timestamp + self._content[last_char - 1:]
         except (KeyError, IndexError):
@@ -724,7 +724,7 @@ class gmd_component(Component):
     """
 
     format_id = "http://www.isotc211.org/2005/gmd"
-    
+
     def __init__(self, source, content = None, sysmeta = None):
         super(gmd_component, self).__init__(source, content, sysmeta)
 
@@ -733,11 +733,11 @@ class gmd_component(Component):
                 e = ElementTree.fromstring(content)
                 if e.tag != '{http://www.isotc211.org/2005/gmd}MD_Metadata':
                     raise Component.WrongFormat
-                
+
                 self._full_package_id = e.findall('{http://www.isotc211.org/2005/gmd}fileIdentifier/{http://www.isotc211.org/2005/gco}CharacterString')[0].text
                 self._pid = PersistentIdentifier(self._full_package_id)
                 self._package_id = self._pid.base_id()
-                
+
                 self._pid = PersistentIdentifier(self._full_package_id)
                 self._package_id = self._pid.base_id()
 
@@ -756,12 +756,12 @@ class gmd_component(Component):
                 raise ValueError
             except Exception as ex:
                 logger.exception("Exception in XML parse.", exc_info = ex)
-                raise ValueError            
-            
-        if content is not None and self._sysmeta is not None:
-            self._check_sanity()        
+                raise ValueError
 
-            
+        if content is not None and self._sysmeta is not None:
+            self._check_sanity()
+
+
     def same_checksum(self, other):
         return other == self
 
@@ -771,12 +771,12 @@ class gmd_component(Component):
             return '0'  # Should never match
             raise InternalError
         return super(gmd_component, self).checksum(None)
-    
+
     def _content_no_package_id(self):
         """Removes both package id and timestamp.
 
         Allows direct comparison of semantic content via tree generated from XML
-        """        
+        """
         try:
             first_char = self._content.index("<gmd:fileIdentifier>")
             last_char  = self._content.index("</gmd:fileIdentifier>", first_char)
@@ -785,7 +785,7 @@ class gmd_component(Component):
             last_char  = new_content.index("</gmd:dateStamp>", first_char)
             return new_content[0 : first_char] + self._content[last_char + 16:]
         except (KeyError, IndexError):
-            return self._content 
+            return self._content
 
     def _insert_timestamp(self, timestamp):
         """Overwrite the timestamp to allow direct comparison of content via hash of content
@@ -803,12 +803,12 @@ class gmd_component(Component):
         except (KeyError, IndexError):
             # We will assume there was never a package id present
             return self._content
-        
+
     @staticmethod
     def _valid_timestamp(timestamp):
         try:
             numeric_time = dateutil.parser.parse(timestamp)
-            return numeric_time >= 1                
+            return numeric_time >= 1
         except Exception:
             return False
 
@@ -820,22 +820,22 @@ class universal_component(object):
     determine the right format, and thus parse any supported format file with no prior knowledge
     of its format.
     """
-    
+
     def __new__(self, source, content = None, sysmeta = None):
         try:
             return eml_component(source, content, sysmeta)
         except Component.WrongFormat:
-            pass        
+            pass
         try:
             return gmd_component(source, content, sysmeta)
         except Component.WrongFormat:
             pass
         # Cascade additional formats here
         raise ValueError
-    
+
 class file_connector(Connector):
     """Class provides for sources and sinks of data in a local file system"""
-    
+
     def __init__(self, root_dir, data_format):
         super(file_connector, self).__init__()
         self._root_dir = root_dir
@@ -863,26 +863,26 @@ class file_connector(Connector):
                         logger.exception("Exception in XML file read for {}".format(filename), exc_info = ex)
                         error.error()
                         continue
-                    
+
                     try:
                         new_component = self._data_component(self, content)
                     except ValueError:
                         logger.debug("Skipped bad file {}".format(filename))
-                        continue                    
-                        
+                        continue
+
                     new_base_id = new_component.package_id()
 
                     if new_base_id in self._packages.keys():
                         current_time = self._packages[new_base_id].timestamp()
                         new_time = new_component.timestamp()
-                        if new_time > current_time:                            
+                        if new_time > current_time:
                             self._packages[new_base_id] = new_component
                         else:
                             logger.debug("Skipped file with older timestamp {}".format(filename))
                     else:
                         self._packages[new_base_id] = new_component
                         logger.debug("Adding package {}".format(new_base_id))
- 
+
         except Exception as ex:
             logger.exception("Exception in file connection {}. Exiting".format(self._root_dir), exc_info = ex)
             raise InternalError
@@ -891,10 +891,10 @@ class file_connector(Connector):
 
     # These functions are primarily used for testing, but do allow the tool to be used
     # to sychronise two directories of files, if that is ever desirable.
-        
+
     def create(self, package):
         return self.update(None, package)
-        
+
     def update(self, existing, package):
         oldPid = existing.full_package_id() if existing is not None else None
 
@@ -909,7 +909,7 @@ class file_connector(Connector):
 
         if args.trial_run:
             return True
-        
+
         try:
             with open( os.path.join(self._root_dir, filename), "w" ) as the_file:
                 the_file.write(package.content())
@@ -917,17 +917,17 @@ class file_connector(Connector):
             logger.exception("Failure to create package file {} in {}".format(filename, self._root_dir), exc_info = ex)
             error.error()
             return False
-        
+
         return self._update_sysmeta(package, package.get_sysmeta_content(oldPid))
 
-    def _update_sysmeta(self, package, sysmeta):        
+    def _update_sysmeta(self, package, sysmeta):
         try:
             filename = urllib.quote(package.full_package_id(), safe = "" ) + "-sysmeta.xml"
         except UnicodeEncodeError as ex:
             logger.exception("Unencodable byte in package name.  File not saved.", ex)
             error.error()
             return False
-        
+
         try:
            with open(os.path.join(self._root_dir, filename), "w") as the_file:
                the_file.write(sysmeta)
@@ -970,7 +970,7 @@ class dataone_connector(Connector):
     """
     def __init__(self, data_format):
         super(dataone_connector, self).__init__()
-        
+
         self._data_component = data_format
         self._host_url = d1_common.url.makeMNBaseURL(args.destination_url)
 
@@ -985,13 +985,20 @@ class dataone_connector(Connector):
 #            self._sub_path = args.path
 #        else:
         self._base_path_url = self._host_url
-            
+
         logger.info("Using {} for DataOne MN destination".format(self._host_url))
         cert_path = validate_file(args.cert_file, 'Cert')
         cert_key_path = validate_file(args.cert_key_file, 'Cert key')
-        
+
         try:
-            self._mn_client = mnclient.MemberNodeClient_1_2( base_url = self._host_url, cert_pem_path = cert_path, cert_key_path = cert_key_path )
+            try:
+                # At the time of writing, our GMN server is running a TLS cert from a root that doesn't seem to be trusted.
+                # We solve this by allowing an (optional) override, which requests allows but d1_client denies.
+                verify_arg = os.environ['REQUESTS_CA_BUNDLE']
+            except KeyError:
+                verify_arg = None
+            self._mn_client = mnclient.MemberNodeClient_1_2( base_url = self._host_url, cert_pem_path = cert_path,
+                    cert_key_path = cert_key_path, verify_tls = verify_arg )
         except Exception as ex:
             logger.exception("Failure in connecting to member node {}".format(self._host_url), exc_info = ex)
             raise InternalError
@@ -1034,12 +1041,12 @@ class dataone_connector(Connector):
             raise InternalError
 
         logger.info("Found {} objects on MN".format(len(self._packages)))
-        
-            
+
+
     def _get_content_from_server(self, ident):
         # Not used, could be if we enable the code to slurp data from the MN
         try:
-            record_content = self._nm_client.get(ident) 
+            record_content = self._nm_client.get(ident)
         except Exception as ex:
             logger.exception("Error in GET for ident {} from mnclient".format(ident), exc_info = ex)
             error.error()
@@ -1057,7 +1064,7 @@ class dataone_connector(Connector):
         if args.trial_run:
             return True
         try:
-#            self._mn_client.reserveIdentifier(newPid)   # May not really need to do this            
+#            self._mn_client.reserveIdentifier(newPid)   # May not really need to do this
             metadata = package.get_sysmeta()
             if not self._mn_client.update(oldPid, package.content_reader(), pid, metadata):
                 logger.error("Failure to queue update for newPid {}".format(pid))
@@ -1073,7 +1080,7 @@ class dataone_connector(Connector):
             error.error()
             return False
         return True
-        
+
     def create(self, package):
         """
         Create a new package on the MN
@@ -1095,7 +1102,7 @@ class dataone_connector(Connector):
             error.error()
             return False
         return True
-            
+
     def get_package(self, ident):
         # Lazy evaluation of package - try to avoid the expense of getting the content
         if ident not in self._packages.keys():
@@ -1108,7 +1115,7 @@ class dataone_connector(Connector):
                 logger.debug("Packageid: {} does not match ident: {}".format(package_id, ident))
                 # We may want to provide for some option to not proceed if this does not match
                 # This is a "should not happen"
-                    
+
         return self._packages[ident]
 
     def get_checksum(self, pid):
@@ -1120,7 +1127,7 @@ class dataone_connector(Connector):
                 error.error()
                 return None
         return self._mn_client_checksums[pid]
-            
+
     def get_sysmeta(self, ident):
         # Lazy fetch of sysmetadata from the DataOne MN
 
@@ -1133,13 +1140,13 @@ class dataone_connector(Connector):
             error.error()
         return self._sysmeta[package_id]
 
-    
+
 def perform_update(source, destination):
     same_content = 0
     updated_content = 0
     new_content = 0
     same_timestamp = 0
-    
+
     logger.info("Update starts.")
 
     for new_package in source:
@@ -1173,7 +1180,7 @@ def perform_update(source, destination):
     logger.warning("Update completes. {} errors, {} new files uploaded, {} existing updated.  {} files with identical content and {} with same or earlier timestamp ignored."
                 .format(error.error_count(), new_content, updated_content, same_content, same_timestamp)  )
 
-        
+
 def get_arg_parser():
     parser = argparse.ArgumentParser("dataone_pusher", description='Upload files to a DataOne server')
     parser.add_argument('-t', '--trial_run',  action = 'store_true', help = 'Do not upload to the DataOne server, can be used to describe what needs to be done')
@@ -1192,12 +1199,12 @@ def get_arg_parser():
     parser.add_argument('-Y', '--dump_yaml',    action = 'store_true', help = 'Dump full program configuration in YAML format to std_out. Useful start for writing a config file.')
 
     parser.add_argument('-F', '--format', default = 'any', choices = ['any', 'eml', 'gmd'],   help = 'Format of files to be uploaded. \'any\' will attempt to guess the format file by file.')
-    
+
     dest_group = parser.add_mutually_exclusive_group(required = True)
     dest_group.add_argument('-D', '--destination_url',                  help = 'Hostname or IP number for destination DataOne server')
-    dest_group.add_argument('-d', '--destination_dir',                  help = 'Path of destination directory tree for data files')    
+    dest_group.add_argument('-d', '--destination_dir',                  help = 'Path of destination directory tree for data files')
 
-    parser.add_argument('-s', '--source_dir',                       help = 'Path of source directory tree containing data files', required = True)    
+    parser.add_argument('-s', '--source_dir',                       help = 'Path of source directory tree containing data files', required = True)
 
     return parser
 
@@ -1219,7 +1226,7 @@ def build_logger():
 
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
-    
+
     logger = logging.getLogger("dataone_pusher")
     logger.addHandler(handler)
     logging._srcfile = None
@@ -1231,31 +1238,31 @@ def build_logger():
         logging_level = logging.INFO
     elif args.debug:
         logging_level = logging.DEBUG
-        
+
 
     logger.setLevel(logging_level)
-    
+
     # This is added because errors inside the DataOne libraries will cause a console message if the logger does not exist
     pyxb_logger = logging.getLogger("pyxb.binding.basis")
     pyxb_logger.addHandler(handler)
     pyxb_logger.setLevel( logging_level )
-    
+
     if args.dataone_debug:
         mnlogger = logging.getLogger('MemberNodeClient')
         mnlogger.addHandler(handler)
         mnlogger.setLevel( logging_level )
-        
+
         mnlogger = logging.getLogger('DataONEBaseClient')
         mnlogger.addHandler(handler)
         mnlogger.setLevel( logging_level )
-        
+
         mnlogger = logging.getLogger('DataONERestClient')
         mnlogger.addHandler(handler)
         mnlogger.setLevel( logging_level )
-    
+
     logging.captureWarnings(True)
     return logger
-    
+
 
 def dataone_pusher():
     global args, logger, error, config
@@ -1268,11 +1275,11 @@ def dataone_pusher():
         config = PusherConfiguration(args.yaml_config)
         if args.dump_yaml:
             print config
-    
+
         error = errors(0 if args.intolerant else 20, InternalError)
-        
+
         signal.signal(signal.SIGHUP, signal_exit_handler)    # Provide for a kill notification to go into the log file
-    
+
         logger.info("DataOne Push starts.")
         if args.trial_run:
             logger.info("Trial run. No content will actually upload.")
@@ -1285,9 +1292,9 @@ def dataone_pusher():
             data_format = universal_component
 
         source =      file_connector(args.source_dir, data_format)
-        destination = dataone_connector(data_format) if args.destination_url is not None else file_connector(args.destination_dir, data_format)        
+        destination = dataone_connector(data_format) if args.destination_url is not None else file_connector(args.destination_dir, data_format)
         perform_update(source, destination)
-        
+
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt halts processing.")
         sys.exit(0)
@@ -1296,7 +1303,7 @@ def dataone_pusher():
     except Exception as ex:
         logger.exception("Unhandled exception, exiting.", exc_info = ex)
         sys.exit(1)
-        
+
     sys.exit(0)
 
 if __name__ == "__main__":

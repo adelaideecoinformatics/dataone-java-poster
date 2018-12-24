@@ -15,5 +15,7 @@ RUN \
   python setup.py install && \
   apk del .build_deps
 
+ENV REQUESTS_CA_BUNDLE=/app/docker/ca-bundle.crt
+
 ENTRYPOINT ["sh", "/app/docker/entrypoint.sh"]
 CMD [""]
