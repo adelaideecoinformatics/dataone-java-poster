@@ -163,3 +163,40 @@ Or something similar. When that happens, do the following to generate a new CA b
 4. if they aren't already one file, ``cat`` them all together. Not sure if the order matters. If it does, put the root first
 5. overwrite the existing bundle in this repo and rebuild the docker container
 6. re-deploy the docker containers
+
+Making authenticated API calls via HTTP
+---------------------------------------
+
+As part of debugging something, you might want to make a call directly on the HTTP API using something like ``curl``. The API uses client certificates, so the command has some extra parameters. For Tier 1 calls, or ones that the public can make, they're just a regular curl command. We're dealing with the higher tier calls here, as they require auth.
+
+Let's pick on updateSystemMetadata (https://releases.dataone.org/online/api-documentation-v2.0/apis/MN_APIs.html#MNStorage.updateSystemMetadata) as fixing a sysmeta record with a problem is something that sounds plausable.
+
+We have a number of files in our working directory:
+
+:sysmeta.xml:
+  XML document with system metadata. It should have **no whitespace**.
+:cert.pem:
+  client certificate we use for auth
+:key.pem:
+  matching private key for the client cert
+:ca-bundle.crt:
+  bundle containing the full certificate chain because your system
+  might not have trust for the Root CA that's signed our server's cert
+
+.. code:: bash
+
+  curl \
+    -v \
+    --cert ./cert.pem \
+    --key ./key.pem \
+    --cacert ./ca-bundle.crt \
+    -X PUT \
+    -F pid="aekos.org.au/collection/nsw.gov.au/nsw_atlas/vis_flora_module/RYDE2006.20170515" \
+    -F sysmeta=@sysmeta.xml \
+    https://dataone-dev.tern.org.au/mn/v2/meta
+
+The noteworthy points are:
+
+- we don't need to explicitly pass the ``session`` param as that comes from the TLS handshake using our client cert
+- we provide the ``pid`` as a literal
+- the ``sysmeta`` param is read from a file, which is what the ``@`` symbol means
