@@ -54,7 +54,7 @@ createHarvester \
 createHarvester \
   urlPrefix=$globalUrlPrefix \
   repoName="TERN ACEF" \
-  repoBaseUrl='http://acef.tern.org.au/geonetwork/srv/eng/oaipmh' \
+  repoBaseUrl='https://acef.tern.org.au/geonetwork/srv/eng/oaipmh' \
   metadataPrefix=iso19139 \
   harvestDir=/data/tern-acef
 
@@ -68,7 +68,7 @@ createHarvester \
 createHarvester \
   urlPrefix=$globalUrlPrefix \
   repoName="TERN LTERN" \
-  repoBaseUrl='http://www.ltern.org.au/knb/dataProvider' \
+  repoBaseUrl='https://www.ltern.org.au/knb/dataProvider' \
   metadataPrefix=eml \
   harvestDir=/data/tern-ltern
 

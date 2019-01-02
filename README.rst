@@ -200,3 +200,44 @@ The noteworthy points are:
 - we don't need to explicitly pass the ``session`` param as that comes from the TLS handshake using our client cert
 - we provide the ``pid`` as a literal
 - the ``sysmeta`` param is read from a file, which is what the ``@`` symbol means
+
+Lack of ISO19139 support
+------------------------
+
+DataONE *does* support ISO19139 but it appears there are a few flavours of this standard (yeah, I know!?!). The supported
+flavour (from NOAA I think) is NOT what we're using.
+
+At the time of writing, we have two datasources that provide metadata in this format: ACEF and Auscover. If you try to
+load these records using this tool, you'll likely have it fail and see an error like the following in the ``gmn.log`` log file:
+
+.. code:: text
+
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288 Internal exception:
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288   Name: XMLSchemaParseError
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288   Value: Element '{http://www.w3.org/2001/XMLSchema}element', attribute 'ref': The QName value '{http://www.isotc211.org/2005/gmd}AbstractDQ_PositionalAccuracy' does not resolve to a(n) element declaration., line 54
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288   Args: <no args>
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288   TraceInfo:
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     base.py(124)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     contextlib.py(52)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     external.py(101)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     decorators.py(167)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     external.py(525)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     create.py(88)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     scimeta.py(71)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     xml_schema.py(67)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     xml_schema.py(74)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     xml_schema.py(106)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     xmlschema.pxi(86)
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     Type: <class 'lxml.etree.XMLSchemaParseError'>
+  2019-01-02 04:58:26 ERROR    root exception_handler 26229 139824168044288     Value: Element '{http://www.w3.org/2001/XMLSchema}element', attribute 'ref': The QName value '{http://www.isotc211.org/2005/gmd}AbstractDQ_PositionalAccuracy' does not resolve to a(n) element declaration., line 54
+  2019-01-02 04:58:26 ERROR    root response_handler 26229 139824168044288 View exception:
+  2019-01-02 04:58:26 ERROR    django.request log 26229 139824168044288 Internal Server Error: /mn/v1/object
+  Traceback (most recent call last):
+    File "/var/local/dataone/gmn_venv_py3/lib/python3.6/site-packages/django/core/handlers/exception.py", line 34, in inner
+      response = get_response(request)
+    File "/var/local/dataone/gmn_venv_py3/lib/python3.6/site-packages/d1_gmn/app/middleware/request_handler.py", line 54, in __call__
+      response, request.allowed_method_list
+    File "/var/local/dataone/gmn_venv_py3/lib/python3.6/site-packages/d1_gmn/app/views/headers.py", line 90, in add_cors_headers_to_response
+      response['Allow'] = opt_method_list
+  TypeError: 'ServiceFailure' object does not support item assignment
+
