@@ -241,3 +241,49 @@ load these records using this tool, you'll likely have it fail and see an error 
       response['Allow'] = opt_method_list
   TypeError: 'ServiceFailure' object does not support item assignment
 
+Dealing with failed record updates from ghost obsoleting records
+----------------------------------------------------------------
+
+There have been a few instances where a record update fails because apparently the new PID is already in use.
+In normal operation, this shouldn't happen but when you investigate this event closer, it's clear something has failed.
+
+To illustrate the problem, let's say the MN already has a record with PID ``record1.1`` and we have a new version of that
+record: ``record1.2``. The error message will look something like this:
+
+.. code:: text
+
+  INFO:dataone_pusher:Updating record1.1 to record1.2
+  ERROR:dataone_pusher:Update for record1.2 Fails
+  name: InvalidRequest
+  errorCode: 400
+  detailCode: 0
+  description: Identifier cannot be used for an update. did="record1.1" cause="Object is a Persistent ID (PID) of an existing local object"
+  identifier: record1.1
+  nodeId: urn:node:TERN
+
+To verify you're experiencing this issue (and not a legitimate PID collision), try to view the sysmeta data for
+the "new" record. The URL will be something like http://dataone.tern.org.au/mn/v2/meta/record1.2. If you get a 404
+then it means this PID doesn't actually exist. If you get that 404, continue on.
+
+If you find this has happened, you can attempt the following to fix it. The short version is to delete the partial
+record and then do the load again. The more detailed steps:
+
+1. SSH to the VM with GMN running
+2. change to the ``gmn`` user::
+
+    sudo su gmn
+3. connect to the postgres DB::
+
+    psql -d gmn3
+4. open a web browser to view the sysmeta data for the "old" record. It probably lives at a URL like http://dataone.tern.org.au/mn/v2/meta/record1.1
+5. grab the checksum value for the record
+6. find the relevant IDs in the database using the checksum value in a query like::
+
+    SELECT id, obsoleted_by_id FROM app_scienceobject WHERE checksum = 'checksumvaluehere';
+7. remove the 'obsoleted by' setting from the old record, so it's now the most current record. Use the ``id`` value from the previous query::
+
+    UPDATE app_scienceobject SET obsoleted_by_id = null WHERE id = replace-with-id;
+8. delete the PID reservation for the "new" record. Use the ``obsoleted_by_id`` value from the previous ``SELECT`` query::
+
+    DELETE FROM app_idnamespace WHERE id = replace-with-obsoleted_by_id;
+9. re-run the load process and it *should* work. The "old" record is no longer obsoleted by a record that doesn't exist and the "new" PID is no longer in use.
