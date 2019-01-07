@@ -287,3 +287,20 @@ record and then do the load again. The more detailed steps:
 
     DELETE FROM app_idnamespace WHERE id = replace-with-obsoleted_by_id;
 9. re-run the load process and it *should* work. The "old" record is no longer obsoleted by a record that doesn't exist and the "new" PID is no longer in use.
+
+
+Running unit tests
+------------------
+
+1. first (and probably one time only), make sure you have the required dependencies installed::
+
+    pip install -r requirements-dev.txt
+2. now you can run the unit tests with::
+
+   python -m pytest
+   # or you can use the script
+   ./test/run-tests.sh
+
+
+Note that you need to run the tests this way as it adds the current directory to the python path. If you just run ``pytest``,
+it will have problems doing the imports of the code under test.

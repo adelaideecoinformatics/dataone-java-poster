@@ -1011,36 +1011,26 @@ class dataone_connector(Connector):
 
         try:
             objListIter = objectlistiterator.ObjectListIterator(self._mn_client)
-            for obj in iter(objListIter):
-                try:
-                    pid = PersistentIdentifier(obj.identifier.value())
-                except ValueError:
-                    continue
-                package_id = pid.base_id()
-                curr_package_version = pid.timestamp()
-                def is_a_version_seen_yet():
-                    try:
-                        self._packages[package_id]
-                        return True
-                    except KeyError:
-                        return False
-                def is_not_latest_version_seen():
-                    return curr_package_version < self._packages[package_id].timestamp()
-                if is_a_version_seen_yet() and is_not_latest_version_seen():
-                    logger.debug("Ignoring version from Dataone: {} for {} as it's not the latest".format(curr_package_version, package_id))
-                    continue
-                logger.debug("Using package from Dataone: {} at time  {}".format(package_id, curr_package_version))
-                self._packages[package_id] = self._data_component(self)
-                # Since we don't download the package for the component right now (if ever) we need to explicitly set the pid
-                self._packages[package_id].set_pid(pid)
-                # We can also add the checksum right away, which can save time later.
-                self._packages[package_id].set_checksum(obj.checksum.value())
+            total_object_count = self.get_server_total_object_count()
+            def component_constructor():
+                return self._data_component(self)
+            self._packages = find_all_latest_versions(objListIter, component_constructor, logger, total_object_count)
 
         except Exception as ex:
             logger.exception("Unable to get package list from mnclient", exc_info = ex)
             raise InternalError
 
         logger.info("Found {} objects on MN".format(len(self._packages)))
+
+
+    def get_server_total_object_count(self):
+        """ Gets total object (record) count from the server """
+        try:
+            result = self._mn_client.listObjects(count=0)
+            return result.total
+        except Exception as ex:
+            logger.exception("Unable to total object count from mnclient", exc_info = ex)
+            raise InternalError
 
 
     def _get_content_from_server(self, ident):
@@ -1305,6 +1295,51 @@ def dataone_pusher():
         sys.exit(1)
 
     sys.exit(0)
+
+
+def find_all_latest_versions (iterable, component_constructor, loggerish, total_object_count):
+    """
+    builds a dictionary of pid => package with only the latest version for each.
+    iterable:               a collection of all versions of all packages (order is not important)
+    component_constructor:  constructor for a subclass of Component
+    loggerish:              something that acts like a logger
+    total_object_count      total number of objects that the server report. We need to double check the iterator
+                            because we've had issues. It might be because an iterator paging failure doesn't bubble up
+                            but is just counted as an error towards the "tollerable errors" count.
+    """
+    objects_seen = 0
+    result = {}
+    for obj in iter(iterable):
+        objects_seen += 1
+        try:
+            pid = PersistentIdentifier(obj.identifier.value())
+        except ValueError:
+            continue
+        package_id = pid.base_id()
+        curr_package_version = pid.timestamp()
+        def is_a_version_seen_yet():
+            try:
+                result[package_id]
+                return True
+            except KeyError:
+                return False
+        def is_not_latest_version_seen():
+            return curr_package_version < result[package_id].timestamp()
+        if is_a_version_seen_yet() and is_not_latest_version_seen():
+            loggerish.debug("Ignoring version from Dataone: {} for {} as it's not the latest".format(curr_package_version, package_id))
+            continue
+        loggerish.debug("Using package from Dataone: {} at time  {}".format(package_id, curr_package_version))
+        result[package_id] = component_constructor()
+        # Since we don't download the package for the component right now (if ever) we need to explicitly set the pid
+        result[package_id].set_pid(pid)
+        # We can also add the checksum right away, which can save time later.
+        result[package_id].set_checksum(obj.checksum.value())
+    if objects_seen != total_object_count:
+        msg = """Server reports {} objects but we only saw {} from the iterator.
+                 Cannot continue with incomplete info!""".format(total_object_count, objects_seen)
+        raise InternalError(msg)
+    loggerish.info("Server object count and objects seen match = {}".format(total_object_count))
+    return result
 
 if __name__ == "__main__":
     dataone_pusher()
