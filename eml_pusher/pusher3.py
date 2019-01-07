@@ -1305,7 +1305,7 @@ def find_all_latest_versions (iterable, component_constructor, loggerish, total_
     loggerish:              something that acts like a logger
     total_object_count      total number of objects that the server report. We need to double check the iterator
                             because we've had issues. It might be because an iterator paging failure doesn't bubble up
-                            but is just counted as an error towards the "tollerable errors" count.
+                            but is just counted as an error towards the "tolerable errors" count.
     """
     objects_seen = 0
     result = {}
