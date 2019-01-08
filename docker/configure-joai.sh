@@ -49,34 +49,34 @@ createHarvester \
   repoName="AEKOS" \
   repoBaseUrl='http://oai.ecoinformatics.org.au:8080/oai/provider' \
   metadataPrefix=eml \
-  harvestDir=/data/aekos
+  harvestDir=/joai/data/aekos
 
 createHarvester \
   urlPrefix=$globalUrlPrefix \
   repoName="TERN ACEF" \
   repoBaseUrl='https://acef.tern.org.au/geonetwork/srv/eng/oaipmh' \
   metadataPrefix=iso19139 \
-  harvestDir=/data/tern-acef
+  harvestDir=/joai/data/tern-acef
 
 createHarvester \
   urlPrefix=$globalUrlPrefix \
   repoName="TERN Auscover" \
   repoBaseUrl='http://data.auscover.org.au/geonetwork/srv/en/oaipmh' \
   metadataPrefix=iso19139 \
-  harvestDir=/data/tern-auscover
+  harvestDir=/joai/data/tern-auscover
 
 createHarvester \
   urlPrefix=$globalUrlPrefix \
   repoName="TERN LTERN" \
   repoBaseUrl='https://www.ltern.org.au/knb/dataProvider' \
   metadataPrefix=eml \
-  harvestDir=/data/tern-ltern
+  harvestDir=/joai/data/tern-ltern
 
 createHarvester \
   urlPrefix=$globalUrlPrefix \
   repoName="TERN Supersites" \
   repoBaseUrl='https://supersites.tern.org.au/knb/dataProvider' \
   metadataPrefix=eml \
-  harvestDir=/data/tern-supersites
+  harvestDir=/joai/data/tern-supersites
 
-echo '[INFO] all done'
+echo '[INFO] all done. Note: this process will NOT overwrite an existing entry (or fail). You need to delete it from the UI and re-run.'
