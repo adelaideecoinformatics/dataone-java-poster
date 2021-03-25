@@ -75,7 +75,7 @@ setup(
     install_requires=[
         'dataone.cli==2.4.2',
         'dateparser==0.7.0',
-        'PyYAML==3.12',
+        'PyYAML==5.4',
         'requests==2.18.4',
         'requests[security]==2.18.4',
         'xmltodict==0.11.0'
